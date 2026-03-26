@@ -1,0 +1,1124 @@
+<!DOCTYPE html>
+<html lang="sk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MirrorsBatchProd - JIT Production</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 13px;
+    background: #f0f0f0;
+    color: #111;
+    user-select: none;
+  }
+
+  /* Title bar */
+  .titlebar {
+    background: #d4d0c8;
+    border-bottom: 1px solid #808080;
+    padding: 3px 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+  }
+  .titlebar-title { font-weight: bold; flex: 1; }
+  .titlebar-btns { display: flex; gap: 2px; }
+  .titlebar-btns button {
+    width: 18px; height: 16px;
+    border: 1px solid #808080;
+    background: #d4d0c8;
+    cursor: pointer;
+    font-size: 10px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .titlebar-btns button:hover { background: #bbb; }
+
+  /* Menu bar */
+  .menubar {
+    background: #d4d0c8;
+    border-bottom: 1px solid #808080;
+    padding: 2px 4px;
+    display: flex;
+    gap: 2px;
+    font-size: 12px;
+  }
+  .menubar span {
+    padding: 2px 8px;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  .menubar span:hover { background: #0078d7; color: #fff; }
+
+  /* Main container */
+  .main {
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* Header row */
+  .header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .page-title {
+    font-size: 20px;
+    font-weight: bold;
+    color: #222;
+  }
+  .magna-logo {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 22px;
+    font-weight: 900;
+    color: #333;
+    letter-spacing: -0.5px;
+  }
+  .magna-logo .dot-red {
+    width: 10px; height: 10px;
+    background: #cc0000;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 2px;
+  }
+  .magna-m {
+    color: #333;
+    font-size: 26px;
+    font-style: italic;
+    font-weight: 900;
+  }
+
+  /* Panel / group box */
+  .panel {
+    background: #fff;
+    border: 1px solid #aaa;
+    padding: 0;
+  }
+
+  /* Table styles */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+  table th {
+    background: #e8e4dc;
+    border: 1px solid #ccc;
+    padding: 3px 6px;
+    text-align: left;
+    font-weight: bold;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+  table td {
+    border: 1px solid #ddd;
+    padding: 3px 6px;
+    white-space: nowrap;
+  }
+  table tr:hover td { background: #d9e8f5; cursor: pointer; }
+  table tr.selected td { background: #c5d9f1; }
+  table tr.row-alt td { background: #f5f5f5; }
+
+  /* Status badge */
+  .status-vyroba {
+    background: #00cc00;
+    color: #000;
+    padding: 2px 10px;
+    font-weight: bold;
+    border: 1px solid #009900;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+  }
+  .status-paused {
+    background: #ff9900;
+    color: #000;
+    padding: 2px 10px;
+    font-weight: bold;
+    border: 1px solid #cc7700;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+  }
+  .status-stop {
+    background: #cc0000;
+    color: #fff;
+    padding: 2px 10px;
+    font-weight: bold;
+    border: 1px solid #aa0000;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+  }
+
+  /* Toolbar buttons */
+  .toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn {
+    padding: 3px 12px;
+    border: 1px solid #888;
+    background: #d4d0c8;
+    cursor: pointer;
+    font-size: 12px;
+    font-family: inherit;
+    border-radius: 0;
+    white-space: nowrap;
+  }
+  .btn:hover { background: #c0bcb4; }
+  .btn:active { background: #b0acb0; box-shadow: inset 1px 1px 2px #999; }
+  .btn.btn-green { background: #00aa00; color: #fff; border-color: #008800; font-weight: bold; }
+  .btn.btn-green:hover { background: #009900; }
+  .btn.btn-yellow { background: #e8a800; color: #000; border-color: #cc8800; }
+  .btn.btn-yellow:hover { background: #d4a000; }
+  .btn.btn-orange { background: #e06820; color: #fff; border-color: #c05010; }
+  .btn.btn-orange:hover { background: #cc5818; }
+  .btn.btn-red { background: #cc2020; color: #fff; border-color: #aa1010; }
+  .btn.btn-red:hover { background: #bb1818; }
+  .btn.btn-warn {
+    background: #d4d0c8;
+    border: 2px solid #cc0000;
+    color: #cc0000;
+    font-weight: bold;
+  }
+  .btn-right-group { margin-left: auto; display: flex; gap: 4px; }
+
+  /* Section separators */
+  .section-gap { height: 8px; }
+
+  /* Bottom section */
+  .bottom-section {
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+  }
+  .worker-table-wrap { flex: 1; }
+  .action-buttons {
+    display: flex;
+    gap: 4px;
+    align-items: flex-end;
+    padding-bottom: 2px;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  /* Status bar */
+  .statusbar {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #d4d0c8;
+    border-top: 1px solid #808080;
+    padding: 2px 8px;
+    display: flex;
+    gap: 20px;
+    font-size: 11px;
+  }
+
+  /* Progress bar */
+  .progress-wrap {
+    width: 100%; height: 14px;
+    background: #ddd;
+    border: 1px solid #999;
+    margin-top: 2px;
+  }
+  .progress-bar {
+    height: 100%;
+    background: #3a8ee6;
+    transition: width 0.4s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: #fff;
+    font-weight: bold;
+  }
+
+  /* Clock */
+  #clock {
+    font-size: 13px;
+    font-weight: bold;
+    color: #333;
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: #d4d0c8;
+    border: 2px solid #888;
+    box-shadow: 4px 4px 12px rgba(0,0,0,0.5);
+    min-width: 300px;
+    max-width: 480px;
+  }
+  .modal-title {
+    background: #0a246a;
+    color: #fff;
+    padding: 4px 10px;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  .modal-body { padding: 16px; }
+  .modal-body label { display: block; margin-bottom: 4px; font-size: 12px; }
+  .modal-body input, .modal-body select {
+    width: 100%; padding: 4px 6px;
+    border: 1px solid #888;
+    background: #fff;
+    font-size: 13px;
+    margin-bottom: 10px;
+  }
+  .modal-footer {
+    padding: 8px;
+    display: flex; justify-content: flex-end; gap: 6px;
+    border-top: 1px solid #aaa;
+  }
+
+  /* Andon alert */
+  .andon-bar {
+    display: none;
+    background: #cc0000;
+    color: #fff;
+    font-weight: bold;
+    padding: 6px 12px;
+    font-size: 14px;
+    text-align: center;
+    animation: blink 1s step-start infinite;
+  }
+  .andon-bar.active { display: block; }
+  @keyframes blink { 50% { background: #ff4444; } }
+
+  /* Tooltip */
+  .tooltip-wrap { position: relative; display: inline-block; }
+  .tooltip-wrap .tooltip {
+    display: none;
+    position: absolute;
+    bottom: 110%; left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 3px 8px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 50;
+    pointer-events: none;
+  }
+  .tooltip-wrap:hover .tooltip { display: block; }
+
+  .flex-space { flex: 1; }
+
+  input[type=number] { width: 70px; }
+
+  .zmetky-val { color: #cc4400; font-weight: bold; }
+  .open-val { color: #0055aa; }
+</style>
+</head>
+<body>
+
+<!-- Title bar -->
+<div class="titlebar">
+  <span class="titlebar-title">MirrorsBatchProd</span>
+  <div class="titlebar-btns">
+    <button>_</button>
+    <button>□</button>
+    <button onclick="if(confirm('Zavrieť aplikáciu?'))window.close()">✕</button>
+  </div>
+</div>
+
+<!-- Menu bar -->
+<div class="menubar">
+  <span>File</span>
+  <span>Settings</span>
+  <span>Help</span>
+  <span class="flex-space"></span>
+  <span id="clock">18:00:00</span>
+</div>
+
+<!-- ANDON alert bar -->
+<div class="andon-bar" id="andonBar">⚠ ANDON — Problém na pracovisku! Zavolajte vedúceho! ⚠</div>
+
+<div class="main">
+
+  <!-- Header -->
+  <div class="header-row">
+    <div class="page-title">JIT - Production</div>
+    <div class="magna-logo">
+      <span class="magna-m">M</span>
+      <span class="dot-red"></span>
+      <strong>MAGNA</strong>
+    </div>
+  </div>
+
+  <!-- Top table: Pracovisko -->
+  <div class="panel">
+    <table id="workplaceTable">
+      <thead>
+        <tr>
+          <th>Pracovisko</th>
+          <th>Popis</th>
+          <th>Status</th>
+          <th>Spustenie</th>
+          <th>Dôvod ID</th>
+          <th>Dôvod</th>
+          <th>ANDON</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="selected" onclick="selectWorkplace(this)">
+          <td>55011200</td>
+          <td>Lis 12</td>
+          <td><span class="status-vyroba" id="statusBadge">Výroba</span></td>
+          <td id="spustenie">26.03.2026 18:00</td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Toolbar 1 -->
+  <div class="toolbar">
+    <button class="btn" onclick="openModal('docs')">Dokumenty</button>
+    <button class="btn btn-warn" onclick="shutdownPC()">! Vypnut pocitac !</button>
+    <button class="btn" onclick="aktualizovat()">Aktualizovat</button>
+    <div class="btn-right-group">
+      <button class="btn btn-red" onclick="toggleAndon()">ANDON</button>
+      <button class="btn" onclick="openModal('status')">Zmenit stav</button>
+      <button class="btn" onclick="openModal('prikaz')">Otvorit prikaz</button>
+      <button class="btn" onclick="alert('Balenie / Obaly')">Obaly</button>
+      <button class="btn">…</button>
+    </div>
+  </div>
+
+  <!-- Orders table -->
+  <div class="panel">
+    <table id="ordersTable">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Príkaz</th>
+          <th>Materiál</th>
+          <th>Popis</th>
+          <th>Ciel. mnoz.</th>
+          <th>Vyr. mnoz.</th>
+          <th>Zmetky</th>
+          <th>Open</th>
+          <th>Forma</th>
+          <th>Rework</th>
+        </tr>
+      </thead>
+      <tbody id="ordersBody">
+        <tr class="selected" onclick="selectOrder(this, 0)">
+          <td>▶</td>
+          <td>000007468827</td>
+          <td>9301-002L-02</td>
+          <td>160B Salka- interne lis. P</td>
+          <td>5000</td>
+          <td id="vyr0">3360</td>
+          <td class="zmetky-val" id="zm0">8</td>
+          <td class="open-val" id="op0">182</td>
+          <td>WMSW-878-160BCT</td>
+          <td></td>
+        </tr>
+        <tr class="row-alt" onclick="selectOrder(this, 1)">
+          <td></td>
+          <td>000007468828</td>
+          <td>9302-002L-02</td>
+          <td>160B Salka - inter. lis. L</td>
+          <td>5000</td>
+          <td id="vyr1">3360</td>
+          <td class="zmetky-val" id="zm1">4</td>
+          <td class="open-val" id="op1">186</td>
+          <td>WMSW-878-160BCT</td>
+          <td></td>
+        </tr>
+      </tbody>
+    </table>
+    <!-- Progress for selected order -->
+    <div style="padding: 4px 6px 4px;">
+      <div style="font-size:11px; color:#555; margin-bottom:2px;">Postup výroby (aktívny príkaz):</div>
+      <div class="progress-wrap">
+        <div class="progress-bar" id="progressBar" style="width:67.2%">67.2%</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom tabs -->
+  <div style="display:flex; gap:4px; margin-top:2px;">
+    <button class="btn" onclick="showTab('etikety')">Boxové etikety</button>
+    <button class="btn" onclick="showTab('kusovnik')">Kusovník</button>
+    <button class="btn btn-green" onclick="showTab('uctovanie')">Účtovanie výroby</button>
+  </div>
+
+  <!-- Worker table + action buttons -->
+  <div class="panel" style="padding:0;">
+    <table id="workerTable">
+      <thead>
+        <tr>
+          <th>Os. číslo</th>
+          <th>Meno</th>
+          <th>Prihlásenie</th>
+        </tr>
+      </thead>
+      <tbody>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="toolbar" style="justify-content: flex-end;">
+    <button class="btn btn-yellow" onclick="openModal('spotreba')">Dodatočná spotreba</button>
+    <button class="btn btn-orange" onclick="ukoncitPrikaz()">Ukončit príkaz</button>
+    <button class="btn" onclick="prerusitPrikaz()">Prerušit príkaz</button>
+    <button class="btn btn-red" onclick="openModal('zmetky')">Zmetky</button>
+  </div>
+
+  <!-- Login/Logout -->
+  <div style="display:flex; gap:4px; margin-top:4px; margin-bottom:30px;">
+    <button class="btn" onclick="openModal('login')">Prihlásiť sa</button>
+    <button class="btn" onclick="odhlasenie()">Odhlásenie</button>
+  </div>
+
+</div>
+
+<!-- Status bar -->
+<div class="statusbar">
+  <span>Workplace: T23</span>
+  <span>User: worker</span>
+  <span id="statusbarMsg" style="color:#990000;"></span>
+  <span class="flex-space"></span>
+  <span id="clockBottom">18:00:00</span>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Login Modal -->
+<div class="modal-overlay" id="modal-login">
+  <div class="modal-box">
+    <div class="modal-title">Prihlásenie pracovníka</div>
+    <div class="modal-body">
+      <label>Rýchly výber:</label>
+      <div style="margin-bottom:10px; display:flex; gap:4px; flex-wrap:wrap;">
+        <button class="btn btn-green" style="font-size:11px;" onclick="quickLogin('10001981','Volodymyr Koval')">👤 Volodymyr Koval (10001981)</button>
+        <button class="btn" style="font-size:11px;" onclick="quickLogin('10002590','Serhii Kapuza')">👤 Serhii Kapuza (10002590)</button>
+      </div>
+      <label>Os. číslo:</label>
+      <input type="text" id="loginId" placeholder="napr. 10002590">
+      <label>Meno:</label>
+      <input type="text" id="loginName" placeholder="Meno Priezvisko">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-green" onclick="doLogin()">Prihlásiť</button>
+      <button class="btn" onclick="closeModal('login')">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- Zmenit stav Modal — full status table -->
+<div class="modal-overlay" id="modal-status">
+  <div class="modal-box" style="min-width:560px; max-width:680px;">
+    <div class="modal-title" style="background:#333; font-size:13px; padding:6px 12px;">Zmeniť stav pracoviska</div>
+    <div class="modal-body" style="padding:0;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr>
+            <th style="background:#e0ddd8; border:1px solid #bbb; padding:6px 12px; font-weight:bold; text-align:center; width:120px;">Status</th>
+            <th style="background:#e0ddd8; border:1px solid #bbb; padding:6px 12px; font-weight:bold; text-align:center; width:60px;">Code</th>
+            <th style="background:#e0ddd8; border:1px solid #bbb; padding:6px 12px; font-weight:bold; text-align:center;">Descr</th>
+            <th style="background:#e0ddd8; border:1px solid #bbb; padding:6px 8px; width:70px;"></th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Production row -->
+          <tr style="background:#4caf50;">
+            <td style="border:1px solid #bbb; padding:6px 12px; text-align:center; font-weight:bold; color:#fff;">Production</td>
+            <td style="border:1px solid #bbb; padding:6px 12px; text-align:center;"></td>
+            <td style="border:1px solid #bbb; padding:6px 12px;"></td>
+            <td style="border:1px solid #bbb; padding:4px 6px; text-align:center;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('vyroba','Production','')">Start</button>
+            </td>
+          </tr>
+          <!-- Downtime rows -->
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">005</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">KVALITATÍVNY PRESTOJ</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','005 — KVALITATÍVNY PRESTOJ')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">006</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">PORADA / ŠKOLENIE</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','006 — PORADA / ŠKOLENIE')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">007</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">VÝMENA FORMY</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','007 — VÝMENA FORMY')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">011</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">VÝPADOK PRÚDU</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','011 — VÝPADOK PRÚDU')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">014</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">CISTENIE/UTIER.FORMY</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','014 — CISTENIE/UTIER.FORMY')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">015</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">TPM CISTENIE/ÚDRŽBA</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','015 — TPM CISTENIE/ÚDRŽBA')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">017</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">NENASUŠENÝ MATERIAL (GRANULÁT)</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','017 — NENASUŠENÝ MATERIAL')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">018</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">PORUCHA LIS</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','018 — PORUCHA LIS')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">024</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">PORUCHA ROBOTA</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','024 — PORUCHA ROBOTA')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">026</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">PORUCHA FORMY</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','026 — PORUCHA FORMY')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">032</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">PREVLOZKOVANIE</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','032 — PREVLOZKOVANIE')">Start</button>
+            </td>
+          </tr>
+          <tr style="background:#e8651a;">
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">Downtime</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; text-align:center; color:#000;">034</td>
+            <td style="border:1px solid #bbb; padding:5px 12px; color:#000; font-weight:bold;">NASTAVENIE ODOBER.</td>
+            <td style="border:1px solid #bbb; padding:3px 6px; text-align:center; background:#d4d0c8;">
+              <button class="btn" style="padding:3px 14px; font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','034 — NASTAVENIE ODOBER.')">Start</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('status')">Zavrieť</button>
+    </div>
+  </div>
+</div>
+
+<!-- Zmetky Modal — full grid like real system -->
+<div class="modal-overlay" id="modal-zmetky">
+  <div class="modal-box" style="min-width:700px; max-width:860px; max-height:90vh; display:flex; flex-direction:column;">
+    <div class="modal-title" style="background:#333; font-size:13px; padding:6px 12px; display:flex; justify-content:space-between; align-items:center;">
+      <span>Nahlásiť množstvo šrotu</span>
+      <span style="font-size:11px; color:#ccc;">Príkaz: <span id="zmetkyActivePrikaz">—</span></span>
+    </div>
+
+    <!-- Step 1: choose order -->
+    <div id="zmetkyStep1" style="padding:10px;">
+      <div style="font-size:12px; color:#555; margin-bottom:6px;">Vyberte príkaz:</div>
+      <div style="display:flex; gap:6px; flex-wrap:wrap;">
+        <button class="btn btn-green" onclick="zmetkySelectOrder(0,'000007468827 — 160B Salka- interne lis. P')">000007468827 — 160B Salka- interne lis. P</button>
+        <button class="btn btn-green" onclick="zmetkySelectOrder(1,'000007468828 — 160B Salka - inter. lis. L')">000007468828 — 160B Salka - inter. lis. L</button>
+      </div>
+    </div>
+
+    <!-- Step 2: reason grid -->
+    <div id="zmetkyStep2" style="display:none; flex:1; overflow:auto; padding:8px;">
+      <div style="font-size:12px; color:#555; margin-bottom:6px;">Vyberte dôvod šrotu:</div>
+      <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:4px;" id="zmetkyGrid">
+      </div>
+    </div>
+
+    <!-- Step 3: count -->
+    <div id="zmetkyStep3" style="display:none; padding:12px;">
+      <div style="font-size:13px; font-weight:bold; margin-bottom:8px;">Dôvod: <span id="zmetkyChosenReason" style="color:#cc4400;"></span></div>
+      <label style="font-size:12px;">Počet kusov šrotu:</label>
+      <div style="display:flex; gap:6px; align-items:center; margin-top:4px;">
+        <button class="btn" style="padding:4px 12px; font-size:16px;" onclick="adjustZmetkyCount(-1)">−</button>
+        <input type="number" id="zmetkyCount" min="1" value="1" style="width:80px; text-align:center; font-size:16px; padding:4px;">
+        <button class="btn" style="padding:4px 12px; font-size:16px;" onclick="adjustZmetkyCount(1)">+</button>
+      </div>
+    </div>
+
+    <div class="modal-footer" style="justify-content:space-between;">
+      <button class="btn" id="zmetkyBackBtn" style="display:none;" onclick="zmetkyBack()">◀ Späť</button>
+      <div style="display:flex; gap:6px; margin-left:auto;">
+        <button class="btn btn-red" id="zmetkyConfirmBtn" style="display:none;" onclick="doZmetky()">✔ Potvrdiť šrot</button>
+        <button class="btn" onclick="closeModal('zmetky'); zmetkyReset()">Zrušiť</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Otvorit prikaz Modal -->
+<div class="modal-overlay" id="modal-prikaz">
+  <div class="modal-box">
+    <div class="modal-title">Otvoriť príkaz</div>
+    <div class="modal-body">
+      <label>Číslo príkazu:</label>
+      <input type="text" id="newPrikaz" placeholder="napr. 000007468829">
+      <label>Materiál:</label>
+      <input type="text" id="newMaterial" placeholder="napr. 9303-002L-02">
+      <label>Popis:</label>
+      <input type="text" id="newPopis" placeholder="Popis výrobku">
+      <label>Cieľové množstvo:</label>
+      <input type="number" id="newCiel" value="5000" style="width:100%">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-green" onclick="doOpenPrikaz()">Otvoriť</button>
+      <button class="btn" onclick="closeModal('prikaz')">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- Spotreba Modal -->
+<div class="modal-overlay" id="modal-spotreba">
+  <div class="modal-box">
+    <div class="modal-title">Dodatočná spotreba materiálu</div>
+    <div class="modal-body">
+      <label>Materiál:</label>
+      <input type="text" id="spotrebaMat" placeholder="Číslo materiálu">
+      <label>Množstvo:</label>
+      <input type="number" id="spotrebaQty" value="1" style="width:100%">
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-yellow" onclick="doSpotreba()">Potvrdiť</button>
+      <button class="btn" onclick="closeModal('spotreba')">Zrušiť</button>
+    </div>
+  </div>
+</div>
+
+<!-- Docs Modal -->
+<div class="modal-overlay" id="modal-docs">
+  <div class="modal-box">
+    <div class="modal-title">Dokumenty</div>
+    <div class="modal-body">
+      <div style="font-size:12px; color:#555; margin-bottom:8px;">Dostupné dokumenty pre pracovisko 55011200:</div>
+      <div style="display:flex; flex-direction:column; gap:4px;">
+        <button class="btn" onclick="alert('Otváranie: Pracovná inštrukcia WI-878-001')">📄 Pracovná inštrukcia WI-878-001</button>
+        <button class="btn" onclick="alert('Otváranie: Kontrolný plán KP-160B')">📄 Kontrolný plán KP-160B</button>
+        <button class="btn" onclick="alert('Otváranie: FMEA-878-160BCT')">📄 FMEA-878-160BCT</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal('docs')">Zavrieť</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// === Clock ===
+function updateClock() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('sk-SK', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  document.getElementById('clock').textContent = t;
+  document.getElementById('clockBottom').textContent = t;
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// === Modal helpers ===
+function openModal(id) {
+  document.getElementById('modal-' + id).classList.add('active');
+}
+function closeModal(id) {
+  document.getElementById('modal-' + id).classList.remove('active');
+}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(el => {
+  el.addEventListener('click', function(e) {
+    if (e.target === el) el.classList.remove('active');
+  });
+});
+
+// === State ===
+let orderData = [
+  { prikaz:'000007468827', mat:'9301-002L-02', popis:'160B Salka- interne lis. P', ciel:5000, vyr:3360, zm:8, open:182, forma:'WMSW-878-160BCT' },
+  { prikaz:'000007468828', mat:'9302-002L-02', popis:'160B Salka - inter. lis. L', ciel:5000, vyr:3360, zm:4, open:186, forma:'WMSW-878-160BCT' }
+];
+let selectedOrder = 0;
+let andonActive = false;
+
+function setMsg(msg, color) {
+  const el = document.getElementById('statusbarMsg');
+  el.textContent = msg;
+  el.style.color = color || '#990000';
+  setTimeout(() => { el.textContent = ''; }, 4000);
+}
+
+// === ANDON ===
+function toggleAndon() {
+  andonActive = !andonActive;
+  document.getElementById('andonBar').classList.toggle('active', andonActive);
+  setMsg(andonActive ? '⚠ ANDON aktivovaný' : 'ANDON deaktivovaný', andonActive ? '#cc0000' : '#007700');
+}
+
+// === Aktualizovat ===
+function aktualizovat() {
+  setMsg('Dáta aktualizované.', '#007700');
+  updateProgress();
+}
+
+// === Select row ===
+function selectOrder(row, idx) {
+  document.querySelectorAll('#ordersBody tr').forEach(r => r.classList.remove('selected'));
+  row.classList.add('selected');
+  selectedOrder = idx;
+  updateProgress();
+}
+function selectWorkplace(row) {
+  document.querySelectorAll('#workplaceTable tbody tr').forEach(r => r.classList.remove('selected'));
+  row.classList.add('selected');
+}
+
+function updateProgress() {
+  const d = orderData[selectedOrder];
+  const pct = Math.round(d.vyr / d.ciel * 1000) / 10;
+  const bar = document.getElementById('progressBar');
+  bar.style.width = pct + '%';
+  bar.textContent = pct + '%';
+  bar.style.background = pct >= 100 ? '#00aa00' : pct >= 80 ? '#e08000' : '#3a8ee6';
+}
+
+function refreshOrders() {
+  orderData.forEach((d, i) => {
+    document.getElementById('vyr' + i).textContent = d.vyr;
+    document.getElementById('zm' + i).textContent = d.zm;
+    document.getElementById('op' + i).textContent = d.open;
+  });
+  updateProgress();
+}
+
+// === Change Status (from table) ===
+function setStatusFromTable(val, label, reason) {
+  const badge = document.getElementById('statusBadge');
+  if (val === 'vyroba') {
+    badge.className = 'status-vyroba'; badge.textContent = 'Výroba';
+  } else {
+    badge.className = 'status-stop'; badge.textContent = label;
+  }
+  const row = document.querySelector('#workplaceTable tbody tr.selected');
+  if (row) {
+    row.cells[4].textContent = reason ? reason.split(' \u2014 ')[0] : '';
+    row.cells[5].textContent = reason ? reason.split(' \u2014 ')[1] || '' : '';
+  }
+  closeModal('status');
+  setMsg('Stav: ' + label + (reason ? ' \u2014 ' + reason : ''), val === 'vyroba' ? '#007700' : '#cc4400');
+}
+function doChangeStatus() {
+  const val = document.getElementById('newStatus').value;
+  const reason = document.getElementById('statusReason').value;
+  const badge = document.getElementById('statusBadge');
+  if (val === 'vyroba') {
+    badge.className = 'status-vyroba'; badge.textContent = 'Výroba';
+  } else if (val === 'paused') {
+    badge.className = 'status-paused'; badge.textContent = 'Prestávka';
+  } else {
+    badge.className = 'status-stop'; badge.textContent = 'Zastavené';
+  }
+  closeModal('status');
+  setMsg('Stav zmenený: ' + badge.textContent + (reason ? ' — ' + reason : ''), '#007700');
+}
+
+// === Zmetky — multi-step ===
+const zmetkyReasons = [
+  {code:'0001', descr:'Rozbeh výroby / nastavovanie'},
+  {code:'0002', descr:'Vzorky'},
+  {code:'0003', descr:'Nedostrek / nekompletný diel'},
+  {code:'0004', descr:'Prestrek'},
+  {code:'0005', descr:'Prepadlina'},
+  {code:'0006', descr:'Rozmerová deformácia / ohnutý'},
+  {code:'0007', descr:'Prskance / smuhy'},
+  {code:'0008', descr:'Mapy / flaky / leskly flak'},
+  {code:'0009', descr:'Spoj materiálu'},
+  {code:'0010', descr:'Prasklina'},
+  {code:'0011', descr:'Výlup / odlomený'},
+  {code:'0012', descr:'Zadymený / mliečny'},
+  {code:'0013', descr:'Bublina'},
+  {code:'0014', descr:'Čierny bod'},
+  {code:'0015', descr:'Biely bod'},
+  {code:'0016', descr:'Kontaminácia / cudzie teleso'},
+  {code:'0017', descr:'Škrabanec / ryha'},
+  {code:'0018', descr:'Vlas / zalisovaný vlas'},
+  {code:'0019', descr:'Mastnota'},
+  {code:'0020', descr:'Zlé odstrihnutý vtok'},
+  {code:'0021', descr:'Pod tisom / neodobratie dielu'},
+  {code:'0023', descr:'Zlé kusy - degradácia mat.'},
+  {code:'0024', descr:'Test formy / vzorkovanie'},
+  {code:'0025', descr:'Po utretí formy'},
+  {code:'0026', descr:'Elektrická chyba'},
+  {code:'0027', descr:'Chyba skla'},
+  {code:'0028', descr:'Technologický scrap'},
+  {code:'0029', descr:'Chybajúce balenie'},
+  {code:'0030', descr:'Trial - rozbeh výroby'},
+  {code:'0031', descr:'Trial - škrabanec'},
+  {code:'0032', descr:'Trial - prestrak'},
+  {code:'0033', descr:'Trial - nedostatok'},
+  {code:'0034', descr:'Trial - spálenina'},
+  {code:'0035', descr:'Trial - mastnota'},
+  {code:'0036', descr:'Trial - deformácia'},
+  {code:'0037', descr:'Trial - prskance'},
+  {code:'0038', descr:'Trial - flak'},
+  {code:'0039', descr:'Trial - kontaminácia'},
+  {code:'0040', descr:'Trial - prepadlina'},
+  {code:'0041', descr:'Trial - spoj materiálu'},
+  {code:'0042', descr:''},
+  {code:'0043', descr:''},
+  {code:'0044', descr:''},
+  {code:'0045', descr:''},
+  {code:'0046', descr:''},
+];
+
+let zmetkyOrderIdx = 0;
+let zmetkyReasonCode = '';
+let zmetkyReasonDescr = '';
+
+function buildZmetkyGrid() {
+  const grid = document.getElementById('zmetkyGrid');
+  grid.innerHTML = '';
+  zmetkyReasons.forEach(r => {
+    const btn = document.createElement('button');
+    btn.style.cssText = 'border:1px solid #999; background:#fff; padding:6px 4px; cursor:pointer; text-align:center; font-size:11px; font-family:inherit; min-height:44px;';
+    btn.innerHTML = `<div style="font-weight:bold; color:#333;">${r.code}</div><div style="color:#555; margin-top:2px; font-size:10px;">${r.descr}</div>`;
+    btn.onmouseover = () => btn.style.background = '#d9e8f5';
+    btn.onmouseout = () => btn.style.background = '#fff';
+    if (r.descr) {
+      btn.onclick = () => zmetkySelectReason(r.code, r.descr);
+    } else {
+      btn.style.background = '#f0f0f0';
+      btn.style.cursor = 'default';
+    }
+    grid.appendChild(btn);
+  });
+}
+
+function zmetkySelectOrder(idx, label) {
+  zmetkyOrderIdx = idx;
+  document.getElementById('zmetkyActivePrikaz').textContent = label;
+  document.getElementById('zmetkyStep1').style.display = 'none';
+  buildZmetkyGrid();
+  document.getElementById('zmetkyStep2').style.display = 'block';
+  document.getElementById('zmetkyBackBtn').style.display = 'inline-block';
+}
+
+function zmetkySelectReason(code, descr) {
+  zmetkyReasonCode = code;
+  zmetkyReasonDescr = descr;
+  document.getElementById('zmetkyChosenReason').textContent = code + ' — ' + descr;
+  document.getElementById('zmetkyStep2').style.display = 'none';
+  document.getElementById('zmetkyStep3').style.display = 'block';
+  document.getElementById('zmetkyCount').value = 1;
+  document.getElementById('zmetkyConfirmBtn').style.display = 'inline-block';
+}
+
+function zmetkyBack() {
+  if (document.getElementById('zmetkyStep3').style.display !== 'none') {
+    document.getElementById('zmetkyStep3').style.display = 'none';
+    document.getElementById('zmetkyConfirmBtn').style.display = 'none';
+    document.getElementById('zmetkyStep2').style.display = 'block';
+  } else {
+    document.getElementById('zmetkyStep2').style.display = 'none';
+    document.getElementById('zmetkyStep1').style.display = 'block';
+    document.getElementById('zmetkyBackBtn').style.display = 'none';
+  }
+}
+
+function zmetkyReset() {
+  document.getElementById('zmetkyStep1').style.display = 'block';
+  document.getElementById('zmetkyStep2').style.display = 'none';
+  document.getElementById('zmetkyStep3').style.display = 'none';
+  document.getElementById('zmetkyBackBtn').style.display = 'none';
+  document.getElementById('zmetkyConfirmBtn').style.display = 'none';
+  document.getElementById('zmetkyActivePrikaz').textContent = '—';
+}
+
+function adjustZmetkyCount(delta) {
+  const inp = document.getElementById('zmetkyCount');
+  inp.value = Math.max(1, (parseInt(inp.value) || 1) + delta);
+}
+
+function doZmetky() {
+  const cnt = parseInt(document.getElementById('zmetkyCount').value) || 0;
+  if (cnt <= 0) { alert('Zadajte platný počet!'); return; }
+  const idx = zmetkyOrderIdx;
+  orderData[idx].zm += cnt;
+  orderData[idx].vyr = Math.max(0, orderData[idx].vyr - cnt);
+  orderData[idx].open = orderData[idx].ciel - orderData[idx].vyr;
+  refreshOrders();
+  closeModal('zmetky');
+  zmetkyReset();
+  setMsg('Šrot zadaný: ' + cnt + ' ks — ' + zmetkyReasonCode + ' ' + zmetkyReasonDescr, '#cc4400');
+}
+
+// === Login ===
+function quickLogin(id, name) {
+  document.getElementById('loginId').value = id;
+  document.getElementById('loginName').value = name;
+  doLogin();
+}
+function doLogin() {
+  const id = document.getElementById('loginId').value.trim();
+  const name = document.getElementById('loginName').value.trim();
+  if (!id || !name) { alert('Vyplňte všetky polia!'); return; }
+  const tbody = document.querySelector('#workerTable tbody');
+  const now = new Date().toLocaleTimeString('sk-SK', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const row = document.createElement('tr');
+  row.innerHTML = `<td>${id}</td><td>${name}</td><td>${now}</td>`;
+  tbody.appendChild(row);
+  closeModal('login');
+  setMsg('Pracovník prihlásený: ' + name, '#007700');
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginName').value = '';
+}
+
+function odhlasenie() {
+  const tbody = document.querySelector('#workerTable tbody');
+  const rows = tbody.querySelectorAll('tr');
+  if (rows.length === 0) { setMsg('Žiadny pracovník prihlásený.'); return; }
+  const last = rows[rows.length - 1];
+  const name = last.cells[1].textContent;
+  if (confirm('Odhlásiť pracovníka: ' + name + '?')) {
+    tbody.removeChild(last);
+    setMsg('Pracovník odhlásený: ' + name, '#555');
+  }
+}
+
+// === Ukoncit / Prerusit ===
+function ukoncitPrikaz() {
+  const d = orderData[selectedOrder];
+  if (!confirm('Ukončiť príkaz ' + d.prikaz + '?\nVyrobené: ' + d.vyr + ' / ' + d.ciel)) return;
+  setMsg('Príkaz ' + d.prikaz + ' ukončený.', '#007700');
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'status-stop'; badge.textContent = 'Ukončené';
+}
+function prerusitPrikaz() {
+  const d = orderData[selectedOrder];
+  if (!confirm('Prerušiť príkaz ' + d.prikaz + '?')) return;
+  setMsg('Príkaz ' + d.prikaz + ' prerušený.', '#cc7700');
+  const badge = document.getElementById('statusBadge');
+  badge.className = 'status-paused'; badge.textContent = 'Prerušené';
+}
+
+// === Open Prikaz ===
+function doOpenPrikaz() {
+  const p = document.getElementById('newPrikaz').value.trim();
+  const m = document.getElementById('newMaterial').value.trim();
+  const po = document.getElementById('newPopis').value.trim();
+  const c = parseInt(document.getElementById('newCiel').value) || 5000;
+  if (!p || !m || !po) { alert('Vyplňte všetky polia!'); return; }
+  const idx = orderData.length;
+  orderData.push({ prikaz: p, mat: m, popis: po, ciel: c, vyr: 0, zm: 0, open: c, forma: 'WMSW-878-NEW' });
+  const tbody = document.getElementById('ordersBody');
+  const row = document.createElement('tr');
+  row.className = idx % 2 === 1 ? 'row-alt' : '';
+  row.onclick = function() { selectOrder(row, idx); };
+  row.innerHTML = `<td></td><td>${p}</td><td>${m}</td><td>${po}</td><td>${c}</td>
+    <td id="vyr${idx}">0</td><td class="zmetky-val" id="zm${idx}">0</td>
+    <td class="open-val" id="op${idx}">${c}</td><td>WMSW-878-NEW</td><td></td>`;
+  tbody.appendChild(row);
+  closeModal('prikaz');
+  setMsg('Príkaz otvorený: ' + p, '#007700');
+  ['newPrikaz','newMaterial','newPopis'].forEach(id => document.getElementById(id).value = '');
+}
+
+// === Spotreba ===
+function doSpotreba() {
+  const mat = document.getElementById('spotrebaMat').value.trim();
+  const qty = parseInt(document.getElementById('spotrebaQty').value) || 0;
+  if (!mat || qty <= 0) { alert('Vyplňte polia!'); return; }
+  closeModal('spotreba');
+  setMsg('Spotreba zadaná: ' + mat + ' × ' + qty, '#cc8800');
+}
+
+// === Shutdown ===
+function shutdownPC() {
+  if (confirm('Naozaj chcete vypnúť počítač?')) {
+    setMsg('Počítač sa vypína...', '#cc0000');
+  }
+}
+
+// === Tabs ===
+function showTab(tab) {
+  const msgs = {
+    etikety: 'Boxové etikety — tlač štítkov',
+    kusovnik: 'Kusovník — zoznam materiálov',
+    uctovanie: 'Účtovanie výroby — zadávanie kusov'
+  };
+  setMsg(msgs[tab] || tab, '#0055aa');
+}
+
+// Simulate production counter (slowly increment)
+setInterval(() => {
+  orderData.forEach((d, i) => {
+    if (d.vyr < d.ciel && document.querySelector('.status-vyroba')) {
+      d.vyr += Math.floor(Math.random() * 2);
+      if (d.vyr > d.ciel) d.vyr = d.ciel;
+      d.open = d.ciel - d.vyr;
+    }
+  });
+  refreshOrders();
+}, 8000);
+
+updateProgress();
+</script>
+</body>
+</html>
