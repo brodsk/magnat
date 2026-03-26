@@ -512,25 +512,58 @@
 
 <!-- ===== MODALS ===== -->
 
-<!-- Login Modal -->
-<div class="modal-overlay" id="modal-login">
-  <div class="modal-box">
-    <div class="modal-title">Prihlásenie pracovníka</div>
-    <div class="modal-body">
-      <label>Rýchly výber:</label>
-      <div style="margin-bottom:10px; display:flex; gap:4px; flex-wrap:wrap;">
-        <button class="btn btn-green" style="font-size:11px;" onclick="quickLogin('10001981','Volodymyr Koval')">👤 Volodymyr Koval (10001981)</button>
-        <button class="btn" style="font-size:11px;" onclick="quickLogin('10002590','Serhii Kapuza')">👤 Serhii Kapuza (10002590)</button>
-      </div>
-      <label>Os. číslo:</label>
-      <input type="text" id="loginId" placeholder="napr. 10002590">
-      <label>Meno:</label>
-      <input type="text" id="loginName" placeholder="Meno Priezvisko">
+<!-- Login — fullscreen overlay like real system -->
+<div id="modal-login" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:#f0f0f0; z-index:200; flex-direction:column;">
+  <!-- Title bar -->
+  <div style="background:#d4d0c8; border-bottom:1px solid #808080; padding:3px 6px; font-size:11px; font-weight:bold;">MirrorsBatchProd</div>
+  <div style="background:#d4d0c8; border-bottom:1px solid #808080; padding:2px 8px; font-size:12px;">File &nbsp; Settings &nbsp; Help</div>
+
+  <!-- Header -->
+  <div style="display:flex; justify-content:space-between; align-items:flex-start; padding:10px 14px 0;">
+    <div style="font-size:20px; font-weight:bold;">JIT - Production</div>
+    <div style="font-size:22px; font-weight:900; color:#333; font-style:italic;">
+      <span style="font-size:26px; font-style:italic; font-weight:900;">M</span>
+      <span style="width:10px;height:10px;background:#cc0000;border-radius:50%;display:inline-block;margin:0 2px 2px;vertical-align:middle;"></span>
+      <strong>MAGNA</strong>
     </div>
-    <div class="modal-footer">
-      <button class="btn btn-green" onclick="doLogin()">Prihlásiť</button>
-      <button class="btn" onclick="closeModal('login')">Zrušiť</button>
+  </div>
+
+  <!-- Login content -->
+  <div style="padding:20px 14px;">
+    <div style="font-size:14px; font-weight:bold; margin-bottom:12px; border-bottom:1px solid #ccc; padding-bottom:6px;">
+      Prihlásiť sa [55011200] Lis 12
     </div>
+
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:16px;">
+      <label style="font-size:13px; white-space:nowrap;">User Id:</label>
+      <input type="text" id="loginId"
+        style="border:1px solid #777; padding:3px 6px; font-size:13px; width:130px; font-family:inherit;"
+        placeholder=""
+        onkeydown="if(event.key==='Enter') doLogin()"
+        oninput="loginLookup(this.value)">
+      <button class="btn" onclick="doLogin()" style="padding:3px 16px; font-weight:bold;">Login</button>
+    </div>
+
+    <!-- Lookup result -->
+    <div id="loginLookupResult" style="font-size:12px; color:#0055aa; margin-bottom:12px; min-height:18px;"></div>
+
+    <!-- Known users hint -->
+    <div style="font-size:11px; color:#888; margin-bottom:6px;">Rýchly výber:</div>
+    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+      <button class="btn" style="font-size:11px; padding:4px 10px;" onclick="quickLogin('10001981')">10001981</button>
+      <button class="btn" style="font-size:11px; padding:4px 10px;" onclick="quickLogin('10002590')">10002590</button>
+    </div>
+  </div>
+
+  <!-- Back button bottom-right like photo -->
+  <div style="position:absolute; bottom:30px; right:12px;">
+    <button class="btn" onclick="closeLoginScreen()">Back</button>
+  </div>
+
+  <!-- Status bar -->
+  <div style="position:absolute; bottom:0; left:0; right:0; background:#d4d0c8; border-top:1px solid #808080; padding:2px 8px; display:flex; gap:20px; font-size:11px;">
+    <span>Workplace: T23</span>
+    <span>User: worker</span>
   </div>
 </div>
 
@@ -777,9 +810,6 @@ setInterval(updateClock, 1000);
 updateClock();
 
 // === Modal helpers ===
-function openModal(id) {
-  document.getElementById('modal-' + id).classList.add('active');
-}
 function closeModal(id) {
   document.getElementById('modal-' + id).classList.remove('active');
 }
@@ -1010,24 +1040,66 @@ function doZmetky() {
 }
 
 // === Login ===
-function quickLogin(id, name) {
+const knownWorkers = {
+  '10001981': 'Volodymyr Koval',
+  '10002590': 'Serhii Kapuza',
+};
+
+function openModal(id) {
+  if (id === 'login') { openLoginScreen(); return; }
+  document.getElementById('modal-' + id).classList.add('active');
+}
+
+function openLoginScreen() {
+  const el = document.getElementById('modal-login');
+  el.style.display = 'flex';
+  document.getElementById('loginId').value = '';
+  document.getElementById('loginLookupResult').textContent = '';
+  setTimeout(() => document.getElementById('loginId').focus(), 50);
+}
+
+function closeLoginScreen() {
+  document.getElementById('modal-login').style.display = 'none';
+}
+
+function loginLookup(val) {
+  const el = document.getElementById('loginLookupResult');
+  const name = knownWorkers[val.trim()];
+  if (name) {
+    el.textContent = '✔ ' + name;
+    el.style.color = '#007700';
+  } else if (val.length >= 4) {
+    el.textContent = 'Pracovník nenájdený';
+    el.style.color = '#cc0000';
+  } else {
+    el.textContent = '';
+  }
+}
+
+function quickLogin(id) {
   document.getElementById('loginId').value = id;
-  document.getElementById('loginName').value = name;
+  loginLookup(id);
   doLogin();
 }
+
 function doLogin() {
   const id = document.getElementById('loginId').value.trim();
-  const name = document.getElementById('loginName').value.trim();
-  if (!id || !name) { alert('Vyplňte všetky polia!'); return; }
+  if (!id) { return; }
+  const name = knownWorkers[id] || ('Worker ' + id);
   const tbody = document.querySelector('#workerTable tbody');
+  // check not already logged in
+  const existing = Array.from(tbody.querySelectorAll('tr')).find(r => r.cells[0].textContent === id);
+  if (existing) {
+    document.getElementById('loginLookupResult').textContent = 'Už prihlásený!';
+    document.getElementById('loginLookupResult').style.color = '#cc7700';
+    return;
+  }
   const now = new Date().toLocaleTimeString('sk-SK', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
   const row = document.createElement('tr');
   row.innerHTML = `<td>${id}</td><td>${name}</td><td>${now}</td>`;
   tbody.appendChild(row);
-  closeModal('login');
+  closeLoginScreen();
   setMsg('Pracovník prihlásený: ' + name, '#007700');
-  document.getElementById('loginId').value = '';
-  document.getElementById('loginName').value = '';
 }
 
 function odhlasenie() {
