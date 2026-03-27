@@ -1,637 +1,280 @@
-Zde je kompletně přepracovaná hra podle vašich požadavků. Upravil jsem postavu hráče do tmavě šedé trička, přidal jsem dvě různé predačky (jednu s ryšavým karé, druhou s dlouhými šedými vlasy), skladníka v červeném tričku s bílým pruhem a mistra v černém, který se objeví při prohře.
-
-```html
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LISOVNA MAGNA - výroba zrkadiel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LISOVNA</title>
+
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
-body {
-  background: #0a0f1a;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  overflow: hidden;
-  height: 100vh;
-  width: 100vw;
-  position: fixed;
+body{
+  margin:0;
+  background:#111;
+  color:#fff;
+  font-family:sans-serif;
+  text-align:center;
 }
 
-/* HERNÍ OBRAZOVKA */
-#gameFullscreen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 20;
-  background: #1a2a1f;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
+#menu{
+  padding:20px;
 }
 
-.game-container {
-  background: #2c4028;
-  border-radius: 28px;
-  padding: 16px 12px 20px;
-  box-shadow: 0 15px 30px rgba(0,0,0,0.5);
-  max-width: 900px;
-  width: 100%;
+input{
+  padding:10px;
+  font-size:16px;
+  border-radius:6px;
+  border:none;
+  text-align:center;
 }
 
-canvas {
-  display: block;
-  margin: 0 auto;
-  border-radius: 20px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.4);
-  background: #1e2a1a;
-  width: 100%;
-  height: auto;
-  cursor: pointer;
-  touch-action: none;
+button{
+  padding:10px 20px;
+  font-size:18px;
+  margin-top:10px;
 }
 
-.game-stats {
-  display: flex;
-  justify-content: center;
-  gap: 24px;
-  margin: 16px 0 12px;
-  background: #131e12cc;
-  backdrop-filter: blur(8px);
-  padding: 8px 20px;
-  border-radius: 60px;
-  font-weight: bold;
-  font-family: monospace;
-  color: #f9f3cf;
-  flex-wrap: wrap;
+#leaderboard{
+  margin-top:10px;
+  font-size:13px;
+  color:#aaa;
 }
 
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 1rem;
+canvas{
+  background:#161616;
+  display:block;
+  margin:auto;
+  touch-action:none;
 }
-
-.stat-value {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: #ffde8a;
-  min-width: 45px;
-}
-
-.controls {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  margin: 12px 0 6px;
-}
-
-.game-btn {
-  background: #3a2e24;
-  border: 1px solid #e0a86a;
-  font-size: 1.4rem;
-  font-weight: bold;
-  padding: 10px 28px;
-  border-radius: 60px;
-  color: white;
-  cursor: pointer;
-  font-family: monospace;
-  transition: 0.05s linear;
-  box-shadow: 0 3px 0 #5a3e2a;
-}
-
-.game-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #5a3e2a; }
-
-.hint {
-  text-align: center;
-  font-size: 0.7rem;
-  color: #bdb78a;
-  margin-top: 8px;
-  font-family: monospace;
-}
-
-/* MENU OVERLAY */
-.overlay-menu {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.88);
-  backdrop-filter: blur(5px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 20px;
-}
-
-.menu-card {
-  background: #262e22e6;
-  border-radius: 48px;
-  padding: 28px 20px;
-  text-align: center;
-  color: #f7efcf;
-  border: 1px solid #daa45a;
-  max-width: 340px;
-  width: 85%;
-}
-
-.menu-card h2 { font-size: 1.6rem; margin-bottom: 8px; }
-.menu-card p { font-size: 0.8rem; opacity: 0.9; margin: 8px 0; }
-
-.char-select {
-  display: flex;
-  gap: 20px;
-  justify-content: center;
-  margin: 20px 0;
-}
-
-.char-card {
-  background: #3a2c1e;
-  padding: 12px 8px;
-  border-radius: 36px;
-  cursor: pointer;
-  border: 2px solid #7a623a;
-  transition: 0.1s;
-  flex: 1;
-  text-align: center;
-}
-
-.char-card.selected { border-color: #f5b642; background: #685434; box-shadow: 0 0 10px gold; }
-.char-emoji { font-size: 2.2rem; }
-
-.start-btn {
-  background: #5b8c4e;
-  border: none;
-  font-size: 1.2rem;
-  font-weight: bold;
-  padding: 12px 24px;
-  margin-top: 12px;
-  border-radius: 60px;
-  color: white;
-  cursor: pointer;
-  width: 80%;
-  font-family: monospace;
-  box-shadow: 0 3px 0 #2d4a24;
-}
-.start-btn:active { transform: translateY(2px); }
-
-.quote { font-style: italic; font-size: 0.7rem; margin-top: 16px; color: #e7c882; }
 </style>
 </head>
+
 <body>
 
-<div id="gameFullscreen">
-  <div class="game-container">
-    <canvas id="gameCanvas" width="780" height="460"></canvas>
-    <div class="game-stats">
-      <div class="stat">🎯 SKÓRE <span class="stat-value" id="scoreValue">0</span></div>
-      <div class="stat">❤️ ŽIVOTY <span class="stat-value" id="livesValue">3</span></div>
-      <div class="stat">⚙️ LISY <span class="stat-value" id="pressValue">1</span></div>
-    </div>
-    <div class="controls">
-      <button class="game-btn" id="leftBtn">◀ ĽAVO</button>
-      <button class="game-btn" id="rightBtn">PRAVO ▶</button>
-    </div>
-    <div class="hint">↙️ Ťukni na ľavú/pravú stranu plátna | tlačidlá dole</div>
-  </div>
+<div id="menu">
+  <h1>🏭 LISOVNA</h1>
+
+  <input id="playerName" placeholder="Tvoje meno...">
+  <br>
+  <button onclick="startGame()">HRAŤ ▶</button>
+
+  <div id="leaderboard"></div>
 </div>
 
+<canvas id="gameCanvas"></canvas>
+
 <script>
-  (function(){
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    let W = 780, H = 460;
-    canvas.width = W; canvas.height = H;
-    
-    // Herní proměnné
-    let gameRunning = false;
-    let score = 0;
-    let lives = 3;
-    let pressCount = 1;           // počet lisů (predák přidává)
-    let baseSpeed = 2.4;
-    let spawnRate = 54;
-    let frame = 0;
-    let items = [];
-    let selectedChar = 'male';    // male / female
-    
-    // Predák (žena v oranžovém)
-    let predakActive = false;
-    let predakTimer = 0;
-    let predakX = W + 80;
-    let predakDir = -1;
-    let predakType = 0;           // 0 = ryšavá karé, 1 = šedá dlouhé vlasy
-    
-    // Skladník s rolerem
-    let skladnikActive = false;
-    let skladnikX = W + 100;
-    let skladnikTimer = 0;
-    
-    // Herní pruhy (5 drah)
-    const LANES = [W*0.18, W*0.34, W*0.5, W*0.66, W*0.82];
-    let player = { lane: 2, x: LANES[2], y: H-58, armAngle: 0, armDir: 1 };
-    
-    // UI prvky
-    const scoreEl = document.getElementById('scoreValue');
-    const livesEl = document.getElementById('livesValue');
-    const pressEl = document.getElementById('pressValue');
-    
-    function updateUI() {
-      scoreEl.textContent = score;
-      livesEl.textContent = lives;
-      pressEl.textContent = pressCount;
-    }
-    
-    // Spawn dílu (dobrý/špatný)
-    function spawnItem() {
-      const laneIdx = Math.floor(Math.random() * LANES.length);
-      const isBad = Math.random() < (0.2 + (pressCount > 1 ? 0.08 : 0) + (predakActive ? 0.1 : 0));
-      items.push({
-        lane: laneIdx,
-        x: LANES[laneIdx],
-        y: -20,
-        bad: isBad,
-        speed: baseSpeed + Math.random() * 1.0 + (pressCount > 1 ? 0.4 : 0)
-      });
-    }
-    
-    // Kolize a aktualizace
-    function updateItems() {
-      for (let i = items.length-1; i >= 0; i--) {
-        const it = items[i];
-        it.y += it.speed;
-        const catchZone = (it.y > H-74 && it.y < H-42 && Math.abs(it.x - player.x) < 34);
-        if (catchZone) {
-          if (!it.bad) {
-            score += 10 * pressCount;
-            updateUI();
-          } else {
-            lives--;
-            updateUI();
-            if (lives <= 0) gameOverSequence();
-          }
-          items.splice(i,1);
-          continue;
-        }
-        if (it.y > H+25) {
-          if (!it.bad) {
-            lives--;
-            updateUI();
-            if (lives <= 0) gameOverSequence();
-          }
-          items.splice(i,1);
-        }
-      }
-    }
-    
-    // Predák logika (přijde a zvýší počet lisů)
-    function updatePredak() {
-      if (!gameRunning) return;
-      if (!predakActive && frame > 180 && frame % 620 === 0 && pressCount < 3) {
-        predakActive = true;
-        predakTimer = 380;
-        predakX = W + 70;
-        predakDir = -1;
-        predakType = Math.random() < 0.5 ? 0 : 1; // náhodný typ predačky
-        
-        // PŘIDÁ LIS = ZVÝŠENÍ OBTÍŽNOSTI
-        pressCount = Math.min(3, pressCount + 1);
-        baseSpeed = Math.min(5.2, baseSpeed + 0.85);
-        spawnRate = Math.max(32, spawnRate - 12);
-        updateUI();
-      }
-      if (predakActive) {
-        predakX += predakDir * 1.6;
-        if (predakX < 25 && predakDir < 0) predakDir = 1;
-        if (predakX > W-65 && predakDir > 0) predakDir = -1;
-        predakTimer--;
-        if (predakTimer <= 0) predakActive = false;
-      }
-    }
-    
-    // Skladník s rolerem (červená trička, bílý pruh)
-    function updateSkladnik() {
-      if (!gameRunning) return;
-      if (skladnikTimer <= 0 && !skladnikActive) {
-        skladnikActive = true;
-        skladnikX = W + 100;
-        skladnikTimer = 550 + Math.floor(Math.random() * 450);
-      } else if (skladnikTimer > 0) {
-        skladnikTimer--;
-      }
-      if (skladnikActive) {
-        skladnikX -= 1.3;
-        if (skladnikX < -180) skladnikActive = false;
-      }
-    }
-    
-    // ---------- KRESLENÍ ----------
-    function drawBackground() {
-      ctx.fillStyle = '#1d2b1a';
-      ctx.fillRect(0,0,W,H);
-      // Pás
-      ctx.fillStyle = '#3b5433';
-      for(let i=0; i<W+30; i+=38) ctx.fillRect(i, H-38, 24, 6);
-      ctx.fillStyle = '#5b7c48';
-      ctx.fillRect(0, H-32, W, 32);
-      // Osvětlení
-      ctx.fillStyle = '#dbba6a';
-      for(let i=0;i<4;i++) ctx.fillRect(30+i*160, 12, 18, 6);
-      // Dráhy
-      LANES.forEach((lx,i) => {
-        ctx.fillStyle = i===player.lane ? 'rgba(0,255,0,0.05)' : 'rgba(255,255,255,0.02)';
-        ctx.fillRect(lx-28, 0, 56, H);
-        ctx.strokeStyle = '#4e6a3e';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.setLineDash([6, 12]); ctx.moveTo(lx, 28); ctx.lineTo(lx, H-52); ctx.stroke();
-        ctx.setLineDash([]);
-      });
-    }
-    
-    function drawPart(x,y,bad) {
-      ctx.save(); ctx.translate(x,y);
-      ctx.fillStyle = bad ? '#b42b2b' : '#538c4a';
-      ctx.beginPath(); ctx.roundRect(-14, -9, 28, 18, 5); ctx.fill();
-      ctx.fillStyle = bad ? '#e07a7a' : '#a0d08c';
-      ctx.fillRect(-7, -4, 5, 7);
-      ctx.fillRect(2, -4, 5, 7);
-      if(bad){
-        ctx.strokeStyle = '#ffcc55'; ctx.lineWidth = 2;
-        ctx.beginPath(); ctx.moveTo(-8,-6); ctx.lineTo(8,2); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(8,-6); ctx.lineTo(-8,2); ctx.stroke();
-      } else {
-        ctx.fillStyle = '#f5cf6a';
-        ctx.beginPath(); ctx.arc(0, 2, 3, 0, Math.PI*2); ctx.fill();
-      }
-      ctx.restore();
-    }
-    
-    // HRÁČ - tmavě šedé tričko
-    function drawPlayer() {
-      const x = player.x, y = player.y;
-      ctx.save(); ctx.translate(x, y);
-      // Tmavě šedé tričko
-      ctx.fillStyle = '#3a4042';
-      ctx.beginPath(); ctx.roundRect(-14, -8, 28, 28, 6); ctx.fill();
-      ctx.fillStyle = '#5c6265';
-      ctx.fillRect(-7, 0, 14, 6);
-      // Ruce
-      ctx.fillStyle = '#c8845a';
-      ctx.save(); ctx.translate(-13, -2); ctx.rotate(player.armAngle-0.2); ctx.fillRect(-3,-2,6,16); ctx.restore();
-      ctx.save(); ctx.translate(13, -2); ctx.rotate(-player.armAngle+0.2); ctx.fillRect(-3,-2,6,16); ctx.restore();
-      // Hlava
-      ctx.fillStyle = '#e0ac77';
-      ctx.beginPath(); ctx.arc(0, -13, 11, 0, Math.PI*2); ctx.fill();
-      // Vlasy podle pohlaví
-      if(selectedChar === 'female') {
-        ctx.fillStyle = '#7a3a10'; ctx.fillRect(-6, -20, 12, 6);
-        ctx.fillStyle = '#9a5a2a'; ctx.beginPath(); ctx.ellipse(-7, -17, 3, 5, -0.2,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(7, -17, 3, 5, 0.2,0,Math.PI*2); ctx.fill();
-      } else {
-        ctx.fillStyle = '#2d2a18'; ctx.fillRect(-8, -20, 16, 6);
-      }
-      ctx.fillStyle = '#111';
-      ctx.beginPath(); ctx.arc(-3, -14, 1.5,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(3, -14, 1.5,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#fecc88';
-      ctx.beginPath(); ctx.ellipse(0, -8, 2.5, 1.8,0,0,Math.PI*2); ctx.fill();
-      ctx.restore();
-    }
-    
-    // PREDÁK - žena v oranžové (dva typy vlasů)
-    function drawPredak() {
-      if(!predakActive) return;
-      ctx.save(); ctx.translate(predakX, H-56);
-      if(predakDir > 0) ctx.scale(-1,1);
-      // Oranžové tričko
-      ctx.fillStyle = '#e87c30';
-      ctx.beginPath(); ctx.roundRect(-15, -26, 30, 26, 6); ctx.fill();
-      ctx.fillStyle = '#c06020';
-      ctx.fillRect(-15, -10, 30, 5);
-      // Krk a hlava
-      ctx.fillStyle = '#d4845a';
-      ctx.fillRect(-4, -31, 8, 7);
-      ctx.beginPath(); ctx.arc(0, -40, 11, 0, Math.PI*2); ctx.fill();
-      // Vlasy podle typu
-      if(predakType === 0) { // ryšavé karé
-        ctx.fillStyle = '#aa4010';
-        ctx.beginPath(); ctx.arc(0, -44, 11, Math.PI, 0); ctx.fill();
-        ctx.fillRect(-10, -46, 20, 6);
-        ctx.beginPath(); ctx.ellipse(-9, -37, 4, 8, 0.2,0,Math.PI*2); ctx.fill();
-        ctx.beginPath(); ctx.ellipse(9, -37, 4, 8, -0.2,0,Math.PI*2); ctx.fill();
-      } else { // šedé dlouhé vlasy
-        ctx.fillStyle = '#8a7a6a';
-        ctx.beginPath(); ctx.arc(0, -44, 11, Math.PI, 0); ctx.fill();
-        ctx.fillRect(-11, -47, 22, 8);
-        ctx.fillStyle = '#9a8a7a';
-        ctx.fillRect(-12, -42, 5, 12);
-        ctx.fillRect(7, -42, 5, 12);
-      }
-      ctx.fillStyle = '#111';
-      ctx.beginPath(); ctx.arc(-3, -41, 1.5,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(3, -41, 1.5,0,Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#fff7cf'; ctx.font = "bold 9px monospace";
-      ctx.fillText("⚠️ PRIDAJ LIS!", -28, -55);
-      ctx.restore();
-    }
-    
-    // SKLADNÍK - červené tričko s bílým pruhem, roleři s bednami
-    function drawSkladnik() {
-      if(!skladnikActive) return;
-      ctx.save(); ctx.translate(skladnikX, H-48);
-      // Vozík s rolerama a bednami
-      const cartW = 85, cartH = 26;
-      ctx.fillStyle = '#4a4a4a';
-      ctx.fillRect(0, -cartH, cartW, cartH);
-      // Bedničky na vozíku
-      const colors = ['#cc2222', '#2266cc', '#22aa44', '#cc8844'];
-      for(let b=0; b<4; b++) {
-        ctx.fillStyle = colors[b];
-        ctx.fillRect(4 + b*20, -cartH+3, 18, cartH-6);
-        ctx.fillStyle = 'rgba(255,255,200,0.3)';
-        ctx.fillRect(5 + b*20, -cartH+5, 16, 5);
-      }
-      // Rolety (kolečka)
-      for(let r=0; r<5; r++) {
-        ctx.fillStyle = '#777';
-        ctx.beginPath(); ctx.arc(10 + r*18, 0, 6, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#aaa';
-        ctx.beginPath(); ctx.arc(10 + r*18, 0, 3, 0, Math.PI*2); ctx.fill();
-      }
-      // Rukojeť
-      ctx.fillStyle = '#666';
-      ctx.fillRect(-12, -cartH-12, 8, cartH+12);
-      // Skladník (postava) - červené tričko s bílým pruhem
-      ctx.save(); ctx.translate(-28, -5);
-      ctx.fillStyle = '#cc2222';
-      ctx.beginPath(); ctx.roundRect(-10, -20, 20, 22, 5); ctx.fill();
-      ctx.fillStyle = '#ffffff';
-      ctx.fillRect(-10, -8, 20, 5);
-      ctx.fillStyle = '#c07050';
-      ctx.fillRect(-8, -2, 5, 14);
-      ctx.fillRect(3, -2, 5, 14);
-      ctx.fillStyle = '#c07050';
-      ctx.fillRect(-3, -24, 6, 6);
-      ctx.beginPath(); ctx.arc(0, -32, 9, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#3a2010';
-      ctx.fillRect(-6, -36, 12, 5);
-      ctx.fillStyle = '#111';
-      ctx.beginPath(); ctx.arc(-3, -33, 1.3,0,Math.PI*2); ctx.fill();
-      ctx.beginPath(); ctx.arc(3, -33, 1.3,0,Math.PI*2); ctx.fill();
-      ctx.restore();
-      ctx.restore();
-    }
-    
-    // MAJSTER v černém (game over obrazovka)
-    function drawMasterAngry() {
-      ctx.fillStyle = '#0a0a0add';
-      ctx.fillRect(0,0,W,H);
-      ctx.font = 'bold 22px monospace';
-      ctx.fillStyle = '#e66';
-      ctx.fillText('💀 MAJSTER V ČIERNEJ', W/2-130, H/2-50);
-      ctx.font = '14px monospace';
-      ctx.fillStyle = '#edb87a';
-      const quotes = ['"PORUCHA FORMY! KATASTROFA!"', '"KVALITA? TOHLE JE ŠROT!"', '"ZAJTRAJŠÍ AUDIT NEDÁME!"', '"KTO ŤA NAUČIL TAKTO LISOVAŤ?"'];
-      const q = quotes[Math.floor(Math.random()*quotes.length)];
-      ctx.fillText(q, W/2-160, H/2+10);
-      // Nakreslení mistra v černém
-      ctx.save(); ctx.translate(W/2, H/2+80);
-      ctx.fillStyle = '#111';
-      ctx.beginPath(); ctx.roundRect(-18, -12, 36, 28, 6); ctx.fill();
-      ctx.fillStyle = '#222';
-      ctx.fillRect(-20, -32, 40, 24);
-      ctx.fillStyle = '#a56b3e';
-      ctx.beginPath(); ctx.arc(0, -42, 12, 0, Math.PI*2); ctx.fill();
-      ctx.fillStyle = '#000';
-      ctx.fillRect(-8, -48, 16, 7);
-      ctx.fillStyle = '#d00';
-      ctx.beginPath(); ctx.moveTo(-4, -35); ctx.lineTo(0, -31); ctx.lineTo(4, -35); ctx.fill();
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 10px monospace';
-      ctx.fillText("! ANGRY !", -26, -48);
-      ctx.restore();
-    }
-    
-    function gameOverSequence() {
-      gameRunning = false;
-      cancelAnimationFrame(animId);
-      drawMasterAngry();
-      const overlay = document.createElement('div');
-      overlay.className = 'overlay-menu';
-      overlay.innerHTML = `<div class="menu-card"><h2>💀 KONIEC VÝROBY 💀</h2><p>Skóre: ${score} | Počet lisov: ${pressCount}</p><div class="quote">"Mistr v čiernom ťa vyhodil z linky!"</div><button class="start-btn" id="restartGameBtn">🔄 ZNOVU LISOVAŤ</button><button class="start-btn" id="mainMenuBtn">🏠 HLAVNÉ MENU</button></div>`;
-      document.body.appendChild(overlay);
-      document.getElementById('restartGameBtn').onclick = () => { overlay.remove(); fullRestart(); };
-      document.getElementById('mainMenuBtn').onclick = () => { overlay.remove(); showStartMenu(); };
-    }
-    
-    function fullRestart() {
-      score = 0; lives = 3; pressCount = 1; baseSpeed = 2.4; spawnRate = 54;
-      frame = 0; items = []; predakActive = false; skladnikActive = false;
-      skladnikTimer = 30;
-      player.lane = 2; player.x = LANES[2];
-      gameRunning = true;
-      updateUI();
-      if(animId) cancelAnimationFrame(animId);
-      animId = requestAnimationFrame(gameLoop);
-    }
-    
-    // Herní smyčka
-    let animId = null;
-    function gameLoop() {
-      if(!gameRunning) return;
-      frame++;
-      player.x += (LANES[player.lane] - player.x) * 0.22;
-      player.armAngle += 0.12 * player.armDir;
-      if(Math.abs(player.armAngle) > 0.6) player.armDir *= -1;
-      
-      if(frame % spawnRate === 0) spawnItem();
-      updateItems();
-      updatePredak();
-      updateSkladnik();
-      
-      drawBackground();
-      for(let it of items) drawPart(it.x, it.y, it.bad);
-      drawPlayer();
-      drawPredak();
-      drawSkladnik();
-      
-      ctx.font = 'bold 12px monospace';
-      ctx.fillStyle = '#ecd97a';
-      ctx.fillText(`⚙️ LISY: ${pressCount}`, 12, 32);
-      if(predakActive) ctx.fillStyle = '#ffaa55', ctx.fillText('👩‍🦰 PREDÁK', W-90, 32);
-      
-      if(lives <= 0) return;
-      animId = requestAnimationFrame(gameLoop);
-    }
-    
-    // Ovládání
-    function moveLeft() { if(gameRunning && player.lane > 0) player.lane--; }
-    function moveRight() { if(gameRunning && player.lane < LANES.length-1) player.lane++; }
-    
-    document.getElementById('leftBtn').addEventListener('click', moveLeft);
-    document.getElementById('rightBtn').addEventListener('click', moveRight);
-    canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const touchX = (e.touches[0].clientX - rect.left) / rect.width * W;
-      if(touchX < W/2) moveLeft(); else moveRight();
-    }, {passive: false});
-    canvas.addEventListener('mousedown', (e) => {
-      const rect = canvas.getBoundingClientRect();
-      const mouseX = (e.clientX - rect.left) / rect.width * W;
-      if(mouseX < W/2) moveLeft(); else moveRight();
+
+// ================= SOUND =================
+const sndCatch = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+const sndBad   = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg');
+const sndOver  = new Audio('https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg');
+
+function playSound(s){
+  s.currentTime=0;
+  s.play().catch(()=>{});
+}
+
+// ================= STATE =================
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = 400;
+canvas.height = 600;
+
+let running=false;
+let score=0;
+let lives=3;
+let level=1;
+let frame=0;
+let speed=2.5;
+
+let playerName="Player";
+
+let worker;
+let items=[];
+
+// ================= START =================
+function startGame(){
+  playerName = document.getElementById('playerName').value.trim() || "Player";
+
+  score=0;
+  lives=3;
+  level=1;
+  frame=0;
+  speed=2.5;
+
+  worker={lane:1};
+  items=[];
+
+  document.getElementById('menu').style.display="none";
+
+  running=true;
+  loop();
+}
+
+// ================= LOOP =================
+function loop(){
+  if(!running) return;
+
+  frame++;
+  update();
+  draw();
+
+  requestAnimationFrame(loop);
+}
+
+// ================= LANES =================
+function getLaneX(lane){
+  const step = canvas.width / 5;
+  return step * (lane+1);
+}
+
+// ================= UPDATE =================
+function update(){
+
+  // spawn
+  if(frame % 50 === 0){
+    const lane = Math.floor(Math.random()*4);
+    items.push({
+      lane,
+      x:getLaneX(lane),
+      y:-20,
+      bad:Math.random()<0.25,
+      speed:speed + Math.random()
     });
-    document.addEventListener('keydown', (e) => {
-      if(e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
-      if(e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
-    });
-    
-    // Startovací menu s výběrem postavy
-    function showStartMenu() {
-      if(animId) cancelAnimationFrame(animId);
-      gameRunning = false;
-      const menuDiv = document.createElement('div');
-      menuDiv.className = 'overlay-menu';
-      menuDiv.innerHTML = `
-        <div class="menu-card">
-          <h2>🏭 LISOVNA MAGNA 🏭</h2>
-          <p>Chytaj plastové diely! Červené = šrot → strata života.<br>⭐ PREDÁK (oranžová) pridá ďalší lis!</p>
-          <div class="char-select">
-            <div class="char-card" data-char="male">
-              <div class="char-emoji">👨‍🏭</div>
-              <div>MUŽ</div>
-            </div>
-            <div class="char-card" data-char="female">
-              <div class="char-emoji">👩‍🏭</div>
-              <div>ŽENA</div>
-            </div>
-          </div>
-          <button class="start-btn" id="startGameFinal">▶ SPUSTIŤ LIS</button>
-          <div class="quote">"Tmavá kombinéza = kvalitná výroba"</div>
-        </div>`;
-      document.body.appendChild(menuDiv);
-      document.querySelectorAll('.char-card').forEach(card => {
-        card.addEventListener('click', () => {
-          document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('selected'));
-          card.classList.add('selected');
-          selectedChar = card.getAttribute('data-char');
-        });
-      });
-      document.querySelector('.char-card').classList.add('selected');
-      selectedChar = 'male';
-      document.getElementById('startGameFinal').onclick = () => {
-        menuDiv.remove();
-        fullRestart();
-      };
+  }
+
+  // level up
+  if(score>0 && score % 200 === 0){
+    level++;
+    speed+=0.2;
+  }
+
+  // items
+  for(let i=items.length-1;i>=0;i--){
+    const it=items[i];
+    it.y += it.speed;
+
+    const wx = getLaneX(worker.lane);
+
+    // catch
+    if(it.y>520 && it.y<580 && Math.abs(it.x-wx)<40){
+      if(!it.bad){
+        score+=10;
+        playSound(sndCatch);
+      }else{
+        lives--;
+        playSound(sndBad);
+      }
+      items.splice(i,1);
+      continue;
     }
-    
-    // Inicializace
-    showStartMenu();
-  })();
+
+    // miss
+    if(it.y>600){
+      if(!it.bad){
+        lives--;
+      }
+      items.splice(i,1);
+    }
+  }
+
+  if(lives<=0){
+    gameOver();
+  }
+}
+
+// ================= DRAW =================
+function draw(){
+  ctx.clearRect(0,0,400,600);
+
+  // HUD
+  ctx.fillStyle="white";
+  ctx.fillText("Score: "+score,10,20);
+  ctx.fillText("Lives: "+lives,10,40);
+  ctx.fillText("Level: "+level,10,60);
+
+  // lanes
+  for(let i=0;i<4;i++){
+    const x=getLaneX(i);
+    ctx.strokeStyle="#333";
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,600);
+    ctx.stroke();
+  }
+
+  // worker
+  const wx=getLaneX(worker.lane);
+  ctx.fillStyle="white";
+  ctx.fillRect(wx-15,540,30,40);
+
+  // items
+  items.forEach(it=>{
+    ctx.fillStyle=it.bad?"red":"#3a6a99";
+    ctx.fillRect(it.x-10,it.y-10,20,20);
+  });
+}
+
+// ================= CONTROLS =================
+document.addEventListener("keydown",e=>{
+  if(!running) return;
+
+  if(e.key==="ArrowLeft" && worker.lane>0) worker.lane--;
+  if(e.key==="ArrowRight" && worker.lane<3) worker.lane++;
+});
+
+// touch
+canvas.addEventListener("touchstart",e=>{
+  const x = e.touches[0].clientX;
+  const half = window.innerWidth/2;
+
+  if(x<half && worker.lane>0) worker.lane--;
+  if(x>half && worker.lane<3) worker.lane++;
+});
+
+// ================= GAME OVER =================
+function gameOver(){
+  running=false;
+
+  playSound(sndOver);
+  saveScore();
+
+  alert(`Game Over\n${playerName}: ${score}`);
+
+  document.getElementById('menu').style.display="block";
+  renderLeaderboard();
+}
+
+// ================= SCORES =================
+function saveScore(){
+  const data = JSON.parse(localStorage.getItem('lisovna_scores')||"[]");
+
+  data.push({
+    name:playerName,
+    score:score
+  });
+
+  data.sort((a,b)=>b.score-a.score);
+
+  localStorage.setItem('lisovna_scores',JSON.stringify(data.slice(0,5)));
+}
+
+function renderLeaderboard(){
+  const el=document.getElementById('leaderboard');
+  const scores=JSON.parse(localStorage.getItem('lisovna_scores')||"[]");
+
+  if(scores.length===0){
+    el.innerHTML="Žiadne rekordy";
+    return;
+  }
+
+  el.innerHTML="<b>🏆 TOP 5</b><br>"+
+    scores.map((s,i)=>`${i+1}. ${s.name} — ${s.score}`).join("<br>");
+}
+
+// INIT
+renderLeaderboard();
+
 </script>
 </body>
 </html>
-```
