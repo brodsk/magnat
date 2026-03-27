@@ -1,181 +1,157 @@
-Zde je upravená verze hry s pomalejším začátkem a vylepšeným chováním predačky, která při příchodu říká "Zober si ďalší lis!".
-
-```html
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>LISOVNA MAGNA - výroba zrkadiel</title>
+<title>PIXEL CAR RACER - LISOVNA STYLE</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
-html,body { width:100%; height:100%; overflow:hidden; background:#111; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
+html,body { width:100%; height:100%; overflow:hidden; background:#0a0f1a; font-family:'Courier New', monospace; }
 
 #app {
   width:100%; height:100%;
   display:flex; flex-direction:column;
   align-items:center; justify-content:flex-start;
-  background:#1a1a1a;
+  background:linear-gradient(135deg, #0a1f1a 0%, #1a2f1f 100%);
   position:relative; overflow:hidden;
 }
 
 #hud {
-  width:100%; max-width:500px;
+  width:100%; max-width:550px;
   display:flex; gap:0; font-family:monospace;
-  font-size:clamp(13px,3.5vw,18px); font-weight:bold;
-  background:#0a0a0a; border-bottom:2px solid #333;
+  font-size:clamp(12px,3vw,16px); font-weight:bold;
+  background:#0a0a0acc; backdrop-filter:blur(8px);
+  border-bottom:2px solid #dba553;
   flex-shrink:0;
+  padding:6px 0;
 }
-#hud span { flex:1; text-align:center; padding:5px 4px; border-right:1px solid #222; }
-#hud span:last-child { border-right:none; }
+#hud span { flex:1; text-align:center; padding:4px; color:#f9efb8; text-shadow:0 1px 1px black; }
 #hud .hs { color:#0f0; }
 #hud .hh { color:#f44; }
-#hud .hl { color:#ff0; }
+#hud .hl { color:#ffa500; }
 
 #canvasWrap {
   position:relative; flex:1;
   display:flex; align-items:center; justify-content:center;
-  width:100%; max-width:500px;
+  width:100%; max-width:550px;
   overflow:hidden;
+  margin:8px 0;
 }
-#gameCanvas { display:block; touch-action:none; background:#1e2a1a; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.5); }
+#gameCanvas { 
+  display:block; 
+  touch-action:none; 
+  background:linear-gradient(180deg, #1a2a2a 0%, #0e1a1a 100%);
+  border-radius:16px; 
+  box-shadow:0 8px 25px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,200,100,0.2);
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+}
 
 #controls {
-  width:100%; max-width:500px;
-  display:flex; gap:8px; padding:8px;
-  background:#0a0a0a; border-top:2px solid #222;
+  width:100%; max-width:550px;
+  display:flex; gap:12px; padding:10px;
+  background:#0a0a0acc; backdrop-filter:blur(8px);
+  border-top:2px solid #dba553;
   flex-shrink:0;
 }
 #controls button {
-  flex:1; background:#1e1e1e; color:#ccc;
-  border:2px solid #444; padding:12px 0;
-  font-size:28px; cursor:pointer; border-radius:8px;
-  touch-action:manipulation; transition:background 0.08s;
+  flex:1; background:linear-gradient(145deg, #4a3e2e, #2a1e12);
+  color:#ffefb0; border:none; padding:12px 0;
+  font-size:26px; cursor:pointer; border-radius:60px;
+  touch-action:manipulation; transition:0.05s linear;
+  font-family:monospace; font-weight:bold;
+  box-shadow:0 5px 0 #3a2a1a;
+  border:1px solid #b8865a;
 }
-#controls button:active, #controls button.held { background:#333; border-color:#888; }
+#controls button:active, #controls button.held { transform:translateY(2px); box-shadow:0 2px 0 #3a2a1a; }
 
 #overlay {
   position:absolute; top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.94);
+  background:rgba(0,0,0,0.92);
+  backdrop-filter:blur(8px);
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
   gap:14px; z-index:20; padding:20px;
-  backdrop-filter:blur(4px);
 }
 #overlay.hidden { display:none; }
 
-#predakBanner {
-  position:absolute; top:0; left:0; right:0;
-  background:linear-gradient(90deg,#e86820,#ff9030);
-  color:#fff; font-weight:bold;
-  font-size:clamp(13px,4vw,18px);
-  text-align:center; padding:8px 12px;
-  z-index:15; display:none;
-  animation:slideDown 0.4s ease;
-  box-shadow:0 2px 10px rgba(0,0,0,0.3);
-}
-@keyframes slideDown { from{transform:translateY(-100%);} to{transform:translateY(0);} }
-
-.ov-title { font-size:clamp(26px,7vw,40px); font-weight:900; color:#ff0; letter-spacing:2px; text-shadow:0 0 20px #ff8800; }
-.ov-sub { font-size:clamp(12px,3vw,16px); color:#aaa; text-align:center; line-height:1.5; }
+.ov-title { font-size:clamp(28px,8vw,48px); font-weight:900; color:#ffaa44; letter-spacing:4px; text-shadow:0 0 20px #ff6600; font-family:monospace; }
+.ov-sub { font-size:clamp(11px,3vw,14px); color:#aaa; text-align:center; line-height:1.5; }
 .ov-btn {
-  background:linear-gradient(180deg,#2a8a2a,#1a6a1a);
-  color:#fff; border:2px solid #4c4; padding:12px 36px;
+  background:linear-gradient(180deg,#dba553,#b87a2a);
+  color:#fff; border:none; padding:12px 36px;
   font-size:clamp(16px,4vw,20px); cursor:pointer;
-  border-radius:8px; font-weight:bold;
-  box-shadow:0 4px 12px rgba(0,200,0,0.3);
+  border-radius:40px; font-weight:bold;
+  box-shadow:0 5px 0 #6a4a1a;
   transition:transform 0.1s;
+  font-family:monospace;
 }
-.ov-btn:active { transform:scale(0.96); }
+.ov-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #6a4a1a; }
 .ov-btn-sec { background:#222; color:#aaa; border:1px solid #444; padding:9px 22px; font-size:14px; cursor:pointer; border-radius:6px; }
 
-.char-cards { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
-.char-card {
-  border:3px solid #444; border-radius:10px;
-  padding:12px 20px; background:#1a1a1a;
-  cursor:pointer; text-align:center;
-  transition:border-color 0.15s, background 0.15s;
-  min-width:110px;
-}
-.char-card.selected { border-color:#0f0; background:#0a200a; }
-.char-card canvas { display:block; margin:0 auto; }
-.char-card .cname { color:#ccc; font-size:14px; margin-top:6px; }
-
 .name-input {
-  background:#2a2a2a; border:2px solid #5a5; padding:10px 16px;
+  background:#2a2a2a; border:2px solid #dba553; padding:10px 16px;
   font-size:18px; text-align:center; border-radius:40px;
-  color:#fff; font-family:monospace; width:220px;
+  color:#ffefb0; font-family:monospace; width:220px;
 }
-.name-input:focus { outline:none; border-color:#0f0; }
+.name-input:focus { outline:none; border-color:#ffaa44; }
 
 .leaderboard {
   background:#0a0a0aaa; border-radius:16px; padding:12px; margin-top:12px;
   width:100%; max-width:280px; max-height:180px; overflow-y:auto;
+  border:1px solid #dba553;
 }
-.leaderboard h4 { color:#ffa; margin-bottom:8px; font-size:14px; }
+.leaderboard h4 { color:#ffaa44; margin-bottom:8px; font-size:14px; }
 .leaderboard-item { display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #333; font-size:12px; color:#ccc; }
-.leaderboard-rank { color:#ffa; width:30px; }
+.leaderboard-rank { color:#ffaa44; width:30px; }
 .leaderboard-name { flex:1; text-align:left; }
 .leaderboard-score { color:#0f0; font-weight:bold; }
 
-.go-score { font-size:clamp(20px,5vw,28px); color:#fff; font-weight:bold; }
-.go-quote { font-size:clamp(12px,3vw,15px); color:#ff9999; font-style:italic; max-width:280px; text-align:center; line-height:1.4; }
-.hint { font-size:10px; color:#555; text-align:center; font-family:monospace; padding:2px 0; flex-shrink:0; }
+.hint { font-size:10px; color:#888; text-align:center; font-family:monospace; padding:2px 0; flex-shrink:0; }
+.road-stripe { position:absolute; bottom:20px; left:0; right:0; height:4px; background:repeating-linear-gradient(90deg, #ffaa44, #ffaa44 20px, #aaa 20px, #aaa 40px); pointer-events:none; }
 </style>
 </head>
 <body>
 <div id="app">
   <div id="hud">
-    <span class="hs">⭐ <span id="hScore">0</span></span>
-    <span class="hh">❤️ <span id="hLives">3</span></span>
-    <span class="hl">⚙️ <span id="hPress">1</span> LIS</span>
+    <span class="hs">🏁 SKÓRE <span id="hScore">0</span></span>
+    <span class="hh">❤️ ŽIVOTY <span id="hLives">3</span></span>
+    <span class="hl">⚡ RÝCHLOSŤ <span id="hSpeed">0</span></span>
   </div>
 
   <div id="canvasWrap">
     <canvas id="gameCanvas"></canvas>
-    <div id="predakBanner">⚠️ PREDÁK: Zober si ďalší LIS! Rýchlejšie! ⚠️</div>
   </div>
 
   <div id="overlay">
     <div id="scrMenu" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-      <div class="ov-title">🏭 LISOVNA</div>
-      <div class="ov-sub">Chytaj plastové diely!<br>Červené = chybné → strata života</div>
+      <div class="ov-title">🏎️ PIXEL CAR RACER</div>
+      <div class="ov-sub">Vyhýbaj sa červeným autám!<br>Zelené = body | Červené = strata života</div>
       <input type="text" id="playerName" class="name-input" placeholder="TVOJE MENO" maxlength="15" autocomplete="off">
-      <div style="color:#ff0;font-size:13px;font-weight:bold;">Vyber si postavu:</div>
-      <div class="char-cards">
-        <div class="char-card selected" id="cardM" onclick="selectChar('male')">
-          <canvas id="prevM" width="64" height="96"></canvas>
-          <div class="cname">👨 Muž</div>
-        </div>
-        <div class="char-card" id="cardF" onclick="selectChar('female')">
-          <canvas id="prevF" width="64" height="96"></canvas>
-          <div class="cname">👩 Žena</div>
-        </div>
-      </div>
-      <button class="ov-btn" onclick="startGame()">HRAŤ ▶</button>
+      <button class="ov-btn" onclick="startGame()">START RACE ▶</button>
       
       <div class="leaderboard">
-        <h4>🏆 TABUĽKA REKORDOV 🏆</h4>
+        <h4>🏆 REKORDY 🏆</h4>
         <div id="leaderboardList"></div>
       </div>
       <div class="ov-sub" style="font-size:10px;">← → klávesy | tlačidlá | ťukni na plátno</div>
     </div>
 
     <div id="scrOver" style="display:none;flex-direction:column;align-items:center;gap:12px;">
-      <canvas id="majsterPrev" width="90" height="130"></canvas>
-      <div class="go-score" id="goScore">Skóre: 0</div>
-      <div class="go-quote" id="goQuote"></div>
-      <div class="go-btns">
-        <button class="ov-btn-sec" onclick="showMenu()">← Menu</button>
+      <div class="ov-title" style="font-size:32px;">💥 GAME OVER 💥</div>
+      <div class="go-score" id="goScore" style="font-size:24px;color:#ffaa44;">Skóre: 0</div>
+      <div class="go-quote" id="goQuote" style="color:#ff9999;font-style:italic;text-align:center;">Crash!</div>
+      <div class="go-btns" style="display:flex;gap:10px;">
+        <button class="ov-btn-sec" onclick="showMenu()">← MENU</button>
         <button class="ov-btn" onclick="startGame()">ZNOVA ▶</button>
       </div>
     </div>
   </div>
 
-  <div class="hint">← → klávesy alebo tlačidlá dole</div>
+  <div class="hint">← → pohyb | Ťukni na plátno | tlačidlá dole</div>
   <div id="controls">
-    <button id="btnL" ontouchstart="startL(event)" ontouchend="stopL()" onmousedown="startL()" onmouseup="stopL()" onmouseleave="stopL()">◀</button>
-    <button id="btnR" ontouchstart="startR(event)" ontouchend="stopR()" onmousedown="startR()" onmouseup="stopR()" onmouseleave="stopR()">▶</button>
+    <button id="btnL" ontouchstart="startL(event)" ontouchend="stopL()" onmousedown="startL()" onmouseup="stopL()" onmouseleave="stopL()">◀ ĽAVO</button>
+    <button id="btnR" ontouchstart="startR(event)" ontouchend="stopR()" onmousedown="startR()" onmouseup="stopR()" onmouseleave="stopR()">PRAVO ▶</button>
   </div>
 </div>
 
@@ -202,19 +178,18 @@ function playBeep(freq, duration, type='sine', volume=0.2) {
   } catch(e) {}
 }
 
-function playCatch() { playBeep(880, 0.1, 'sine', 0.12); }
-function playBad() { playBeep(220, 0.2, 'sawtooth', 0.18); }
-function playPredak() { playBeep(660, 0.3, 'square', 0.22); playBeep(880, 0.25, 'square', 0.2); }
-function playGameOver() { playBeep(150, 0.7, 'sawtooth', 0.28); playBeep(100, 0.6, 'sawtooth', 0.28); }
+function playScore() { playBeep(880, 0.08, 'square', 0.12); }
+function playCrash() { playBeep(150, 0.25, 'sawtooth', 0.25); playBeep(120, 0.2, 'sawtooth', 0.2); }
+function playEngine() { playBeep(200, 0.05, 'sawtooth', 0.05); }
 
 // ============================================================
-//  TABUĽKA REKORDOV (localStorage)
+//  TABUĽKA REKORDOV
 // ============================================================
 let leaderboard = [];
 
 function loadLeaderboard() {
   try {
-    const saved = localStorage.getItem('lisovna_leaderboard');
+    const saved = localStorage.getItem('pixel_racer_leaderboard');
     if(saved) leaderboard = JSON.parse(saved);
     else leaderboard = [];
     leaderboard.sort((a,b) => b.score - a.score);
@@ -226,12 +201,12 @@ function loadLeaderboard() {
 function saveLeaderboard() {
   leaderboard.sort((a,b) => b.score - a.score);
   leaderboard = leaderboard.slice(0, 8);
-  localStorage.setItem('lisovna_leaderboard', JSON.stringify(leaderboard));
+  localStorage.setItem('pixel_racer_leaderboard', JSON.stringify(leaderboard));
   updateLeaderboardDisplay();
 }
 
 function addScore(name, score) {
-  if(!name || name.trim() === '') name = 'ANONYM';
+  if(!name || name.trim() === '') name = 'DRIVER';
   leaderboard.push({ name: name.trim().substring(0, 15), score: score });
   leaderboard.sort((a,b) => b.score - a.score);
   leaderboard = leaderboard.slice(0, 8);
@@ -257,20 +232,11 @@ function updateLeaderboardDisplay() {
 function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
 // ============================================================
-//  HERNÉ PREMenné
+//  PIXEL CAR RACER - HERNÁ LOGIKA
 // ============================================================
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let GW = 450, GH = 500;
-let selectedChar = 'male';
-let playerName = '';
-
-let running = false, raf = null;
-let score, lives, pressCount, frame, baseSpeed, spawnRate;
-let worker, items;
-let predakActive=false, predakTimer=0, predakX=0, predakDir=-1, predakSpoke=false;
-let skladnikActive=false, skladnikX=0, skladnikTimer=500;
-let flash=0, flashCol='';
+let GW = 400, GH = 550;
 
 function resizeCanvas(){
   const wrap = document.getElementById('canvasWrap');
@@ -281,85 +247,68 @@ function resizeCanvas(){
 window.addEventListener('resize', ()=>{ resizeCanvas(); if(!running) drawMenuBg(); });
 resizeCanvas();
 
-function computeLanes(count){
-  const lanes=[];
-  const step = GW/(count+1);
-  for(let i=1;i<=count;i++) lanes.push(Math.round(step*i));
-  return lanes;
+// Herné premenné
+let running = false, raf = null;
+let score = 0, lives = 3, speed = 0;
+let player = { x: 0, lane: 1, width: 24, height: 32 };
+let enemies = [];
+let powerups = [];
+let frame = 0;
+let spawnCounter = 0;
+let playerName = '';
+
+// Dráhy (3 pruhy)
+const LANE_COUNT = 3;
+let lanes = [];
+
+function updateLanes(){
+  lanes = [];
+  const laneWidth = GW / LANE_COUNT;
+  for(let i = 0; i < LANE_COUNT; i++){
+    lanes.push({
+      x: i * laneWidth + laneWidth/2 - 12,
+      centerX: i * laneWidth + laneWidth/2
+    });
+  }
+  player.x = lanes[player.lane].x;
+}
+
+function initGame(){
+  updateLanes();
+  player = { x: lanes[1].x, lane: 1, width: 24, height: 32, y: GH - 70 };
+  enemies = [];
+  powerups = [];
+  score = 0;
+  lives = 3;
+  speed = 2;
+  frame = 0;
+  spawnCounter = 0;
+  updateHUD();
 }
 
 function updateHUD(){
-  document.getElementById('hScore').textContent=score;
-  document.getElementById('hLives').textContent=lives;
-  document.getElementById('hPress').textContent=pressCount;
+  document.getElementById('hScore').textContent = score;
+  document.getElementById('hLives').textContent = lives;
+  document.getElementById('hSpeed').textContent = Math.floor(speed * 20);
 }
-
-function doFlash(col){ flash=10; flashCol=col; }
-
-function showOverlay(){ document.getElementById('overlay').classList.remove('hidden'); }
-function hideOverlay(){ document.getElementById('overlay').classList.add('hidden'); }
 
 function showMenu(){
   if(running) stopGame();
-  document.getElementById('scrMenu').style.display='flex';
-  document.getElementById('scrOver').style.display='none';
-  showOverlay();
-  drawPreviews();
+  document.getElementById('scrMenu').style.display = 'flex';
+  document.getElementById('scrOver').style.display = 'none';
+  document.getElementById('overlay').classList.remove('hidden');
   drawMenuBg();
 }
 
 function showGameOver(){
-  playGameOver();
-  document.getElementById('scrMenu').style.display='none';
-  const ov=document.getElementById('scrOver');
-  ov.style.display='flex';
-  document.getElementById('goScore').textContent='Skóre: '+score;
-  const quotes = [
-    'Čo to robíš?! Moja babička by to robila rýchlejšie!',
-    'To nie je možné! Pozri koľko dielov si pustil!',
-    'Zajtra máme audit a ty toto robíš?!',
-    'Nie som spokojný! Zavolaj vedúceho!',
-    'Reklamácia!! Toto je totálna katastrofa!',
-    'Takýto výkon nestačí! Ide o sériový diel!'
-  ];
-  document.getElementById('goQuote').textContent=quotes[Math.floor(Math.random()*quotes.length)];
-  drawMajsterPreview();
-  showOverlay();
+  playCrash();
+  document.getElementById('scrMenu').style.display = 'none';
+  document.getElementById('scrOver').style.display = 'flex';
+  document.getElementById('goScore').textContent = 'Skóre: ' + score;
+  const quotes = ['HAVÁRIA!', 'PRÍLIŠ RÝCHLY!', 'DÁVAJ POZOR!', 'CRASH!', 'WRECK!'];
+  document.getElementById('goQuote').textContent = quotes[Math.floor(Math.random() * quotes.length)];
+  document.getElementById('overlay').classList.remove('hidden');
   if(score > 0) addScore(playerName, score);
-}
-
-function selectChar(g){
-  selectedChar=g;
-  document.getElementById('cardM').className='char-card'+(g==='male'?' selected':'');
-  document.getElementById('cardF').className='char-card'+(g==='female'?' selected':'');
-  drawPreviews();
-}
-
-function drawPreviews(){
-  ['male','female'].forEach(g=>{
-    const id=g==='male'?'prevM':'prevF';
-    const el=document.getElementById(id); if(!el)return;
-    const c=el.getContext('2d'); c.clearRect(0,0,64,96);
-    c.save(); c.translate(32,80); c.scale(0.78,0.78);
-    drawWorkerFigure(c,g,0);
-    c.restore();
-  });
-}
-
-function drawMajsterPreview(){
-  const el=document.getElementById('majsterPrev'); if(!el)return;
-  const c=el.getContext('2d'); c.clearRect(0,0,90,130);
-  c.save(); c.translate(45,105); c.scale(0.85,0.85);
-  drawMajsterFigure(c);
-  c.restore();
-}
-
-function drawMenuBg(){
-  if(!ctx) return;
-  ctx.fillStyle='#1a1a1a'; ctx.fillRect(0,0,GW,GH);
-  ctx.strokeStyle='#242424'; ctx.lineWidth=1;
-  for(let x=0;x<GW;x+=40){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,GH);ctx.stroke();}
-  for(let y=0;y<GH;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(GW,y);ctx.stroke();}
 }
 
 function stopGame(){ running=false; if(raf) cancelAnimationFrame(raf); raf=null; }
@@ -367,325 +316,351 @@ function stopGame(){ running=false; if(raf) cancelAnimationFrame(raf); raf=null;
 function startGame(){
   const nameInput = document.getElementById('playerName');
   playerName = nameInput.value.trim();
-  if(playerName === '') playerName = 'PRACOVNÍK';
+  if(playerName === '') playerName = 'DRIVER';
   
   if(!audioEnabled) {
     audioCtx.resume().then(() => { audioEnabled = true; });
   }
   
-  hideOverlay();
-  score = 0; lives = 3; pressCount = 1; frame = 0;
-  baseSpeed = 1.4;        // VEĽMI POMALÝ ZAČIATOK - ako Chrome dinosaurus
-  spawnRate = 90;         // Pomalé spawnovanie - prvá detaily prichádzajú pomaly
-  
-  predakActive = false; predakTimer = 0; predakX = GW+60; predakDir = -1; predakSpoke = false;
-  skladnikActive = false; skladnikX = GW+120; skladnikTimer = 500;
-  
-  const LANES = computeLanes(3);  // Začiatok s 3 dráhami
-  worker = { lane:1, x:LANES[1], y:GH-60, armAngle:0, armDir:1, lanes:LANES };
-  items = [];
+  document.getElementById('overlay').classList.add('hidden');
+  initGame();
   running = true;
-  updateHUD();
-  
-  const banner = document.getElementById('predakBanner');
-  if(banner) banner.style.display = 'none';
-  
   if(raf) cancelAnimationFrame(raf);
-  raf = requestAnimationFrame(loop);
+  raf = requestAnimationFrame(gameLoop);
 }
 
-function gameOver(){ running=false; showGameOver(); }
-
-// ========== HERNÁ LOGIKA ==========
-function loop(){
+// Herná smyčka
+function gameLoop(){
   if(!running) return;
   frame++;
   update();
   draw();
-  raf = requestAnimationFrame(loop);
+  raf = requestAnimationFrame(gameLoop);
 }
 
 function update(){
-  const LANES = worker.lanes;
-  if(!LANES.length) return;
+  // Zvyšovanie rýchlosti so skóre (ako dinosaurus)
+  speed = 2 + Math.floor(score / 300);
+  if(speed > 12) speed = 12;
   
-  worker.x += (LANES[worker.lane]-worker.x)*0.2;
-  worker.armAngle += 0.12*worker.armDir;
-  if(worker.armAngle>0.55||worker.armAngle<-0.55) worker.armDir*=-1;
-  
-  // PREDÁK - prichádza až neskôr (frame 700, keď je skóre aspoň 150 a nie je príliš ťažké)
-  if(!predakActive && pressCount < 3 && frame > 700 && score > 150 && frame % 900 === 0){
-    predakActive = true;
-    predakTimer = 380;
-    predakX = GW + 60;
-    predakDir = -1;
-    predakSpoke = false;
-    
-    // Zobrazenie bannera a zvuk
-    const banner = document.getElementById('predakBanner');
-    if(banner) {
-      banner.style.display = 'block';
-      // Aktualizácia textu bannera
-      banner.innerHTML = '⚠️ PREDÁK: "Zober si ďalší LIS!" Rýchlejšie! ⚠️';
+  // Spawn nepriateľov
+  spawnCounter--;
+  if(spawnCounter <= 0){
+    const lane = Math.floor(Math.random() * LANE_COUNT);
+    const isEnemy = Math.random() < 0.7; // 70% nepriateľ, 30% powerup
+    if(isEnemy){
+      enemies.push({
+        lane: lane,
+        x: lanes[lane].x,
+        y: -40,
+        width: 24,
+        height: 32,
+        type: 'enemy',
+        color: '#cc3333'
+      });
+    } else {
+      powerups.push({
+        lane: lane,
+        x: lanes[lane].x,
+        y: -30,
+        width: 20,
+        height: 20,
+        type: 'powerup',
+        color: '#33cc33'
+      });
     }
-    playPredak();
-    
-    // Pridanie ďalšieho lisu - mierne zvýšenie obtiažnosti
-    pressCount = Math.min(3, pressCount + 1);
-    const newLanes = computeLanes(3 + (pressCount - 1));
-    worker.lane = Math.min(worker.lane, newLanes.length-1);
-    worker.lanes = newLanes;
-    
-    // Mierne zvýšenie rýchlosti - nie príliš dramatické
-    baseSpeed = Math.min(3.2, baseSpeed + 0.45);
-    spawnRate = Math.max(48, spawnRate - 6);
-    updateHUD();
+    spawnCounter = Math.max(25, 45 - Math.floor(score / 200));
   }
   
-  if(predakActive){
-    predakX += predakDir * 1.3;
-    predakTimer--;
-    if(predakX<40 && predakDir<0) predakDir = 1;
-    if(predakX>GW-50 && predakDir>0) predakDir = -1;
-    if(predakTimer <= 0){
-      predakActive = false;
-      const banner = document.getElementById('predakBanner');
-      if(banner) banner.style.display = 'none';
-    }
-  }
-  
-  // SKLADNÍK
-  skladnikTimer--;
-  if(skladnikTimer<=0 && !skladnikActive){
-    skladnikActive = true;
-    skladnikX = GW + 120;
-    skladnikTimer = 500 + Math.floor(Math.random() * 450);
-  }
-  if(skladnikActive){
-    skladnikX -= 1.2;
-    if(skladnikX < -200) skladnikActive = false;
-  }
-  
-  // Postupné zvyšovanie obtiažnosti - VEĽMI POMALÉ, ako Chrome dinosaurus
-  if(frame % 400 === 0 && frame > 300 && baseSpeed < 3.0){
-    baseSpeed += 0.06;
-    if(spawnRate > 55) spawnRate -= 1;
-  }
-  
-  // SPAWNOVANIE - pomalé na začiatku
-  if(frame % spawnRate === 0){
-    const lane = Math.floor(Math.random() * LANES.length);
-    // Zlá detaily sa objavujú len postupne
-    const bad = Math.random() < (0.12 + (pressCount > 1 ? 0.04 : 0) + (score / 4000));
-    items.push({ lane, x:LANES[lane], y:-22, bad, speed: baseSpeed + Math.random() * 0.6 });
-  }
-  
-  // KOLIZE
-  for(let i=items.length-1; i>=0; i--){
-    const it = items[i];
-    it.y += it.speed;
-    const catchZone = (it.y > GH-85 && it.y < GH-44 && Math.abs(it.x - worker.x) < 34);
-    if(catchZone){
-      if(!it.bad){ 
-        score += 10 * pressCount; 
-        playCatch();
-        updateHUD();
-      } else { 
-        lives--; 
-        playBad();
-        doFlash('#ff000088'); 
-        updateHUD();
-      }
-      items.splice(i,1);
-      if(lives <= 0){ gameOver(); return; }
+  // Pohyb nepriateľov
+  for(let i = enemies.length-1; i >= 0; i--){
+    const e = enemies[i];
+    e.y += speed;
+    if(e.y > GH){
+      enemies.splice(i,1);
       continue;
     }
-    if(it.y > GH+25){
-      if(!it.bad){ 
-        lives--; 
-        playBad();
-        doFlash('#ff550066'); 
-        updateHUD(); 
-        if(lives <= 0){ gameOver(); return; }
+    // Kolízia s hráčom
+    if(e.y + e.height > player.y && e.y < player.y + player.height &&
+       e.x + e.width > player.x && e.x < player.x + player.width){
+      lives--;
+      playCrash();
+      updateHUD();
+      enemies.splice(i,1);
+      if(lives <= 0){
+        gameOver();
+        return;
       }
-      items.splice(i,1);
     }
   }
+  
+  // Pohyb powerupov
+  for(let i = powerups.length-1; i >= 0; i--){
+    const p = powerups[i];
+    p.y += speed;
+    if(p.y > GH){
+      powerups.splice(i,1);
+      continue;
+    }
+    // Kolízia s hráčom - zber powerupu
+    if(p.y + p.height > player.y && p.y < player.y + player.height &&
+       p.x + p.width > player.x && p.x < player.x + player.width){
+      score += 50;
+      playScore();
+      updateHUD();
+      powerups.splice(i,1);
+    }
+  }
+  
+  // Plynulý pohyb hráča
+  player.x += (lanes[player.lane].x - player.x) * 0.25;
 }
 
-// ========== KRESLENIE ==========
+function gameOver(){
+  running = false;
+  showGameOver();
+}
+
+// ========== KRESLENIE (Pixel Car Racer štýl) ==========
+function drawMenuBg(){
+  if(!ctx) return;
+  ctx.fillStyle = '#1a2a2a';
+  ctx.fillRect(0,0,GW,GH);
+  // Cesta
+  ctx.fillStyle = '#2a3a2a';
+  ctx.fillRect(0, GH-80, GW, 80);
+  ctx.fillStyle = '#3a4a3a';
+  for(let i=0;i<GW;i+=40){
+    ctx.fillRect(i, GH-75, 20, 8);
+  }
+  // Čiary
+  ctx.strokeStyle = '#ffaa44';
+  ctx.lineWidth = 3;
+  for(let i=1;i<LANE_COUNT;i++){
+    const x = (i * GW / LANE_COUNT);
+    ctx.beginPath();
+    ctx.setLineDash([15, 20]);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, GH);
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // Auto
+  ctx.fillStyle = '#dba553';
+  ctx.fillRect(GW/2-15, GH-70, 30, 25);
+  ctx.fillStyle = '#333';
+  ctx.fillRect(GW/2-12, GH-65, 24, 18);
+  ctx.fillStyle = '#111';
+  ctx.fillRect(GW/2-10, GH-62, 20, 12);
+}
+
 function draw(){
   if(!ctx) return;
-  ctx.fillStyle='#1d2b1a'; ctx.fillRect(0,0,GW,GH);
   
-  const BELT_H=28;
-  ctx.fillStyle='#202020'; ctx.fillRect(0,0,GW,BELT_H);
-  const bx=(frame*2.2)%70;
-  for(let x=bx-70;x<GW;x+=70){
-    ctx.fillStyle='#353535'; ctx.fillRect(x,3,54,BELT_H-6);
-    ctx.fillStyle='#1e1e1e'; ctx.fillRect(x+54,3,16,BELT_H-6);
-  }
-  ctx.strokeStyle='#555'; ctx.lineWidth=2; ctx.strokeRect(0,0,GW,BELT_H);
+  // Asfalt
+  ctx.fillStyle = '#1a2a2a';
+  ctx.fillRect(0, 0, GW, GH);
   
-  ctx.fillStyle='#141414'; ctx.fillRect(0,GH-52,GW,52);
-  for(let x=0;x<GW;x+=52){
-    ctx.fillStyle='#1c1c1c'; ctx.fillRect(x,GH-50,50,9);
-  }
+  // Cesta s pixelovým vzorom
+  ctx.fillStyle = '#2a3a2a';
+  ctx.fillRect(0, GH-80, GW, 80);
   
-  if(worker && worker.lanes){
-    worker.lanes.forEach((lx,i)=>{
-      ctx.fillStyle = i===worker.lane ? 'rgba(0,255,0,0.04)':'rgba(255,255,255,0.01)';
-      ctx.fillRect(lx-28,0,56,GH);
-      ctx.strokeStyle='#3a5a2a'; ctx.lineWidth=1;
-      ctx.beginPath(); ctx.setLineDash([5,12]); ctx.moveTo(lx,BELT_H); ctx.lineTo(lx,GH-54); ctx.stroke();
-      ctx.setLineDash([]);
-    });
+  // Pixelové škvrny na ceste
+  ctx.fillStyle = '#3a4a3a';
+  for(let i=0;i<GW;i+=35){
+    ctx.fillRect(i, GH-75, 18, 6);
+    ctx.fillRect(i+15, GH-68, 12, 4);
   }
   
-  if(skladnikActive) drawSkladnikFigure(ctx, skladnikX, GH-52);
-  items.forEach(it=>drawPart(ctx, it.x, it.y, it.bad));
-  if(worker) drawWorkerFigure(ctx, selectedChar, worker.armAngle, worker.x, worker.y);
-  if(predakActive) drawPredakFigure(ctx, predakX, GH-52, predakDir);
-  
-  if(flash>0){ ctx.fillStyle=flashCol; ctx.fillRect(0,0,GW,GH); flash--; }
-  
-  // Rýchlostný indikátor
-  ctx.font = 'bold 10px monospace';
-  ctx.fillStyle = '#aaa';
-  ctx.fillText(`⚡ ${Math.round(baseSpeed*10)/10}`, GW-40, 22);
-}
-
-function drawPart(c,x,y,bad){
-  c.save(); c.translate(x,y);
-  c.fillStyle=bad?'#aa1818':'#3a6a99';
-  c.beginPath(); c.roundRect(-14,-9,28,18,5); c.fill();
-  c.fillStyle=bad?'#ff7777':'#88bbdd';
-  c.fillRect(-8,-4,6,8); c.fillRect(2,-4,6,8);
-  if(bad){
-    c.strokeStyle='#ffee00'; c.lineWidth=2;
-    c.beginPath();c.moveTo(-7,-6);c.lineTo(7,4);c.stroke();
-    c.beginPath();c.moveTo(7,-6);c.lineTo(-7,4);c.stroke();
-  } else {
-    c.fillStyle='#f5cf6a';
-    c.beginPath();c.ellipse(0,2,4,3,0,0,Math.PI*2);c.fill();
+  // Biele čiary (prerušované)
+  ctx.strokeStyle = '#ffaa44';
+  ctx.lineWidth = 3;
+  for(let i=1;i<LANE_COUNT;i++){
+    const x = (i * GW / LANE_COUNT);
+    ctx.beginPath();
+    ctx.setLineDash([18, 25]);
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, GH);
+    ctx.stroke();
   }
-  c.restore();
-}
-
-function drawWorkerFigure(c, gender, arm, wx, wy){
-  c.save(); c.translate(wx,wy);
-  const fem=gender==='female';
-  c.fillStyle='#3a4042'; c.beginPath();c.roundRect(-13,-6,26,28,6);c.fill();
-  c.fillStyle='#5c6265'; c.fillRect(-7,2,14,6);
-  c.fillStyle='#d49c6a';
-  c.save();c.translate(-12,-2);c.rotate(arm-0.2);c.fillRect(-3,-2,6,16);c.restore();
-  c.save();c.translate(12,-2);c.rotate(-arm+0.2);c.fillRect(-3,-2,6,16);c.restore();
-  c.fillStyle='#e0ac77';
-  c.beginPath();c.arc(0,-13,11,0,Math.PI*2);c.fill();
-  if(fem){
-    c.fillStyle='#7a3a10'; c.fillRect(-6,-20,12,6);
-    c.fillStyle='#9a5a2a'; c.beginPath();c.ellipse(-7,-17,3,5,-0.2,0,Math.PI*2);c.fill();
-    c.beginPath();c.ellipse(7,-17,3,5,0.2,0,Math.PI*2);c.fill();
-  } else {
-    c.fillStyle='#2d2a18'; c.fillRect(-8,-20,16,6);
+  ctx.setLineDash([]);
+  
+  // Okrajové čiary
+  ctx.strokeStyle = '#ffaa44';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(5, 0, GW-10, GH);
+  
+  // Powerupy (zelené hviezdy / kocky)
+  for(const p of powerups){
+    ctx.fillStyle = '#33cc33';
+    ctx.shadowBlur = 0;
+    ctx.fillRect(p.x, p.y, p.width, p.height);
+    ctx.fillStyle = '#88ff88';
+    ctx.fillRect(p.x+4, p.y+4, 12, 12);
+    ctx.fillStyle = '#ffff00';
+    ctx.fillRect(p.x+7, p.y+7, 6, 6);
   }
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-3,-14,1.5,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(3,-14,1.5,0,Math.PI*2);c.fill();
-  c.fillStyle='#fecc88';
-  c.beginPath();c.ellipse(0,-8,2.5,1.8,0,0,Math.PI*2);c.fill();
-  c.restore();
-}
-
-function drawPredakFigure(c, x, y, dir){
-  c.save(); c.translate(x,y);
-  if(dir>0) c.scale(-1,1);
-  c.fillStyle='#e87c30'; c.beginPath();c.roundRect(-15,-28,30,28,6);c.fill();
-  c.fillStyle='#c06020'; c.fillRect(-15,-12,30,5);
-  c.fillStyle='#d4845a'; c.fillRect(-5,-33,10,8);
-  c.beginPath();c.arc(0,-43,12,0,Math.PI*2);c.fill();
-  c.fillStyle='#aa4010'; c.beginPath();c.arc(0,-47,12,Math.PI,0);c.fill();
-  c.fillRect(-11,-49,22,7);
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-4,-44,1.8,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(4,-44,1.8,0,Math.PI*2);c.fill();
-  // Rečová bublina
-  c.fillStyle='rgba(255,255,220,0.95)';
-  c.beginPath();c.roundRect(-60,-68,70,24,8);c.fill();
-  c.strokeStyle='#e86820';c.lineWidth=1.5;c.stroke();
-  c.fillStyle='#cc4422';c.font='bold 9px sans-serif';c.textAlign='center';
-  c.fillText('Zober si ďalší LIS!', -25, -55);
-  c.fillStyle='#000';
-  c.font='bold 7px sans-serif';
-  c.fillText('➕➕', -12, -45);
-  c.restore();
-}
-
-function drawSkladnikFigure(c, x, y){
-  c.save(); c.translate(x,y);
-  const cW=85,cH=26;
-  c.fillStyle='#3a3a3a';c.fillRect(0,-cH,cW,cH);
-  const bcols=['#cc2222','#2255bb','#229922','#cc8811'];
-  for(let b=0;b<4;b++){ c.fillStyle=bcols[b];c.fillRect(4+b*20,-cH+3,18,cH-6); }
-  for(let r=0;r<5;r++){ c.fillStyle='#666';c.beginPath();c.arc(10+r*18,0,6,0,Math.PI*2);c.fill(); }
-  c.save();c.translate(-24,-5);
-  c.fillStyle='#cc1111';c.beginPath();c.roundRect(-10,-20,20,22,5);c.fill();
-  c.fillStyle='#ffffff';c.fillRect(-10,-8,20,5);
-  c.fillStyle='#c07050';c.fillRect(-8,-2,5,14);c.fillRect(3,-2,5,14);
-  c.fillStyle='#c07050';c.fillRect(-3,-24,6,6);
-  c.beginPath();c.arc(0,-32,9,0,Math.PI*2);c.fill();
-  c.fillStyle='#3a2010';c.fillRect(-6,-36,12,5);
-  c.fillStyle='#111';c.beginPath();c.arc(-3,-33,1.3,0,Math.PI*2);c.fill();c.beginPath();c.arc(3,-33,1.3,0,Math.PI*2);c.fill();
-  c.restore();
-  c.restore();
-}
-
-function drawMajsterFigure(c){
-  c.fillStyle='#111';c.fillRect(-10,20,8,22);c.fillRect(2,20,8,22);
-  c.fillStyle='#0f0f0f';c.beginPath();c.roundRect(-13,0,26,22,4);c.fill();
-  c.fillStyle='#e0e0e0';c.fillRect(-4,-1,8,5);
-  c.fillStyle='#b07050';c.fillRect(-12,5,6,16);c.fillRect(6,5,6,16);
-  c.fillStyle='#c8845a';c.fillRect(-4,-5,8,8);
-  c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();
-  c.strokeStyle='#0a0a0a';c.lineWidth=2.5;
-  c.beginPath();c.moveTo(-9,-22);c.lineTo(-1,-18);c.stroke();
-  c.beginPath();c.moveTo(9,-22);c.lineTo(1,-18);c.stroke();
-  c.fillStyle='#111';c.beginPath();c.arc(-4,-15,2,0,Math.PI*2);c.fill();c.beginPath();c.arc(4,-15,2,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.beginPath();c.arc(0,-10,4,0,Math.PI);c.fill();
+  
+  // Nepriatelia (červené autá)
+  for(const e of enemies){
+    // Karoséria
+    ctx.fillStyle = '#cc3333';
+    ctx.fillRect(e.x, e.y, e.width, e.height);
+    ctx.fillStyle = '#aa2222';
+    ctx.fillRect(e.x+2, e.y+5, e.width-4, 8);
+    ctx.fillStyle = '#ff6666';
+    ctx.fillRect(e.x+4, e.y+12, 6, 6);
+    ctx.fillRect(e.x+14, e.y+12, 6, 6);
+    // Okná
+    ctx.fillStyle = '#88aaff';
+    ctx.fillRect(e.x+4, e.y+2, 6, 5);
+    ctx.fillRect(e.x+14, e.y+2, 6, 5);
+    // Kolesá
+    ctx.fillStyle = '#111';
+    ctx.fillRect(e.x+2, e.y+24, 5, 6);
+    ctx.fillRect(e.x+17, e.y+24, 5, 6);
+  }
+  
+  // Hráčovo auto (pixelový štýl)
+  const px = player.x;
+  const py = player.y;
+  
+  // Karoséria - zlatá / oranžová
+  ctx.fillStyle = '#dba553';
+  ctx.fillRect(px, py, 24, 28);
+  ctx.fillStyle = '#b87a2a';
+  ctx.fillRect(px+2, py+4, 20, 20);
+  
+  // Čierny pruh
+  ctx.fillStyle = '#333';
+  ctx.fillRect(px+2, py+8, 20, 6);
+  
+  // Okná
+  ctx.fillStyle = '#88aaff';
+  ctx.fillRect(px+4, py+2, 6, 5);
+  ctx.fillRect(px+14, py+2, 6, 5);
+  
+  // Strešné svetlo
+  ctx.fillStyle = '#ffaa44';
+  ctx.fillRect(px+10, py-2, 4, 4);
+  
+  // Kolesá
+  ctx.fillStyle = '#111';
+  ctx.fillRect(px+2, py+22, 5, 6);
+  ctx.fillRect(px+17, py+22, 5, 6);
+  ctx.fillRect(px+2, py+4, 4, 4);
+  ctx.fillRect(px+18, py+4, 4, 4);
+  
+  // Predné svetlá
+  ctx.fillStyle = '#ffffaa';
+  ctx.fillRect(px+2, py+26, 4, 2);
+  ctx.fillRect(px+18, py+26, 4, 2);
+  
+  // Pixelový efekt - iskry pri vysokej rýchlosti
+  if(speed > 8){
+    ctx.fillStyle = `rgba(255,200,100,${0.3+Math.sin(Date.now()*0.02)*0.1})`;
+    for(let i=0;i<3;i++){
+      ctx.fillRect(px-5 + Math.random()*30, py+25 + Math.random()*10, 2, 2);
+    }
+  }
+  
+  // Rýchlostný efekt (pixelové čiary)
+  if(speed > 5){
+    ctx.fillStyle = `rgba(255,255,200,${0.2+Math.sin(frame*0.1)*0.1})`;
+    for(let i=0;i<speed;i++){
+      ctx.fillRect(5 + Math.random() * (GW-10), GH-10 - Math.random()*30, 2, 4);
+    }
+  }
+  
+  // Skóre na plátne (pixelový font)
+  ctx.font = 'bold 16px monospace';
+  ctx.fillStyle = '#ffaa44';
+  ctx.shadowBlur = 2;
+  ctx.fillText(`🏁 ${score}`, 10, 35);
+  ctx.fillStyle = '#f44';
+  ctx.fillText(`❤️ ${lives}`, GW-55, 35);
+  ctx.fillStyle = '#ffaa44';
+  ctx.fillText(`⚡ ${Math.floor(speed*15)}`, GW-100, 35);
+  ctx.shadowBlur = 0;
 }
 
 // ========== OVLÁDANIE ==========
-let lHeld=false,rHeld=false,moveInt=null;
-function movL(){ if(worker && worker.lane>0) worker.lane--; }
-function movR(){ if(worker && worker.lane<worker.lanes.length-1) worker.lane++; }
-function startL(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movL(); clearInterval(moveInt); moveInt=setInterval(()=>{if(lHeld)movL();},120); lHeld=true; }
-function stopL(){ lHeld=false; clearInterval(moveInt); }
-function startR(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movR(); clearInterval(moveInt); moveInt=setInterval(()=>{if(rHeld)movR();},120); rHeld=true; }
-function stopR(){ rHeld=false; clearInterval(moveInt); }
+let leftHeld = false, rightHeld = false, moveInterval = null;
 
-document.addEventListener('keydown',e=>{ if(!running)return; if(e.key==='ArrowLeft'){ e.preventDefault(); movL(); } if(e.key==='ArrowRight'){ e.preventDefault(); movR(); } });
+function moveLeft(){ 
+  if(running && player.lane > 0){ 
+    player.lane--; 
+    playEngine();
+  } 
+}
+function moveRight(){ 
+  if(running && player.lane < LANE_COUNT-1){ 
+    player.lane++; 
+    playEngine();
+  } 
+}
 
-let touchX=null;
-canvas.addEventListener('touchstart',e=>{ touchX=e.touches[0].clientX; },{passive:true});
-canvas.addEventListener('touchend',e=>{
-  if(touchX===null)return;
-  const rect=canvas.getBoundingClientRect();
-  const tx=e.changedTouches[0].clientX-rect.left;
-  tx<rect.width/2?movL():movR();
-  touchX=null;
-},{passive:true});
+function startLeft(e){ 
+  if(e && e.cancelable) e.preventDefault(); 
+  if(!running) return; 
+  moveLeft(); 
+  clearInterval(moveInterval); 
+  moveInterval = setInterval(()=>{ if(leftHeld) moveLeft(); }, 100); 
+  leftHeld = true; 
+  const btn = document.getElementById('btnL'); 
+  if(btn) btn.classList.add('held'); 
+}
+function stopLeft(){ 
+  leftHeld = false; 
+  clearInterval(moveInterval); 
+  const btn = document.getElementById('btnL'); 
+  if(btn) btn.classList.remove('held'); 
+}
+function startRight(e){ 
+  if(e && e.cancelable) e.preventDefault(); 
+  if(!running) return; 
+  moveRight(); 
+  clearInterval(moveInterval); 
+  moveInterval = setInterval(()=>{ if(rightHeld) moveRight(); }, 100); 
+  rightHeld = true; 
+  const btn = document.getElementById('btnR'); 
+  if(btn) btn.classList.add('held'); 
+}
+function stopRight(){ 
+  rightHeld = false; 
+  clearInterval(moveInterval); 
+  const btn = document.getElementById('btnR'); 
+  if(btn) btn.classList.remove('held'); 
+}
+
+document.addEventListener('keydown', e => {
+  if(!running) return;
+  if(e.key === 'ArrowLeft'){ e.preventDefault(); moveLeft(); }
+  if(e.key === 'ArrowRight'){ e.preventDefault(); moveRight(); }
+});
+
+let touchStartX = null;
+canvas.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, {passive: true});
+canvas.addEventListener('touchend', e => {
+  if(touchStartX === null) return;
+  const rect = canvas.getBoundingClientRect();
+  const tx = e.changedTouches[0].clientX - rect.left;
+  if(tx < rect.width/2) moveLeft();
+  else moveRight();
+  touchStartX = null;
+}, {passive: true});
 
 // Inicializácia
-window.addEventListener('load',()=>{
+window.addEventListener('load', () => {
   resizeCanvas();
   loadLeaderboard();
-  drawPreviews();
+  updateLanes();
   drawMenuBg();
-  showOverlay();
+  document.getElementById('overlay').classList.remove('hidden');
+  document.getElementById('scrMenu').style.display = 'flex';
+  document.getElementById('scrOver').style.display = 'none';
   document.getElementById('playerName').value = '';
 });
 </script>
 </body>
 </html>
-```
