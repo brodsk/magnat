@@ -3,1313 +3,597 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MirrorsBatchProd - JIT Production</title>
+<title>LISOVNA - Chytaj Diely | JIT Production</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-:root {
-  --bg:#f0f0f0; --panel:#fff; --chrome:#d4d0c8; --border:#aaa;
-  --th-bg:#e8e4dc; --green:#00aa00; --orange:#e06820; --red:#cc2020;
-  --yellow:#e8a800; --blue:#0055aa; --txt:#111;
-}
-body { font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; font-size:13px; background:var(--bg); color:var(--txt); user-select:none; -webkit-user-select:none; }
-
-/* CHROME */
-.titlebar { background:var(--chrome); border-bottom:1px solid #808080; padding:3px 8px; display:flex; align-items:center; font-size:11px; }
-.titlebar-title { font-weight:bold; flex:1; }
-.titlebar-btns { display:flex; gap:2px; }
-.titlebar-btns button { width:20px;height:18px;border:1px solid #808080;background:var(--chrome);cursor:pointer;font-size:10px; }
-.titlebar-btns button:hover { background:#bbb; }
-.menubar { background:var(--chrome); border-bottom:1px solid #808080; padding:2px 6px; display:flex; gap:2px; font-size:12px; align-items:center; }
-.menubar span { padding:2px 8px; cursor:pointer; border-radius:2px; }
-.menubar span:hover { background:#0078d7; color:#fff; }
-#clock { font-weight:bold; font-size:13px; margin-left:auto; min-width:70px; text-align:right; }
-
-/* MAIN */
-.main { padding:8px; display:flex; flex-direction:column; gap:6px; padding-bottom:36px; }
-
-/* HEADER */
-.header-row { display:flex; align-items:center; justify-content:space-between; }
-.page-title { font-size:clamp(16px,4vw,22px); font-weight:bold; }
-.magna-logo { display:flex; align-items:center; gap:2px; font-size:clamp(16px,4vw,22px); font-weight:900; color:#333; }
-.magna-logo .dot-red { width:9px;height:9px;background:#cc0000;border-radius:50%;display:inline-block;margin:0 2px 3px; }
-.magna-m { font-size:clamp(18px,5vw,26px); font-style:italic; font-weight:900; }
-
-/* PANEL */
-.panel { background:#fff; border:1px solid var(--border); overflow-x:auto; }
-table { width:100%; border-collapse:collapse; font-size:clamp(10px,2.5vw,13px); }
-table th { background:var(--th-bg); border:1px solid #ccc; padding:4px 6px; text-align:left; font-weight:bold; white-space:nowrap; font-size:clamp(9px,2vw,12px); }
-table td { border:1px solid #ddd; padding:4px 6px; white-space:nowrap; }
-table tr:hover td { background:#d9e8f5; cursor:pointer; }
-table tr.selected td { background:#c5d9f1; }
-table tr.row-alt td { background:#f5f5f5; }
-
-/* STATUS BADGES */
-.status-vyroba { background:#00cc00;color:#000;padding:2px 10px;font-weight:bold;border:1px solid #009900;display:inline-block;min-width:70px;text-align:center;font-size:clamp(10px,2.5vw,13px); }
-.status-paused { background:#ff9900;color:#000;padding:2px 10px;font-weight:bold;border:1px solid #cc7700;display:inline-block;min-width:70px;text-align:center;font-size:clamp(10px,2.5vw,13px); }
-.status-stop   { background:#cc0000;color:#fff;padding:2px 10px;font-weight:bold;border:1px solid #aa0000;display:inline-block;min-width:70px;text-align:center;font-size:clamp(10px,2.5vw,13px); }
-
-/* BUTTONS */
-.btn { padding:5px 12px; border:1px solid #888; background:var(--chrome); cursor:pointer; font-size:clamp(11px,2.5vw,13px); font-family:inherit; border-radius:0; white-space:nowrap; min-height:30px; touch-action:manipulation; }
-.btn:hover { background:#c0bcb4; }
-.btn:active { background:#b0acb0; box-shadow:inset 1px 1px 2px #999; }
-.btn.btn-green  { background:var(--green);color:#fff;border-color:#008800;font-weight:bold; }
-.btn.btn-green:hover { background:#009900; }
-.btn.btn-yellow { background:var(--yellow);color:#000;border-color:#cc8800; }
-.btn.btn-orange { background:var(--orange);color:#fff;border-color:#c05010; }
-.btn.btn-red    { background:var(--red);color:#fff;border-color:#aa1010; }
-.btn.btn-warn   { background:var(--chrome);border:2px solid #cc0000;color:#cc0000;font-weight:bold; }
-.btn-right-group { margin-left:auto; display:flex; gap:4px; flex-wrap:wrap; justify-content:flex-end; }
-.abl { min-height:36px; font-size:clamp(12px,3vw,14px); padding:6px 12px; } /* action btn large */
-
-/* TOOLBAR */
-.toolbar { display:flex; gap:4px; padding:2px 0; align-items:center; flex-wrap:wrap; }
-
-/* PROGRESS */
-.progress-wrap { width:100%;height:16px;background:#ddd;border:1px solid #999;margin-top:2px; }
-.progress-bar  { height:100%;background:#3a8ee6;transition:width 0.4s;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:bold; }
-
-/* ANDON */
-.andon-bar { display:none;background:#cc0000;color:#fff;font-weight:bold;padding:6px 12px;font-size:clamp(13px,3vw,16px);text-align:center;animation:blink 1s step-start infinite; }
-.andon-bar.active { display:block; }
-@keyframes blink { 50% { background:#ff4444; } }
-
-/* STATUSBAR */
-.statusbar { position:fixed;bottom:0;left:0;right:0;background:var(--chrome);border-top:1px solid #808080;padding:2px 8px;display:flex;gap:16px;font-size:11px;align-items:center;z-index:50; }
-#statusbarMsg { color:#990000;flex:1;text-align:center;font-size:11px; }
-
-/* MODAL */
-.modal-overlay { display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.45);z-index:100;align-items:center;justify-content:center;padding:8px; }
-.modal-overlay.active { display:flex; }
-.modal-box { background:var(--chrome);border:2px solid #888;box-shadow:4px 4px 16px rgba(0,0,0,0.5);width:100%;max-width:480px;max-height:90vh;display:flex;flex-direction:column; }
-.modal-box.wide { max-width:700px; }
-.modal-box.fullw { max-width:900px; }
-.modal-title { background:#0a246a;color:#fff;padding:5px 12px;font-weight:bold;font-size:13px;flex-shrink:0; }
-.modal-body { padding:14px;overflow-y:auto;flex:1; }
-.modal-body label { display:block;margin-bottom:4px;font-size:12px; }
-.modal-body input,.modal-body select { width:100%;padding:6px 8px;border:1px solid #888;background:#fff;font-size:14px;margin-bottom:10px; }
-.modal-footer { padding:8px;display:flex;justify-content:flex-end;gap:6px;border-top:1px solid #aaa;flex-shrink:0;flex-wrap:wrap; }
-
-/* FULLSCREEN SCREEN (login / numpad) */
-.fs-screen { display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:200;flex-direction:column; }
-.fs-screen.active { display:flex; }
-
-/* NUMPAD */
-.numpad-content { flex:1;display:flex;align-items:center;justify-content:center;padding:16px; }
-.numpad-inner { background:#fff;border:1px solid #bbb;box-shadow:2px 2px 10px rgba(0,0,0,0.15);width:100%;max-width:380px; }
-.numpad-title-row { padding:8px 12px;font-size:13px;border-bottom:1px solid #ddd;background:#f5f5f5; }
-.numpad-display { padding:6px 10px;font-size:22px;font-weight:bold;background:#cce8ff;color:#000;border-bottom:1px solid #bbb;min-height:42px; }
-.numpad-grid { display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #ddd; }
-.np-btn { border:0;border-right:1px solid #ddd;border-bottom:1px solid #ddd;background:#fff;font-size:clamp(18px,5vw,24px);font-family:inherit;cursor:pointer;height:clamp(54px,13vw,72px);display:flex;align-items:center;justify-content:center;touch-action:manipulation; }
-.np-btn:last-child { border-right:0; }
-.np-btn:hover,.np-btn:active { background:#e8e8e8; }
-.np-btn.np-del { background:#c8cb72;font-size:clamp(13px,3vw,16px);font-weight:bold; }
-.np-btn.np-clr { background:#e05030;color:#fff;font-size:clamp(13px,3vw,16px);font-weight:bold; }
-.np-btn.np-ok  { background:#3ab830;color:#fff;font-size:clamp(18px,4vw,22px);font-weight:bold;grid-row:span 2; }
-.np-btn.np-span2 { grid-column:span 2; }
-.numpad-cancel-row { border-top:1px solid #ddd;padding:6px;display:flex;justify-content:flex-end; }
-
-/* RESPONSIVE */
-@media (max-width:600px) {
-  .hide-mobile { display:none!important; }
-  .btn { padding:6px 10px;font-size:13px;min-height:36px; }
-  table th,table td { padding:5px 4px;font-size:11px; }
-  .titlebar-btns { display:none; }
-  .toolbar { gap:3px; }
+* { margin:0; padding:0; box-sizing:border-box; user-select:none; -webkit-tap-highlight-color:transparent; }
+body {
+  font-family: 'Segoe UI', 'Courier New', monospace;
+  background: #0a0f1a;
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
 }
 
-/* ZMETKY NUMPAD BUTTONS */
-.znp-btn { border:0;border-right:1px solid #ddd;border-bottom:1px solid #ddd;background:#fff;font-size:clamp(16px,4vw,22px);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;min-height:48px; }
-.znp-btn:hover,.znp-btn:active { background:#e8e8e8; }
-.znp-btn.znp-del { background:#c8cb72;font-size:clamp(12px,3vw,15px);font-weight:bold; }
-.znp-btn.znp-clr { background:#e05030;color:#fff;font-size:clamp(12px,3vw,15px);font-weight:bold; }
-.znp-btn.znp-ok  { background:#3ab830;color:#fff;font-size:clamp(16px,4vw,20px);font-weight:bold;grid-row:span 2; }
-.znp-btn.znp-span2 { grid-column:span 2; }
-
-/* ANDON RUN BUTTON */
-.andon-run-btn {
-  background:#c8c8c8; border:2px solid #888; border-radius:6px;
-  font-size:clamp(16px,4vw,22px); font-weight:bold;
-  padding:10px 0; width:100%; cursor:pointer;
-  font-family:inherit; touch-action:manipulation;
-  box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2);
+/* HERNÍ PLOCHA - HLAVNÍ OBRAZOVKA */
+#gameFullscreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+  background: #1e2a2a;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 100px rgba(0,0,0,0.6);
 }
-.andon-run-btn:hover { background:#b8b8b8; }
-.andon-run-btn:active { background:#a8a8a8; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.3); }
-.andon-run-btn.active { background:#ff6600; color:#fff; border-color:#cc4400; animation:runblink 0.8s step-start infinite; }
-@keyframes runblink { 50% { background:#ff9900; } }
-@keyframes slideDown { from{transform:translateY(-40px);opacity:0;} to{transform:translateY(0);opacity:1;} }
+.game-container {
+  background: #2c3e2f;
+  border-radius: 28px;
+  padding: 12px;
+  box-shadow: 0 20px 35px rgba(0,0,0,0.5), inset 0 1px 4px rgba(255,255,255,0.1);
+}
+canvas {
+  display: block;
+  margin: 0 auto;
+  border-radius: 18px;
+  box-shadow: 0 0 0 3px #5a6e4a, 0 8px 25px black;
+  cursor: pointer;
+  touch-action: none;
+}
+.game-panel {
+  margin-top: 14px;
+  display: flex;
+  gap: 28px;
+  background: #191e1bdd;
+  backdrop-filter: blur(10px);
+  padding: 12px 32px;
+  border-radius: 60px;
+  font-weight: bold;
+  font-size: 1.4rem;
+  font-family: monospace;
+  color: #e0f2c0;
+  text-shadow: 0 2px 2px black;
+  border: 1px solid #7faa5f;
+}
+.game-panel span { margin: 0 12px; }
+.controls-hint {
+  margin-top: 16px;
+  font-size: 0.75rem;
+  background: #000000aa;
+  padding: 6px 18px;
+  border-radius: 30px;
+  color: #ccc;
+}
+button.game-btn {
+  background: #3a5e2e;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  padding: 8px 24px;
+  margin: 6px;
+  border-radius: 60px;
+  color: white;
+  cursor: pointer;
+  font-family: monospace;
+  transition: 0.1s linear;
+  box-shadow: 0 3px 0 #1e3a1a;
+}
+button.game-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 #1e3a1a; }
+
+/* POZADÍ – BĚŽÍCÍ POSTAVY (ANIMOVANÉ) */
+.background-stage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+  overflow: hidden;
+}
+.bg-character {
+  position: absolute;
+  font-size: 2rem;
+  white-space: nowrap;
+  filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.4));
+  transition: left 0.08s linear;
+  z-index: 2;
+  pointer-events: none;
+  text-shadow: 0 0 2px black;
+}
+.bg-bubble {
+  position: absolute;
+  background: #fff9e8;
+  color: #a1220a;
+  font-weight: bold;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 20px;
+  top: -25px;
+  left: 30px;
+  white-space: nowrap;
+  font-family: monospace;
+  box-shadow: 0 1px 4px black;
+  animation: fadeUp 1s ease-out forwards;
+}
+@keyframes fadeUp { 0% { opacity: 0; transform: translateY(10px); } 20% { opacity: 1; } 100% { opacity: 0; transform: translateY(-35px); } }
+
+/* overlay menu start/game over */
+.overlay-menu {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: #000000cc;
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 30;
+  flex-direction: column;
+  gap: 20px;
+}
+.menu-card {
+  background: #232823e6;
+  border-radius: 32px;
+  padding: 24px 32px;
+  text-align: center;
+  color: #f2e8c9;
+  border: 1px solid #b8865a;
+  max-width: 360px;
+  width: 80%;
+}
+.char-select {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin: 20px 0;
+}
+.char-card {
+  background: #3a2a1e;
+  padding: 12px;
+  border-radius: 28px;
+  cursor: pointer;
+  border: 2px solid #7a5a3a;
+  transition: 0.1s;
+}
+.char-card.selected {
+  border-color: #f5b642;
+  background: #5e3e26;
+  box-shadow: 0 0 12px gold;
+}
+.quote {
+  font-style: italic;
+  font-size: 0.8rem;
+  margin-top: 16px;
+  color: #ddbb88;
+}
 </style>
 </head>
 <body>
 
-<!-- Title bar -->
-<div class="titlebar">
-  <span class="titlebar-title">MirrorsBatchProd</span>
-  <div class="titlebar-btns">
-    <button>_</button><button>□</button>
-    <button onclick="if(confirm('Zavrieť?'))window.close()">✕</button>
-  </div>
-</div>
-<div class="menubar">
-  <span>File</span><span>Settings</span><span>Help</span>
-  <span id="clock">18:00:00</span>
-</div>
+<!-- POZADÍ : ANIMOVANÍ PRACOVNÍCI + MISTR + SKLADNÍK + NASTAVOVAČ -->
+<div class="background-stage" id="bgStage"></div>
 
-<div class="andon-bar" id="andonBar">⚠ ANDON — Problém na pracovisku! Zavolajte vedúceho! ⚠</div>
-
-<!-- ===== MAIN ===== -->
-<div class="main">
-
-  <div class="header-row">
-    <div class="page-title">JIT - Production</div>
-    <div class="magna-logo"><span class="magna-m">M</span><span class="dot-red"></span><strong>MAGNA</strong></div>
-  </div>
-
-  <!-- Workplace -->
-  <div class="panel">
-    <table id="workplaceTable">
-      <thead><tr>
-        <th>Pracovisko</th><th>Popis</th><th>Status</th><th>Spustenie</th>
-        <th class="hide-mobile">Dôvod ID</th><th class="hide-mobile">Dôvod</th><th class="hide-mobile">ANDON</th>
-      </tr></thead>
-      <tbody>
-        <tr class="selected" onclick="selectWorkplace(this)">
-          <td>55011200</td><td>Lis 12</td>
-          <td><span class="status-vyroba" id="statusBadge">Výroba</span></td>
-          <td id="spustenie">26.03.2026 18:00</td>
-          <td class="hide-mobile"></td><td class="hide-mobile"></td><td class="hide-mobile"></td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Toolbar 1 -->
-  <div class="toolbar">
-    <button class="btn abl" onclick="openModal('docs')">Dokumenty</button>
-    <button class="btn btn-warn abl hide-mobile" onclick="shutdownPC()">! Vypnut pocitac !</button>
-    <button class="btn abl" onclick="aktualizovat()">Aktualizovat</button>
-    <div class="btn-right-group">
-      <button class="btn btn-red abl" onclick="openAndonScreen()">ANDON</button>
-      <button class="btn abl" onclick="openModal('status')">Zmenit stav</button>
-      <button class="btn abl hide-mobile" onclick="openModal('prikaz')">Otvorit prikaz</button>
-      <button class="btn abl hide-mobile" onclick="alert('Balenie / Obaly')">Obaly</button>
-      <button class="btn hide-mobile">…</button>
+<!-- HLAVNÍ HRA -->
+<div id="gameFullscreen">
+  <div class="game-container">
+    <canvas id="gameCanvas" width="800" height="480"></canvas>
+    <div class="game-panel">
+      <span>🎯 SKÓRE: <span id="gameScore">0</span></span>
+      <span>❤️ ŽIVOTY: <span id="gameLives">3</span></span>
+      <span>⚙️ LISY: <span id="gamePressCount">1</span></span>
     </div>
-  </div>
-
-  <!-- Orders -->
-  <div class="panel">
-    <table id="ordersTable">
-      <thead><tr>
-        <th></th><th>Príkaz</th><th class="hide-mobile">Materiál</th><th>Popis</th>
-        <th>Ciel.</th><th>Vyr.</th><th>Zm.</th><th>Open</th>
-        <th class="hide-mobile">Forma</th><th class="hide-mobile">Rework</th>
-      </tr></thead>
-      <tbody id="ordersBody">
-        <tr class="selected" onclick="selectOrder(this,0)">
-          <td>▶</td><td>000007468827</td><td class="hide-mobile">9301-002L-02</td>
-          <td>160B Salka- interne lis. P</td><td>5000</td>
-          <td id="vyr0">3360</td><td class="zmetky-val" id="zm0">8</td>
-          <td class="open-val" id="op0">182</td>
-          <td class="hide-mobile">WMSW-878-160BCT</td><td class="hide-mobile"></td>
-        </tr>
-        <tr class="row-alt" onclick="selectOrder(this,1)">
-          <td></td><td>000007468828</td><td class="hide-mobile">9302-002L-02</td>
-          <td>160B Salka - inter. lis. L</td><td>5000</td>
-          <td id="vyr1">3360</td><td class="zmetky-val" id="zm1">4</td>
-          <td class="open-val" id="op1">186</td>
-          <td class="hide-mobile">WMSW-878-160BCT</td><td class="hide-mobile"></td>
-        </tr>
-      </tbody>
-    </table>
-    <div style="padding:4px 6px;">
-      <div style="font-size:11px;color:#555;margin-bottom:2px;">Postup výroby:</div>
-      <div class="progress-wrap"><div class="progress-bar" id="progressBar" style="width:67.2%">67.2%</div></div>
+    <div class="controls-hint">
+      🎮  ←  →  |  Ťukni na ľavú/pravú stranu plátna  |  tlačidlá dole
     </div>
-  </div>
-
-  <!-- Tabs -->
-  <div class="toolbar">
-    <button class="btn abl" onclick="openBoxoveEtikety()">Boxové etikety</button>
-    <button class="btn abl" onclick="showTab('kusovnik')">Kusovník</button>
-    <button class="btn btn-green abl" onclick="showTab('uctovanie')">Účtovanie výroby</button>
-  </div>
-
-  <!-- Workers -->
-  <div class="panel">
-    <table id="workerTable">
-      <thead><tr><th>Os. číslo</th><th>Meno</th><th>Prihlásenie</th></tr></thead>
-      <tbody></tbody>
-    </table>
-  </div>
-
-  <!-- Action buttons -->
-  <div class="toolbar" style="justify-content:flex-end;">
-    <button class="btn btn-yellow abl" onclick="openModal('spotreba')">Dodatočná spotreba</button>
-    <button class="btn btn-orange abl" onclick="ukoncitPrikaz()">Ukončit príkaz</button>
-    <button class="btn abl" onclick="prerusitPrikaz()">Prerušit príkaz</button>
-    <button class="btn btn-red abl" onclick="openModal('zmetky')">Zmetky</button>
-  </div>
-
-  <!-- Login/Logout -->
-  <div class="toolbar" style="margin-bottom:4px;">
-    <button class="btn abl" onclick="openModal('login')">Prihlásiť sa</button>
-    <button class="btn abl" onclick="odhlasenie()">Odhlásenie</button>
-  </div>
-
-</div>
-
-
-<div class="statusbar">
-  <span id="gameSecretBtn" onclick="openGame()" style="cursor:pointer;user-select:none;" title="">T23</span>
-  <span id="statusbarMsg"></span>
-  <span id="clockBottom">18:00:00</span>
-</div>
-
-<!-- ===== FACTORY GAME SCREEN ===== -->
-<div class="fs-screen" id="gameScreen">
-  <div class="titlebar" style="background:#222;color:#eee;">
-    <span class="titlebar-title" style="color:#eee;">🏭 LISOVNA — Chytaj Diely!</span>
-    <div class="titlebar-btns">
-      <button onclick="closeGame()" style="background:#444;color:#eee;border-color:#666;">✕</button>
+    <div style="display: flex; gap: 24px; margin-top: 12px;">
+      <button class="game-btn" id="ctrlLeftBtn">◀ ĽAVO</button>
+      <button class="game-btn" id="ctrlRightBtn">PRAVO ▶</button>
     </div>
-  </div>
-  <div style="background:#1a1a1a;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px;gap:6px;overflow:hidden;position:relative;">
-    <!-- Score row -->
-    <div style="display:flex;gap:20px;font-family:monospace;font-size:16px;font-weight:bold;color:#0f0;background:#111;border:1px solid #333;padding:4px 16px;border-radius:4px;width:100%;max-width:500px;justify-content:space-between;">
-      <span>SKÓRE: <span id="gScore">0</span></span>
-      <span>ŽIVOTY: <span id="gLives">❤️❤️❤️</span></span>
-      <span>LVL: <span id="gLevel">1</span></span>
-    </div>
-
-    <!-- Game canvas -->
-    <canvas id="gameCanvas" style="border:2px solid #444;background:#2a2a2a;touch-action:none;max-width:100%;"></canvas>
-
-    <!-- Controls hint -->
-    <div style="color:#888;font-size:11px;font-family:monospace;">
-      ← → klávesy | Drž tlačidlo pre rýchly pohyb | Ťukni na canvas pre pohyb
-    </div>
-    <div style="display:flex;gap:12px;">
-      <button id="gBtnLeft" style="background:#333;color:#fff;border:2px solid #555;padding:12px 36px;font-size:26px;cursor:pointer;border-radius:6px;touch-action:manipulation;">◀</button>
-      <button id="gBtnRight" style="background:#333;color:#fff;border:2px solid #555;padding:12px 36px;font-size:26px;cursor:pointer;border-radius:6px;touch-action:manipulation;">▶</button>
-    </div>
-
-    <!-- Main overlay (start / game over / char select) -->
-    <div id="gOverlay" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10;padding:20px;">
-
-      <!-- Start screen -->
-      <div id="gScreenStart" style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;">
-        <div style="font-size:24px;font-weight:bold;">🏭 LISOVNA</div>
-        <div style="font-size:13px;color:#aaa;">Chytaj plastové diely!<br>Červené = chybné → stráca životy!</div>
-        <div style="font-size:15px;font-weight:bold;color:#ff0;">Vyber si postavu:</div>
-        <div style="display:flex;gap:20px;justify-content:center;">
-          <div onclick="selectChar('male')" id="gCharM" style="cursor:pointer;border:3px solid #555;border-radius:8px;padding:12px 18px;background:#222;transition:border-color 0.2s;text-align:center;">
-            <canvas id="gPreviewM" width="60" height="90"></canvas>
-            <div style="margin-top:6px;font-size:13px;">👨 Muž</div>
-          </div>
-          <div onclick="selectChar('female')" id="gCharF" style="cursor:pointer;border:3px solid #555;border-radius:8px;padding:12px 18px;background:#222;transition:border-color 0.2s;text-align:center;">
-            <canvas id="gPreviewF" width="60" height="90"></canvas>
-            <div style="margin-top:6px;font-size:13px;">👩 Žena</div>
-          </div>
-        </div>
-        <button onclick="startGame()" style="background:#0a8a0a;color:#fff;border:none;padding:11px 32px;font-size:16px;cursor:pointer;border-radius:6px;font-weight:bold;">HRAŤ ▶</button>
-      </div>
-
-      <!-- Game over screen -->
-      <div id="gScreenOver" style="display:none;flex-direction:column;align-items:center;gap:14px;text-align:center;">
-        <canvas id="gMajsterCanvas" width="80" height="120"></canvas>
-        <div id="gOverlayText" style="font-size:18px;font-weight:bold;"></div>
-        <div id="gMajsterQuote" style="font-size:13px;color:#ffaaaa;font-style:italic;max-width:260px;"></div>
-        <div style="display:flex;gap:10px;">
-          <button onclick="showStart()" style="background:#333;color:#fff;border:1px solid #666;padding:9px 20px;font-size:14px;cursor:pointer;border-radius:5px;">← Späť</button>
-          <button onclick="startGame()" style="background:#0a8a0a;color:#fff;border:none;padding:9px 24px;font-size:14px;cursor:pointer;border-radius:5px;font-weight:bold;">ZNOVA ▶</button>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- Predak notification banner -->
-    <div id="gPredakBanner" style="display:none;position:absolute;top:28px;left:0;right:0;background:rgba(255,140,0,0.92);color:#fff;font-weight:bold;font-size:14px;text-align:center;padding:6px;z-index:9;animation:slideDown 0.3s ease;">
-      ⚠️ PREDÁK PRICHÁDZA! Rýchlejšie! ⚠️
-    </div>
-
-  </div>
-</div>
-
-<!-- ===== ANDON — CALL FOR HELP SCREEN ===== -->
-<div class="fs-screen" id="andonScreen">
-  <div class="titlebar">
-    <span class="titlebar-title">MirrorsBatchProd</span>
-    <div class="titlebar-btns"><button>_</button><button>□</button><button onclick="closeAndonScreen()">✕</button></div>
-  </div>
-  <div class="menubar"><span>Settings</span><span>Help</span></div>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 14px 0;">
-    <div style="font-size:clamp(16px,4vw,22px);font-weight:bold;">T - Production</div>
-    <div class="magna-logo"><span class="magna-m">M</span><span class="dot-red"></span><strong>MAGNA</strong></div>
-  </div>
-  <div style="padding:12px 14px 6px;font-size:clamp(13px,3vw,16px);font-weight:bold;border-bottom:1px solid #ccc;">Call for help</div>
-  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px 14px;">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;width:100%;max-width:800px;">
-
-      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
-        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Udrzba</div>
-        <button class="andon-run-btn" onclick="callForHelp('Udrzba')">RUN</button>
-      </div>
-
-      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
-        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Majster</div>
-        <button class="andon-run-btn" onclick="callForHelp('Majster')">RUN</button>
-      </div>
-
-      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
-        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Kvalita</div>
-        <button class="andon-run-btn" onclick="callForHelp('Kvalita')">RUN</button>
-      </div>
-
-      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
-        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Nastavovac</div>
-        <button class="andon-run-btn" onclick="callForHelp('Nastavovac')">RUN</button>
-      </div>
-
-    </div>
-  </div>
-  <div id="andonCallStatus" style="text-align:center;padding:8px;font-size:14px;font-weight:bold;min-height:32px;"></div>
-  <div style="position:absolute;bottom:36px;right:14px;">
-    <button class="btn" onclick="closeAndonScreen()">Back</button>
-  </div>
-  <div class="statusbar"><span>Workplace: T23</span><span>User: worker</span></div>
-</div>
-
-<!-- ===== LOGIN SCREEN ===== -->
-<div class="fs-screen" id="loginScreen">
-  <div class="titlebar">
-    <span class="titlebar-title">MirrorsBatchProd</span>
-    <div class="titlebar-btns"><button>_</button><button>□</button><button onclick="closeLoginScreen()">✕</button></div>
-  </div>
-  <div class="menubar"><span>File</span><span>Settings</span><span>Help</span></div>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:12px 14px 0;">
-    <div style="font-size:clamp(16px,4vw,22px);font-weight:bold;">JIT - Production</div>
-    <div class="magna-logo"><span class="magna-m">M</span><span class="dot-red"></span><strong>MAGNA</strong></div>
-  </div>
-  <div style="padding:20px 16px;flex:1;">
-    <div style="font-size:14px;font-weight:bold;margin-bottom:14px;border-bottom:1px solid #ccc;padding-bottom:8px;">Prihlásiť sa [55011200] Lis 12</div>
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
-      <label style="font-size:14px;white-space:nowrap;">User Id:</label>
-      <input type="number" id="loginId" inputmode="numeric"
-        style="border:1px solid #777;padding:6px 8px;font-size:16px;width:150px;font-family:inherit;"
-        onkeydown="if(event.key==='Enter')doLogin()"
-        oninput="loginLookup(this.value)">
-      <button class="btn btn-green abl" onclick="doLogin()" style="padding:6px 20px;font-size:14px;">Login</button>
-    </div>
-    <div id="loginLookupResult" style="font-size:13px;min-height:20px;margin-bottom:14px;"></div>
-  </div>
-  <div style="position:absolute;bottom:36px;right:14px;">
-    <button class="btn" onclick="closeLoginScreen()">Back</button>
-  </div>
-  <div class="statusbar"><span>Workplace: T23</span><span>User: worker</span></div>
-</div>
-
-<!-- ===== BOXOVÉ ETIKETY — NUMPAD SCREEN ===== -->
-<div class="fs-screen" id="numpadScreen">
-  <div class="titlebar">
-    <span class="titlebar-title">MirrorsBatchProd — Boxové etikety</span>
-  </div>
-  <div class="menubar"><span>File</span><span>Settings</span><span>Help</span></div>
-  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 14px 0;">
-    <div style="font-size:clamp(16px,4vw,20px);font-weight:bold;">JIT - Production</div>
-    <div class="magna-logo"><span class="magna-m">M</span><span class="dot-red"></span><strong>MAGNA</strong></div>
-  </div>
-
-  <div class="numpad-content">
-    <div class="numpad-inner">
-      <div class="numpad-title-row">Enter quantity</div>
-      <div class="numpad-display" id="numpadDisplay">0</div>
-      <div class="numpad-grid">
-        <button class="np-btn" onclick="npDigit('1')">1</button>
-        <button class="np-btn" onclick="npDigit('2')">2</button>
-        <button class="np-btn" onclick="npDigit('3')">3</button>
-        <button class="np-btn np-del" onclick="npDel()">DEL</button>
-
-        <button class="np-btn" onclick="npDigit('4')">4</button>
-        <button class="np-btn" onclick="npDigit('5')">5</button>
-        <button class="np-btn" onclick="npDigit('6')">6</button>
-        <button class="np-btn np-clr" onclick="npClr()">CLR</button>
-
-        <button class="np-btn" onclick="npDigit('7')">7</button>
-        <button class="np-btn" onclick="npDigit('8')">8</button>
-        <button class="np-btn" onclick="npDigit('9')">9</button>
-        <button class="np-btn np-ok" onclick="npOK()">OK</button>
-
-        <button class="np-btn np-span2" onclick="npDigit('0')">0</button>
-        <button class="np-btn" onclick="npDigit(','">,</button>
-        <!-- OK spans rows 3+4 automatically -->
-      </div>
-      <div class="numpad-cancel-row">
-        <button class="btn" onclick="closeNumpad()">Zrušenie</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="numpadPrintStatus" style="text-align:center;padding:10px;font-size:14px;font-weight:bold;display:none;"></div>
-
-  <div style="position:absolute;bottom:36px;right:14px;">
-    <button class="btn" onclick="closeNumpad()">Back</button>
-  </div>
-  <div class="statusbar"><span>Workplace: T23</span><span>User: worker</span></div>
-</div>
-
-<!-- ===== MODALS ===== -->
-
-<!-- Status -->
-<div class="modal-overlay" id="modal-status">
-  <div class="modal-box fullw">
-    <div class="modal-title" style="background:#333;">Zmeniť stav pracoviska</div>
-    <div class="modal-body" style="padding:0;overflow-y:auto;">
-      <table style="width:100%;border-collapse:collapse;font-size:clamp(11px,3vw,13px);">
-        <thead><tr>
-          <th style="background:#e0ddd8;border:1px solid #bbb;padding:6px 10px;text-align:center;width:110px;">Status</th>
-          <th style="background:#e0ddd8;border:1px solid #bbb;padding:6px 10px;text-align:center;width:55px;">Code</th>
-          <th style="background:#e0ddd8;border:1px solid #bbb;padding:6px 10px;text-align:center;">Descr</th>
-          <th style="background:#e0ddd8;border:1px solid #bbb;padding:6px 6px;width:64px;"></th>
-        </tr></thead>
-        <tbody>
-          <tr style="background:#4caf50;">
-            <td style="border:1px solid #bbb;padding:6px 10px;text-align:center;font-weight:bold;color:#fff;">Production</td>
-            <td style="border:1px solid #bbb;padding:6px;"></td>
-            <td style="border:1px solid #bbb;padding:6px;"></td>
-            <td style="border:1px solid #bbb;padding:4px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 12px;font-weight:bold;" onclick="setStatusFromTable('vyroba','Production','')">Start</button></td>
-          </tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">005</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">KVALITATÍVNY PRESTOJ</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','005 — KVALITATÍVNY PRESTOJ')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">006</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">PORADA / ŠKOLENIE</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','006 — PORADA / ŠKOLENIE')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">007</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">VÝMENA FORMY</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','007 — VÝMENA FORMY')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">011</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">VÝPADOK PRÚDU</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','011 — VÝPADOK PRÚDU')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">014</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">CISTENIE/UTIER.FORMY</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','014 — CISTENIE/UTIER.FORMY')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">015</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">TPM CISTENIE/ÚDRŽBA</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','015 — TPM CISTENIE/ÚDRŽBA')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">017</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">NENASUŠENÝ MATERIAL (GRANULÁT)</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','017 — NENASUŠENÝ MATERIAL')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">018</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">PORUCHA LIS</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','018 — PORUCHA LIS')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">024</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">PORUCHA ROBOTA</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','024 — PORUCHA ROBOTA')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">026</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">PORUCHA FORMY</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','026 — PORUCHA FORMY')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">032</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">PREVLOZKOVANIE</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','032 — PREVLOZKOVANIE')">Start</button></td></tr>
-          <tr style="background:#e8651a;"><td style="border:1px solid #bbb;padding:5px 10px;text-align:center;">Downtime</td><td style="border:1px solid #bbb;padding:5px;text-align:center;">034</td><td style="border:1px solid #bbb;padding:5px 10px;font-weight:bold;">NASTAVENIE ODOBER.</td><td style="border:1px solid #bbb;padding:3px 6px;text-align:center;background:#d4d0c8;"><button class="btn" style="padding:3px 10px;font-weight:bold;" onclick="setStatusFromTable('stop','Downtime','034 — NASTAVENIE ODOBER.')">Start</button></td></tr>
-        </tbody>
-      </table>
-    </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal('status')">Zavrieť</button></div>
-  </div>
-</div>
-
-<!-- Zmetky -->
-<div class="modal-overlay" id="modal-zmetky">
-  <div class="modal-box fullw" style="max-height:92vh;">
-    <div class="modal-title" style="background:#333;display:flex;justify-content:space-between;align-items:center;">
-      <span>Nahlásiť množstvo šrotu</span>
-      <span style="font-size:11px;color:#ccc;">Príkaz: <span id="zmetkyActivePrikaz">—</span></span>
-    </div>
-    <div id="zmetkyStep1" style="padding:12px;">
-      <div style="font-size:12px;color:#555;margin-bottom:8px;">Vyberte príkaz:</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-green abl" onclick="zmetkySelectOrder(0,'000007468827')">000007468827 — 160B Salka- interne lis. P</button>
-        <button class="btn btn-green abl" onclick="zmetkySelectOrder(1,'000007468828')">000007468828 — 160B Salka - inter. lis. L</button>
-      </div>
-    </div>
-    <div id="zmetkyStep2" style="display:none;flex:1;overflow:auto;padding:8px;">
-      <div style="font-size:12px;color:#555;margin-bottom:6px;">Vyberte dôvod šrotu:</div>
-      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px;" id="zmetkyGrid"></div>
-    </div>
-    <div id="zmetkyStep3" style="display:none;padding:0;display:none;">
-      <!-- Two-column: left = chosen reason info, right = numpad -->
-      <div style="display:flex;min-height:300px;">
-        <!-- LEFT: list/context -->
-        <div style="width:200px;min-width:140px;border-right:1px solid #ccc;background:#f5f5f5;padding:8px;overflow-y:auto;flex-shrink:0;">
-          <div style="font-size:11px;color:#888;margin-bottom:6px;">Nahlásiť množstvo šrotu</div>
-          <div id="zmetkyLeftList" style="display:flex;flex-direction:column;gap:4px;"></div>
-        </div>
-        <!-- RIGHT: numpad -->
-        <div style="flex:1;display:flex;flex-direction:column;">
-          <div style="background:#e8e8e8;padding:8px 12px;font-size:13px;border-bottom:1px solid #ccc;display:flex;justify-content:space-between;align-items:center;">
-            <span id="zmetkyNumpadTitle" style="font-weight:bold;">Zadajte množstvo</span>
-            <span style="cursor:pointer;font-size:16px;color:#555;" onclick="closeModal('zmetky');zmetkyReset()">✕</span>
-          </div>
-          <div style="background:#fff;padding:8px 12px;border-bottom:1px solid #ddd;">
-            <div id="zmetkyNumpadDisplay" style="font-size:22px;font-weight:bold;background:#cce8ff;padding:4px 8px;min-height:36px;border:1px solid #aaa;">0</div>
-          </div>
-          <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);">
-            <button class="znp-btn" onclick="znpDigit('1')">1</button>
-            <button class="znp-btn" onclick="znpDigit('2')">2</button>
-            <button class="znp-btn" onclick="znpDigit('3')">3</button>
-            <button class="znp-btn znp-del" onclick="znpDel()">DEL</button>
-
-            <button class="znp-btn" onclick="znpDigit('4')">4</button>
-            <button class="znp-btn" onclick="znpDigit('5')">5</button>
-            <button class="znp-btn" onclick="znpDigit('6')">6</button>
-            <button class="znp-btn znp-clr" onclick="znpClr()">CLR</button>
-
-            <button class="znp-btn" onclick="znpDigit('7')">7</button>
-            <button class="znp-btn" onclick="znpDigit('8')">8</button>
-            <button class="znp-btn" onclick="znpDigit('9')">9</button>
-            <button class="znp-btn znp-ok" onclick="doZmetky()">OK</button>
-
-            <button class="znp-btn znp-span2" onclick="znpDigit('0')">0</button>
-            <button class="znp-btn" onclick="znpDigit(','">,</button>
-          </div>
-          <div style="border-top:1px solid #ddd;padding:6px;display:flex;justify-content:flex-end;">
-            <button class="btn" onclick="closeModal('zmetky');zmetkyReset()">Zrušenie</button>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer" style="justify-content:space-between;">
-      <button class="btn" id="zmetkyBackBtn" style="display:none;" onclick="zmetkyBack()">◀ Späť</button>
-      <div style="display:flex;gap:6px;margin-left:auto;">
-        <button class="btn btn-red abl" id="zmetkyConfirmBtn" style="display:none;" onclick="doZmetky()">✔ Potvrdiť šrot</button>
-        <button class="btn" onclick="closeModal('zmetky');zmetkyReset()">Zrušiť</button>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Prikaz -->
-<div class="modal-overlay" id="modal-prikaz">
-  <div class="modal-box">
-    <div class="modal-title">Otvoriť príkaz</div>
-    <div class="modal-body">
-      <label>Číslo príkazu:</label><input type="text" id="newPrikaz" placeholder="napr. 000007468829">
-      <label>Materiál:</label><input type="text" id="newMaterial" placeholder="napr. 9303-002L-02">
-      <label>Popis:</label><input type="text" id="newPopis" placeholder="Popis výrobku">
-      <label>Cieľové množstvo:</label><input type="number" id="newCiel" value="5000">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-green" onclick="doOpenPrikaz()">Otvoriť</button>
-      <button class="btn" onclick="closeModal('prikaz')">Zrušiť</button>
-    </div>
-  </div>
-</div>
-
-<!-- Spotreba -->
-<div class="modal-overlay" id="modal-spotreba">
-  <div class="modal-box">
-    <div class="modal-title">Dodatočná spotreba materiálu</div>
-    <div class="modal-body">
-      <label>Materiál:</label><input type="text" id="spotrebaMat" placeholder="Číslo materiálu">
-      <label>Množstvo:</label><input type="number" id="spotrebaQty" value="1">
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-yellow" onclick="doSpotreba()">Potvrdiť</button>
-      <button class="btn" onclick="closeModal('spotreba')">Zrušiť</button>
-    </div>
-  </div>
-</div>
-
-<!-- Docs -->
-<div class="modal-overlay" id="modal-docs">
-  <div class="modal-box">
-    <div class="modal-title">Dokumenty</div>
-    <div class="modal-body">
-      <div style="font-size:12px;color:#555;margin-bottom:10px;">Dostupné dokumenty pre pracovisko 55011200:</div>
-      <div style="display:flex;flex-direction:column;gap:6px;">
-        <button class="btn abl" onclick="alert('Otváranie: WI-878-001')">📄 Pracovná inštrukcia WI-878-001</button>
-        <button class="btn abl" onclick="alert('Otváranie: KP-160B')">📄 Kontrolný plán KP-160B</button>
-        <button class="btn abl" onclick="alert('Otváranie: FMEA-878-160BCT')">📄 FMEA-878-160BCT</button>
-      </div>
-    </div>
-    <div class="modal-footer"><button class="btn" onclick="closeModal('docs')">Zavrieť</button></div>
   </div>
 </div>
 
 <script>
-// CLOCK
-function updateClock() {
-  const t=new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  document.getElementById('clock').textContent=t;
-  document.getElementById('clockBottom').textContent=t;
-}
-setInterval(updateClock,1000); updateClock();
+  // ----------------------- POZADÍ – BĚŽÍCÍ POSTAVY -------------------------
+  const bgStage = document.getElementById('bgStage');
+  let bgCharacters = [];
+  let bgAnimationFrame = null;
 
-// MODALS
-function openModal(id) { if(id==='login'){openLoginScreen();return;} document.getElementById('modal-'+id).classList.add('active'); }
-function closeModal(id) { document.getElementById('modal-'+id).classList.remove('active'); }
-document.querySelectorAll('.modal-overlay').forEach(el=>{ el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('active');}); });
+  function createBgCharacter(type, yPos, speed, startX) {
+    const div = document.createElement('div');
+    div.className = 'bg-character';
+    let html = '';
+    let extraClass = '';
+    if (type === 'worker') html = '👨‍🏭 <span style="background:#2c2c2c; padding:2px 6px; border-radius:20px;">🟤⚙️</span>';
+    if (type === 'predak1') html = '👩‍🦰 <span style="background:#e86820; padding:2px 8px; border-radius:20px; color:white;">🧡 PREDÁK</span>';
+    if (type === 'predak2') html = '👩‍🦳 <span style="background:#e86820; padding:2px 8px; border-radius:20px; color:white;">🧡 PREDÁK</span>';
+    if (type === 'skladnik') html = '📦 <span style="background:#cc2222; padding:2px 8px; border-radius:20px; color:white;">⬜ SKLADNÍK</span>';
+    if (type === 'nastavovac') html = '🧔‍♂️ <span style="background:#3a2a2a; padding:2px 8px; border-radius:20px; color:#ffaa66;">🔧 NASTAVOVAČ</span>';
+    div.innerHTML = html;
+    div.style.left = startX + 'px';
+    div.style.top = yPos + 'px';
+    div.style.fontSize = (18 + Math.random() * 10) + 'px';
+    div.style.opacity = 0.8;
+    bgStage.appendChild(div);
+    return { element: div, type, x: startX, y: yPos, speed: speed, width: 140, lastBubble: 0 };
+  }
 
-// STATE
-let orderData=[
-  {prikaz:'000007468827',mat:'9301-002L-02',popis:'160B Salka- interne lis. P',ciel:5000,vyr:3360,zm:8,open:182,forma:'WMSW-878-160BCT'},
-  {prikaz:'000007468828',mat:'9302-002L-02',popis:'160B Salka - inter. lis. L',ciel:5000,vyr:3360,zm:4,open:186,forma:'WMSW-878-160BCT'}
-];
-let selectedOrder=0;
+  function updateBackgroundCharacters() {
+    for (let i = 0; i < bgCharacters.length; i++) {
+      const c = bgCharacters[i];
+      c.x += c.speed;
+      if (c.x > window.innerWidth + 200) c.x = -200;
+      if (c.x < -200) c.x = window.innerWidth + 100;
+      c.element.style.left = c.x + 'px';
+      
+      // náhodné bubliny podle typu
+      if (Math.random() < 0.002 && (Date.now() - (c.lastBubble||0)) > 3000) {
+        c.lastBubble = Date.now();
+        let text = '';
+        if (c.type === 'nastavovac') text = '🔧 PORUCHA FORMY! 🔧';
+        else if (c.type === 'predak1') text = '🚨 RYCHLEJŠIE! ZABER!';
+        else if (c.type === 'predak2') text = '📋 KVALITA? SÚSTREĎ SA!';
+        else if (c.type === 'skladnik') text = '📦 NOVÉ BOXY!';
+        else text = '🏭 tempo!';
+        const bubble = document.createElement('div');
+        bubble.className = 'bg-bubble';
+        bubble.textContent = text;
+        bubble.style.left = (c.x + 35) + 'px';
+        bubble.style.top = (c.y - 10) + 'px';
+        bgStage.appendChild(bubble);
+        setTimeout(() => bubble.remove(), 1000);
+      }
+    }
+    bgAnimationFrame = requestAnimationFrame(updateBackgroundCharacters);
+  }
 
-function setMsg(msg,color){ const el=document.getElementById('statusbarMsg'); el.textContent=msg; el.style.color=color||'#990000'; setTimeout(()=>{el.textContent='';},4000); }
-
-// ANDON SCREEN
-function openAndonScreen() {
-  document.getElementById('andonScreen').classList.add('active');
-  document.getElementById('andonCallStatus').textContent='';
-  document.querySelectorAll('.andon-run-btn').forEach(b=>b.classList.remove('active'));
-  // also activate the blinking bar
-  andonActive=true;
-  document.getElementById('andonBar').classList.add('active');
-}
-function closeAndonScreen() {
-  document.getElementById('andonScreen').classList.remove('active');
-}
-function callForHelp(role) {
-  document.querySelectorAll('.andon-run-btn').forEach(b=>b.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-  const statusEl=document.getElementById('andonCallStatus');
-  statusEl.style.color='#cc8800';
-  statusEl.textContent='📡 Volám: '+role+'...';
-  setTimeout(()=>{
-    statusEl.style.color='#007700';
-    statusEl.textContent='✔ '+role+' bol upozornený!';
-  },1500);
-  setMsg('ANDON: Zavolaný '+role,'#cc0000');
-}
-let andonActive=false;
-function aktualizovat(){ setMsg('Dáta aktualizované.','#007700'); updateProgress(); }
-
-// ORDERS
-function selectOrder(row,idx){ document.querySelectorAll('#ordersBody tr').forEach(r=>r.classList.remove('selected')); row.classList.add('selected'); selectedOrder=idx; updateProgress(); }
-function selectWorkplace(row){ document.querySelectorAll('#workplaceTable tbody tr').forEach(r=>r.classList.remove('selected')); row.classList.add('selected'); }
-function updateProgress(){ const d=orderData[selectedOrder]; const pct=Math.round(d.vyr/d.ciel*1000)/10; const bar=document.getElementById('progressBar'); bar.style.width=pct+'%'; bar.textContent=pct+'%'; bar.style.background=pct>=100?'#00aa00':pct>=80?'#e08000':'#3a8ee6'; }
-function refreshOrders(){ orderData.forEach((d,i)=>{ const v=document.getElementById('vyr'+i); if(v)v.textContent=d.vyr; const z=document.getElementById('zm'+i); if(z)z.textContent=d.zm; const o=document.getElementById('op'+i); if(o)o.textContent=d.open; }); updateProgress(); }
-
-// STATUS
-function setStatusFromTable(val,label,reason){
-  const badge=document.getElementById('statusBadge');
-  if(val==='vyroba'){badge.className='status-vyroba';badge.textContent='Výroba';}
-  else{badge.className='status-stop';badge.textContent=label;}
-  const row=document.querySelector('#workplaceTable tbody tr.selected');
-  if(row&&row.cells.length>4){ row.cells[4].textContent=reason?reason.split(' — ')[0]:''; row.cells[5].textContent=reason?reason.split(' — ')[1]||'':''; }
-  closeModal('status');
-  setMsg('Stav: '+label+(reason?' — '+reason:''),val==='vyroba'?'#007700':'#cc4400');
-}
-
-// ZMETKY
-const zmetkyReasons=[
-  {code:'0001',descr:'Rozbeh výroby / nastavovanie'},{code:'0002',descr:'Vzorky'},{code:'0003',descr:'Nedostrek / nekompletný diel'},{code:'0004',descr:'Prestrek'},
-  {code:'0005',descr:'Prepadlina'},{code:'0006',descr:'Rozmerová deformácia / ohnutý'},{code:'0007',descr:'Prskance / smuhy'},{code:'0008',descr:'Mapy / flaky / leskly flak'},
-  {code:'0009',descr:'Spoj materiálu'},{code:'0010',descr:'Prasklina'},{code:'0011',descr:'Výlup / odlomený'},{code:'0012',descr:'Zadymený / mliečny'},
-  {code:'0013',descr:'Bublina'},{code:'0014',descr:'Čierny bod'},{code:'0015',descr:'Biely bod'},{code:'0016',descr:'Kontaminácia / cudzie teleso'},
-  {code:'0017',descr:'Škrabanec / ryha'},{code:'0018',descr:'Vlas / zalisovaný vlas'},{code:'0019',descr:'Mastnota'},{code:'0020',descr:'Zlé odstrihnutý vtok'},
-  {code:'0021',descr:'Pod tisom / neodobratie dielu'},{code:'0023',descr:'Zlé kusy - degradácia mat.'},{code:'0024',descr:'Test formy / vzorkovanie'},{code:'0025',descr:'Po utretí formy'},
-  {code:'0026',descr:'Elektrická chyba'},{code:'0027',descr:'Chyba skla'},{code:'0028',descr:'Technologický scrap'},{code:'0029',descr:'Chybajúce balenie'},
-  {code:'0030',descr:'Trial - rozbeh výroby'},{code:'0031',descr:'Trial - škrabanec'},{code:'0032',descr:'Trial - prestrak'},{code:'0033',descr:'Trial - nedostatok'},
-  {code:'0034',descr:'Trial - spálenina'},{code:'0035',descr:'Trial - mastnota'},{code:'0036',descr:'Trial - deformácia'},{code:'0037',descr:'Trial - prskance'},
-  {code:'0038',descr:'Trial - flak'},{code:'0039',descr:'Trial - kontaminácia'},{code:'0040',descr:'Trial - prepadlina'},{code:'0041',descr:'Trial - spoj materiálu'},
-  {code:'0042',descr:''},{code:'0043',descr:''},{code:'0044',descr:''},{code:'0045',descr:''},{code:'0046',descr:''},
-];
-let zmetkyOrderIdx=0,zmetkyReasonCode='',zmetkyReasonDescr='';
-function buildZmetkyGrid(){ const grid=document.getElementById('zmetkyGrid'); grid.innerHTML=''; zmetkyReasons.forEach(r=>{ const btn=document.createElement('button'); btn.style.cssText='border:1px solid #999;background:#fff;padding:8px 4px;cursor:pointer;text-align:center;font-family:inherit;min-height:52px;width:100%;'; btn.innerHTML=`<div style="font-weight:bold;color:#333;font-size:clamp(10px,2.5vw,13px);">${r.code}</div><div style="color:#555;margin-top:3px;font-size:clamp(9px,2vw,11px);">${r.descr}</div>`; if(r.descr){ btn.onclick=()=>zmetkySelectReason(r.code,r.descr); btn.onmouseover=()=>btn.style.background='#d9e8f5'; btn.onmouseout=()=>btn.style.background='#fff'; } else{ btn.style.background='#f0f0f0'; btn.style.cursor='default'; } grid.appendChild(btn); }); }
-function zmetkySelectOrder(idx,label){ zmetkyOrderIdx=idx; document.getElementById('zmetkyActivePrikaz').textContent=label; document.getElementById('zmetkyStep1').style.display='none'; buildZmetkyGrid(); document.getElementById('zmetkyStep2').style.display='block'; document.getElementById('zmetkyBackBtn').style.display='inline-block'; }
-function zmetkySelectReason(code,descr){
-  zmetkyReasonCode=code; zmetkyReasonDescr=descr;
-  document.getElementById('zmetkyChosenReason').textContent=code+' — '+descr;
-  document.getElementById('zmetkyNumpadTitle').textContent='Zadajte množstvo ('+descr+')';
-  document.getElementById('zmetkyNumpadDisplay').textContent='0';
-  znpValue='';
-  // Populate left list with context reasons
-  const list=document.getElementById('zmetkyLeftList');
-  list.innerHTML='';
-  const nearby=zmetkyReasons.filter(r=>r.descr);
-  nearby.forEach(r=>{
-    const d=document.createElement('div');
-    d.style.cssText='border:1px solid #bbb;background:'+(r.code===code?'#c5d9f1':'#fff')+';padding:5px 6px;cursor:pointer;font-size:clamp(9px,2vw,11px);';
-    d.innerHTML='<div style="font-weight:bold;">'+r.code+'</div><div>'+r.descr+'</div>';
-    d.onclick=()=>zmetkySelectReason(r.code,r.descr);
-    list.appendChild(d);
-  });
-  document.getElementById('zmetkyStep2').style.display='none';
-  document.getElementById('zmetkyStep3').style.display='block';
-  document.getElementById('zmetkyStep3').style.removeProperty('display');
-  // manually show
-  const s3=document.getElementById('zmetkyStep3');
-  s3.style.display='block';
-  document.getElementById('zmetkyConfirmBtn').style.display='inline-block';
-}
-
-// Zmetky numpad
-let znpValue='';
-function znpDigit(d){ if(znpValue.length>=5)return; if(d===','&&znpValue.includes(','))return; znpValue+=d; document.getElementById('zmetkyNumpadDisplay').textContent=znpValue||'0'; }
-function znpDel(){ znpValue=znpValue.slice(0,-1); document.getElementById('zmetkyNumpadDisplay').textContent=znpValue||'0'; }
-function znpClr(){ znpValue=''; document.getElementById('zmetkyNumpadDisplay').textContent='0'; }
-function zmetkyBack(){ if(document.getElementById('zmetkyStep3').style.display!=='none'){ document.getElementById('zmetkyStep3').style.display='none'; document.getElementById('zmetkyConfirmBtn').style.display='none'; document.getElementById('zmetkyStep2').style.display='block'; } else{ document.getElementById('zmetkyStep2').style.display='none'; document.getElementById('zmetkyStep1').style.display='block'; document.getElementById('zmetkyBackBtn').style.display='none'; } }
-function zmetkyReset(){ document.getElementById('zmetkyStep1').style.display='block'; ['zmetkyStep2','zmetkyStep3'].forEach(id=>document.getElementById(id).style.display='none'); document.getElementById('zmetkyBackBtn').style.display='none'; document.getElementById('zmetkyConfirmBtn').style.display='none'; document.getElementById('zmetkyActivePrikaz').textContent='—'; }
-function adjustZmetkyCount(d){ const inp=document.getElementById('zmetkyCount'); inp.value=Math.max(1,(parseInt(inp.value)||1)+d); }
-function doZmetky(){ const cnt=parseInt(znpValue)||0; if(cnt<=0){znpClr();document.getElementById('zmetkyNumpadDisplay').textContent='!';setTimeout(()=>{document.getElementById('zmetkyNumpadDisplay').textContent='0';},500);return;} orderData[zmetkyOrderIdx].zm+=cnt; orderData[zmetkyOrderIdx].vyr=Math.max(0,orderData[zmetkyOrderIdx].vyr-cnt); orderData[zmetkyOrderIdx].open=orderData[zmetkyOrderIdx].ciel-orderData[zmetkyOrderIdx].vyr; refreshOrders(); closeModal('zmetky'); zmetkyReset(); setMsg('Šrot zadaný: '+cnt+' ks — '+zmetkyReasonCode+' '+zmetkyReasonDescr,'#cc4400'); }
-
-// LOGIN + localStorage persistence
-const knownWorkers={'10001981':'Volodymyr Koval','10002590':'Serhii Kapuza'};
-
-function saveWorkers() {
-  const rows=document.querySelector('#workerTable tbody').querySelectorAll('tr');
-  const data=Array.from(rows).map(r=>({id:r.cells[0].textContent,name:r.cells[1].textContent,time:r.cells[2].textContent}));
-  try{localStorage.setItem('jit_workers',JSON.stringify(data));}catch(e){}
-}
-function loadWorkers() {
-  try{
-    const data=JSON.parse(localStorage.getItem('jit_workers')||'[]');
-    const tbody=document.querySelector('#workerTable tbody');
-    data.forEach(w=>{
-      const row=document.createElement('tr');
-      row.innerHTML=`<td>${w.id}</td><td>${w.name}</td><td>${w.time}</td>`;
-      tbody.appendChild(row);
+  function initBackground() {
+    bgStage.innerHTML = '';
+    bgCharacters = [];
+    // tmavosiví dělnici
+    for (let i = 0; i < 7; i++) {
+      const y = 30 + Math.random() * (window.innerHeight - 120);
+      const speed = (Math.random() * 0.8 + 0.4) * (Math.random() > 0.5 ? 1 : -1);
+      const startX = Math.random() * window.innerWidth;
+      bgCharacters.push(createBgCharacter('worker', y, speed, startX));
+    }
+    // predacka 1 - ryžové karé, oranžová
+    for (let i=0;i<2;i++) bgCharacters.push(createBgCharacter('predak1', 80 + Math.random() * 200, 0.7 + Math.random() * 0.5, Math.random() * window.innerWidth));
+    // predacka 2 - sedá, dlhé vlasy, oranžová
+    for (let i=0;i<2;i++) bgCharacters.push(createBgCharacter('predak2', 140 + Math.random() * 220, -0.6 - Math.random() * 0.5, Math.random() * window.innerWidth));
+    // skladnici s rolermi
+    for (let i=0;i<3;i++) bgCharacters.push(createBgCharacter('skladnik', 200 + Math.random() * 150, 0.5 + Math.random() * 0.8, Math.random() * window.innerWidth));
+    // nastavovaci – jeden borodaty
+    for (let i=0;i<2;i++) bgCharacters.push(createBgCharacter('nastavovac', 300 + Math.random() * 100, -0.55 + Math.random() * 1.1, Math.random() * window.innerWidth));
+    updateBackgroundCharacters();
+  }
+  window.addEventListener('resize', () => { initBackground(); });
+  
+  // ------------------------ HRA LISOVNA ---------------------------------
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const W = 800, H = 480;
+  canvas.width = W; canvas.height = H;
+  
+  // Herní proměnné
+  let gameRunning = false;
+  let score = 0;
+  let lives = 3;
+  let pressCount = 1;          // počet lisů (výchozí 1, predák přidá další)
+  let baseSpeed = 2.6;
+  let spawnRate = 52;          // frames mezi spawnem
+  let frame = 0;
+  let items = [];
+  let predakActive = false;
+  let predakTimer = 0;
+  let predakX = W+80;
+  let predakDir = -1;
+  let pressLevelBoost = false;    // predák zvýšil počet lisů
+  let animationId = null;
+  let selectedChar = 'male';     // muž/žena pro hráče
+  
+  // Hráč
+  const LANES = [W*0.22, W*0.38, W*0.54, W*0.7, W*0.86]; // 5 drah pro pestrost
+  let player = { lane: 2, x: LANES[2], y: H-58, armAngle: 0, armDir: 1 };
+  
+  // Funkce pro aktualizaci UI
+  function updateUI() {
+    document.getElementById('gameScore').innerText = score;
+    document.getElementById('gameLives').innerHTML = '❤️'.repeat(lives);
+    document.getElementById('gamePressCount').innerText = pressCount;
+  }
+  
+  // Spawn dílů (dobrý / špatný)
+  function spawnItem() {
+    const laneIdx = Math.floor(Math.random() * LANES.length);
+    const isBad = Math.random() < (0.2 + (pressCount > 1 ? 0.08 : 0) + (predakActive ? 0.1 : 0));
+    items.push({
+      lane: laneIdx,
+      x: LANES[laneIdx],
+      y: -24,
+      bad: isBad,
+      speed: baseSpeed + Math.random() * 1.2 + (pressCount > 1 ? 0.7 : 0)
     });
-  }catch(e){}
-}
-loadWorkers();
-
-function openLoginScreen(){ document.getElementById('loginScreen').classList.add('active'); document.getElementById('loginId').value=''; document.getElementById('loginLookupResult').textContent=''; setTimeout(()=>document.getElementById('loginId').focus(),50); }
-function closeLoginScreen(){ document.getElementById('loginScreen').classList.remove('active'); }
-function loginLookup(val){ const el=document.getElementById('loginLookupResult'); const name=knownWorkers[val.trim()]; if(name){el.textContent='✔ '+name;el.style.color='#007700';} else if(val.length>=4){el.textContent='Pracovník nenájdený';el.style.color='#cc0000';} else{el.textContent='';} }
-function quickLogin(id){ document.getElementById('loginId').value=id; loginLookup(id); doLogin(); }
-function doLogin(){
-  const id=document.getElementById('loginId').value.trim();
-  if(!id)return;
-  const name=knownWorkers[id]||('Worker '+id);
-  const tbody=document.querySelector('#workerTable tbody');
-  if(Array.from(tbody.querySelectorAll('tr')).find(r=>r.cells[0].textContent===id)){
-    document.getElementById('loginLookupResult').textContent='Už prihlásený!';
-    document.getElementById('loginLookupResult').style.color='#cc7700'; return;
   }
-  const now=new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  const row=document.createElement('tr');
-  row.innerHTML=`<td>${id}</td><td>${name}</td><td>${now}</td>`;
-  tbody.appendChild(row);
-  saveWorkers();
-  closeLoginScreen();
-  setMsg('Pracovník prihlásený: '+name,'#007700');
-}
-function odhlasenie(){
-  const tbody=document.querySelector('#workerTable tbody');
-  const rows=tbody.querySelectorAll('tr');
-  if(!rows.length){setMsg('Žiadny pracovník prihlásený.');return;}
-  const last=rows[rows.length-1];
-  const name=last.cells[1].textContent;
-  if(confirm('Odhlásiť pracovníka: '+name+'?')){
-    tbody.removeChild(last);
-    saveWorkers();
-    setMsg('Odhlásený: '+name,'#555');
+  
+  // Kolize a chytání
+  function updateItems() {
+    for (let i=items.length-1; i>=0; i--) {
+      const it = items[i];
+      it.y += it.speed;
+      const catchZone = (it.y > H-88 && it.y < H-46 && Math.abs(it.x - player.x) < 36);
+      if (catchZone) {
+        if (!it.bad) {
+          score += 10 * pressCount;
+          updateUI();
+        } else {
+          lives--;
+          updateUI();
+          if (lives <= 0) gameOverSequence();
+        }
+        items.splice(i,1);
+        continue;
+      }
+      if (it.y > H+30) {
+        if (!it.bad) {
+          lives--;
+          updateUI();
+          if (lives <= 0) gameOverSequence();
+        }
+        items.splice(i,1);
+      }
+    }
   }
-}
-
-// BOXOVÉ ETIKETY NUMPAD
-let numpadValue='';
-function openBoxoveEtikety(){ numpadValue=''; document.getElementById('numpadDisplay').textContent='0'; document.getElementById('numpadPrintStatus').style.display='none'; document.getElementById('numpadPrintStatus').textContent=''; document.getElementById('numpadScreen').classList.add('active'); }
-function closeNumpad(){ document.getElementById('numpadScreen').classList.remove('active'); }
-function npDigit(d){ if(numpadValue.length>=6)return; if(d===','&&numpadValue.includes(','))return; numpadValue+=d; document.getElementById('numpadDisplay').textContent=numpadValue||'0'; }
-function npDel(){ numpadValue=numpadValue.slice(0,-1); document.getElementById('numpadDisplay').textContent=numpadValue||'0'; }
-function npClr(){ numpadValue=''; document.getElementById('numpadDisplay').textContent='0'; }
-function npOK(){
-  const qty=parseInt(numpadValue)||0;
-  if(qty<=0){alert('Zadajte platné množstvo!');return;}
-  const statusEl=document.getElementById('numpadPrintStatus');
-  statusEl.style.display='block'; statusEl.style.color='#cc8800';
-  statusEl.textContent='🖨  Tlač etikiet: '+qty+' ks...';
-  setTimeout(()=>{
-    statusEl.style.color='#007700';
-    statusEl.textContent='✔ Etikety vytlačené: '+qty+' ks — '+orderData[selectedOrder].prikaz;
-    setTimeout(()=>{ closeNumpad(); setMsg('Boxové etikety vytlačené: '+qty+' ks','#007700'); },1400);
-  },1600);
-}
-
-// OTHER
-function ukoncitPrikaz(){ const d=orderData[selectedOrder]; if(!confirm('Ukončiť príkaz '+d.prikaz+'?\nVyrobené: '+d.vyr+' / '+d.ciel))return; setMsg('Príkaz '+d.prikaz+' ukončený.','#007700'); const badge=document.getElementById('statusBadge'); badge.className='status-stop';badge.textContent='Ukončené'; }
-function prerusitPrikaz(){ const d=orderData[selectedOrder]; if(!confirm('Prerušiť príkaz '+d.prikaz+'?'))return; setMsg('Príkaz '+d.prikaz+' prerušený.','#cc7700'); const badge=document.getElementById('statusBadge'); badge.className='status-paused';badge.textContent='Prerušené'; }
-function doOpenPrikaz(){ const p=document.getElementById('newPrikaz').value.trim(); const m=document.getElementById('newMaterial').value.trim(); const po=document.getElementById('newPopis').value.trim(); const c=parseInt(document.getElementById('newCiel').value)||5000; if(!p||!m||!po){alert('Vyplňte všetky polia!');return;} const idx=orderData.length; orderData.push({prikaz:p,mat:m,popis:po,ciel:c,vyr:0,zm:0,open:c,forma:'WMSW-878-NEW'}); const tbody=document.getElementById('ordersBody'); const row=document.createElement('tr'); row.className=idx%2===1?'row-alt':''; row.onclick=function(){selectOrder(row,idx);}; row.innerHTML=`<td></td><td>${p}</td><td class="hide-mobile">${m}</td><td>${po}</td><td>${c}</td><td id="vyr${idx}">0</td><td class="zmetky-val" id="zm${idx}">0</td><td class="open-val" id="op${idx}">${c}</td><td class="hide-mobile">WMSW-878-NEW</td><td class="hide-mobile"></td>`; tbody.appendChild(row); closeModal('prikaz'); setMsg('Príkaz otvorený: '+p,'#007700'); ['newPrikaz','newMaterial','newPopis'].forEach(id=>document.getElementById(id).value=''); }
-function doSpotreba(){ const mat=document.getElementById('spotrebaMat').value.trim(); const qty=parseInt(document.getElementById('spotrebaQty').value)||0; if(!mat||qty<=0){alert('Vyplňte polia!');return;} closeModal('spotreba'); setMsg('Spotreba zadaná: '+mat+' × '+qty,'#cc8800'); }
-function shutdownPC(){ if(confirm('Naozaj chcete vypnúť počítač?'))setMsg('Počítač sa vypína...','#cc0000'); }
-function showTab(tab){ const m={kusovnik:'Kusovník — zoznam materiálov',uctovanie:'Účtovanie výroby — zadávanie kusov'}; setMsg(m[tab]||tab,'#0055aa'); }
-
-updateProgress();
-
-// Auto-simulation
-setInterval(()=>{ orderData.forEach((d,i)=>{ if(d.vyr<d.ciel&&document.querySelector('.status-vyroba')){ d.vyr+=Math.floor(Math.random()*2); if(d.vyr>d.ciel)d.vyr=d.ciel; d.open=d.ciel-d.vyr; } }); refreshOrders(); },8000);
-
-
-// ===== LISOVNA GAME =====
-let gSelectedChar='male';
-function openGame(){ document.getElementById('gameScreen').classList.add('active'); initGame(); }
-function closeGame(){ document.getElementById('gameScreen').classList.remove('active'); cancelAnimationFrame(gRAF); gRunning=false; }
-
-function showStart(){
-  document.getElementById('gOverlay').style.display='flex';
-  document.getElementById('gScreenStart').style.display='flex';
-  document.getElementById('gScreenOver').style.display='none';
-  drawCharPreviews();
-}
-function showGameOver(text,quote){
-  document.getElementById('gOverlay').style.display='flex';
-  document.getElementById('gScreenStart').style.display='none';
-  const over=document.getElementById('gScreenOver');
-  over.style.display='flex';
-  document.getElementById('gOverlayText').innerHTML=text;
-  document.getElementById('gMajsterQuote').textContent=quote||'';
-  drawMajsterPreview();
-}
-function hideOverlay(){ document.getElementById('gOverlay').style.display='none'; }
-
-function selectChar(ch){
-  gSelectedChar=ch;
-  document.getElementById('gCharM').style.borderColor=ch==='male'?'#0f0':'#555';
-  document.getElementById('gCharF').style.borderColor=ch==='female'?'#0f0':'#555';
-  drawCharPreviews();
-}
-function drawCharPreviews(){
-  ['male','female'].forEach(g=>{
-    const id=g==='male'?'gPreviewM':'gPreviewF';
-    const el=document.getElementById(id); if(!el)return;
-    const c=el.getContext('2d'); c.clearRect(0,0,60,90);
-    c.save(); c.translate(30,72); c.scale(0.75,0.75); drawWorkerFigure(c,g,0); c.restore();
+  
+  // Predák (přijde a zvýší počet lisů = těžší spawn, rychlejší)
+  function updatePredak() {
+    if (!gameRunning) return;
+    if (!predakActive && frame > 180 && frame % 650 === 0 && pressCount<3) {
+      predakActive = true;
+      predakTimer = 380;
+      predakX = W+70;
+      predakDir = -1;
+      // predák přidá lis! zvýší obtížnost
+      pressCount = Math.min(3, pressCount+1);
+      pressLevelBoost = true;
+      baseSpeed = Math.min(5.2, baseSpeed + 0.9);
+      spawnRate = Math.max(32, spawnRate - 12);
+      updateUI();
+      // bublina v pozadí
+      const bubbleDiv = document.createElement('div');
+      bubbleDiv.className = 'bg-bubble';
+      bubbleDiv.textContent = '⚠️ ZABER ĎALŠÍ LIS! RYCHLEJŠIE! ⚠️';
+      bubbleDiv.style.left = '30%'; bubbleDiv.style.top = '80px';
+      document.getElementById('bgStage').appendChild(bubbleDiv);
+      setTimeout(()=>bubbleDiv.remove(),1800);
+    }
+    if (predakActive) {
+      predakX += predakDir * 1.5;
+      if (predakX < 30 && predakDir<0) predakDir = 1;
+      if (predakX > W-60 && predakDir>0) predakDir = -1;
+      predakTimer--;
+      if (predakTimer <= 0) {
+        predakActive = false;
+        // po odchodu predáka zůstane lis navždy aktivní, obtížnost zůstává
+      }
+    }
+  }
+  
+  // Kreslení
+  function drawBackgroundFactory() {
+    ctx.fillStyle = '#19221b';
+    ctx.fillRect(0,0,W,H);
+    // pás
+    ctx.fillStyle = '#343d2e';
+    for(let i=0;i<W;i+=40){
+      ctx.fillRect(i, H-46, 24, 8);
+    }
+    ctx.fillStyle = '#4e6040';
+    ctx.fillRect(0, H-38, W, 38);
+    // světla
+    ctx.fillStyle = '#f5c542';
+    ctx.shadowBlur=0;
+    for(let i=0;i<6;i++) ctx.fillRect(40+i*130, 12, 20, 8);
+    ctx.fillStyle = '#7f6b3a';
+    for(let i=0;i<4;i++) ctx.fillRect(W-150+i*45, 12, 15, 6);
+  }
+  
+  function drawPart(x,y,bad) {
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.fillStyle = bad ? '#b32b2b' : '#4d8c5a';
+    ctx.shadowBlur = 2;
+    ctx.beginPath(); ctx.roundRect(-15, -9, 30, 18, 6); ctx.fill();
+    ctx.fillStyle = bad ? '#d86c6c' : '#90c290';
+    ctx.fillRect(-8, -4, 5, 8);
+    ctx.fillRect(3, -4, 5, 8);
+    if(bad){
+      ctx.strokeStyle = '#ffd966'; ctx.lineWidth=2.5;
+      ctx.beginPath(); ctx.moveTo(-8,-6); ctx.lineTo(8,2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(8,-6); ctx.lineTo(-8,2); ctx.stroke();
+    } else {
+      ctx.fillStyle = '#f7e05e';
+      ctx.beginPath(); ctx.arc(0, 2, 3, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+  
+  function drawPlayer() {
+    const x = player.x, y = player.y;
+    ctx.save(); ctx.translate(x,y);
+    ctx.fillStyle = '#1f2f1a'; // tmavá kombinéza
+    ctx.beginPath(); ctx.roundRect(-14, -8, 28, 26, 6); ctx.fill();
+    ctx.fillStyle = '#2f4025';
+    ctx.fillRect(-8, -2, 16, 8);
+    // paže
+    ctx.fillStyle = '#b78f60';
+    ctx.save(); ctx.translate(-14, -2); ctx.rotate(player.armAngle-0.2); ctx.fillRect(-4,-2,7,14); ctx.restore();
+    ctx.save(); ctx.translate(14, -2); ctx.rotate(-player.armAngle+0.2); ctx.fillRect(-3,-2,7,14); ctx.restore();
+    // hlava
+    ctx.fillStyle = '#e0ac77';
+    ctx.beginPath(); ctx.arc(0, -14, 12, 0, Math.PI*2); ctx.fill();
+    if(selectedChar === 'female') {
+      ctx.fillStyle = '#654321'; ctx.fillRect(-7, -21, 14, 6);
+      ctx.fillStyle = '#4a2c1a'; ctx.beginPath(); ctx.ellipse(-6, -18, 3, 6, -0.2,0,Math.PI*2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(6, -18, 3, 6, 0.2,0,Math.PI*2); ctx.fill();
+    } else {
+      ctx.fillStyle = '#2b1e0e'; ctx.fillRect(-9, -21, 18, 5);
+    }
+    ctx.fillStyle = '#1e1e1e';
+    ctx.beginPath(); ctx.arc(-4, -15, 2,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -15, 2,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#f5bc70'; ctx.beginPath(); ctx.ellipse(0, -9, 3, 2,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  
+  function drawPredak() {
+    if(!predakActive) return;
+    ctx.save(); ctx.translate(predakX, H-58);
+    if(predakDir>0) ctx.scale(-1,1);
+    ctx.fillStyle = '#e86820'; ctx.beginPath(); ctx.roundRect(-16, -28, 32, 28, 6); ctx.fill();
+    ctx.fillStyle = '#c06020'; ctx.fillRect(-16, -12, 32, 6);
+    ctx.fillStyle = '#bd7a4a';
+    ctx.fillRect(-5, -32, 10, 8);
+    ctx.beginPath(); ctx.arc(0, -44, 12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#9a4220'; // vlasy kare / sedá
+    if(predakTimer % 200 < 100) ctx.fillStyle = '#b86a30';
+    ctx.fillRect(-10, -50, 20, 8);
+    ctx.fillStyle = '#111';
+    ctx.beginPath(); ctx.arc(-4, -46, 1.8,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -46, 1.8,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#fff6cf'; ctx.font = "bold 11px monospace"; ctx.fillText("🚨 RYCHLEJŠIE!", -28, -56);
+    ctx.restore();
+  }
+  
+  // Mistr v černém (game over)
+  function drawMasterAngry() {
+    ctx.fillStyle = '#0c0c0c'; ctx.fillRect(0,0,W,H);
+    ctx.font = 'bold 28px monospace'; ctx.fillStyle = '#d44'; ctx.shadowBlur=0;
+    ctx.fillText('💀 MAJSTER ŤA NAKLADAL!', W/2-180, H/2-50);
+    ctx.font = '16px monospace'; ctx.fillStyle = '#c9a87b';
+    const quotes = ['"Čo to robíš?! Zajtra výpoveď!"','"Kvalita je katastrofa! PORUCHA FORMY!"','"Takto sa lisuje? HANBA!"'];
+    ctx.fillText(quotes[Math.floor(Math.random()*quotes.length)], W/2-160, H/2+20);
+    // nakreslit mistra v černém
+    ctx.save(); ctx.translate(W/2, H/2+90);
+    ctx.fillStyle = '#111'; ctx.fillRect(-20, -10, 40, 30);
+    ctx.fillStyle = '#2b2b2b'; ctx.fillRect(-22, -30, 44, 25);
+    ctx.fillStyle = '#a56b3e'; ctx.beginPath(); ctx.arc(0, -40, 14,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#000'; ctx.fillRect(-10, -45, 20, 6);
+    ctx.fillStyle = '#d00'; ctx.beginPath(); ctx.moveTo(-5, -33); ctx.lineTo(0, -28); ctx.lineTo(5, -33); ctx.fill();
+    ctx.restore();
+  }
+  
+  // Level up (predák přidal lis)
+  function gameLoop() {
+    if(!gameRunning) return;
+    frame++;
+    // pohyb hráče směrem k lane
+    player.x += (LANES[player.lane] - player.x) * 0.22;
+    player.armAngle += 0.12 * player.armDir;
+    if(Math.abs(player.armAngle)>0.65) player.armDir*=-1;
+    if(frame % spawnRate === 0) spawnItem();
+    updateItems();
+    updatePredak();
+    drawBackgroundFactory();
+    for(let it of items) drawPart(it.x, it.y, it.bad);
+    drawPlayer();
+    drawPredak();
+    // zobrazení stavu lisů
+    ctx.font = 'bold 14px monospace'; ctx.fillStyle = '#efebc0'; ctx.fillText(`⚙️ LISY AKTÍVNE: ${pressCount}`, 20, 45);
+    if(predakActive) ctx.fillStyle = '#ffaa44'; ctx.fillText('🔥 PREDÁK DOHĽADÁ!', W-150, 38);
+    if(lives<=0) return;
+    animationId = requestAnimationFrame(gameLoop);
+  }
+  
+  function gameOverSequence() {
+    gameRunning = false;
+    cancelAnimationFrame(animationId);
+    drawMasterAngry();
+    const overlay = document.createElement('div');
+    overlay.className = 'overlay-menu';
+    overlay.innerHTML = `<div class="menu-card"><h2>💀 KONIEC HRY 💀</h2><p>Skóre: ${score} | Úroveň lisov: ${pressCount}</p><div class="quote">"Mistr v čiernom ťa vyhodil z linky!"</div><button class="game-btn" id="restartBtn">ZNOVU LISOVAŤ 🔄</button><button class="game-btn" id="menuBtn">HLAVNÉ MENU</button></div>`;
+    document.body.appendChild(overlay);
+    document.getElementById('restartBtn').onclick = () => { overlay.remove(); fullRestart(); };
+    document.getElementById('menuBtn').onclick = () => { overlay.remove(); showStartMenu(); };
+  }
+  
+  function fullRestart() {
+    score = 0; lives = 3; pressCount = 1; baseSpeed = 2.6; spawnRate = 52; frame = 0; items = [];
+    predakActive = false; predakTimer = 0; pressLevelBoost = false;
+    player.lane = 2; player.x = LANES[2];
+    gameRunning = true;
+    updateUI();
+    if(animationId) cancelAnimationFrame(animationId);
+    animationId = requestAnimationFrame(gameLoop);
+  }
+  
+  // Start menu s výběrem postavy
+  function showStartMenu() {
+    if(animationId) cancelAnimationFrame(animationId);
+    gameRunning = false;
+    const menuDiv = document.createElement('div');
+    menuDiv.className = 'overlay-menu';
+    menuDiv.innerHTML = `
+      <div class="menu-card">
+        <h2>🏭 LISOVNA MAGNA 🏭</h2>
+        <p>Chytaj plastové diely! Červené = šrot → strata života.<br>⭐ PREDÁK ti pridá ďalší lis!</p>
+        <div class="char-select">
+          <div class="char-card" data-char="male">👨 MUŽ <canvas id="previewMale" width="48" height="60"></canvas></div>
+          <div class="char-card" data-char="female">👩 ŽENA <canvas id="previewFemale" width="48" height="60"></canvas></div>
+        </div>
+        <button class="game-btn" id="startGameBtn">▶ SPUSTIŤ VÝROBU</button>
+        <div class="quote">"Zober si rukavice a chytaj!"</div>
+      </div>`;
+    document.body.appendChild(menuDiv);
+    // náhled postav
+    const cm = document.getElementById('previewMale')?.getContext('2d');
+    const cf = document.getElementById('previewFemale')?.getContext('2d');
+    if(cm) { cm.fillStyle='#b68b60'; cm.fillRect(0,20,48,20); cm.beginPath(); cm.arc(24,24,14,0,Math.PI*2); cm.fill(); cm.fillStyle='#2c2c2c'; cm.fillRect(18,12,12,4); }
+    if(cf) { cf.fillStyle='#cf9f70'; cf.fillRect(0,20,48,20); cf.beginPath(); cf.arc(24,24,14,0,Math.PI*2); cf.fill(); cf.fillStyle='#7a3a1a'; cf.fillRect(15,11,18,5); }
+    document.querySelectorAll('.char-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedChar = card.getAttribute('data-char');
+      });
+    });
+    document.getElementById('startGameBtn').onclick = () => {
+      menuDiv.remove();
+      fullRestart();
+    };
+    document.querySelector('.char-card').classList.add('selected');
+    selectedChar = 'male';
+  }
+  
+  // Ovládání
+  function moveLeft() { if(gameRunning && player.lane > 0) player.lane--; }
+  function moveRight() { if(gameRunning && player.lane < LANES.length-1) player.lane++; }
+  
+  document.getElementById('ctrlLeftBtn').addEventListener('click', moveLeft);
+  document.getElementById('ctrlRightBtn').addEventListener('click', moveRight);
+  canvas.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+    if(touchX < W/2) moveLeft(); else moveRight();
+  }, {passive:false});
+  canvas.addEventListener('mousedown', (e) => {
+    const rect = canvas.getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    if(mouseX < W/2) moveLeft(); else moveRight();
   });
-  document.getElementById('gCharM').style.borderColor=gSelectedChar==='male'?'#0f0':'#555';
-  document.getElementById('gCharF').style.borderColor=gSelectedChar==='female'?'#0f0':'#555';
-}
-function drawMajsterPreview(){
-  const el=document.getElementById('gMajsterCanvas'); if(!el)return;
-  const c=el.getContext('2d'); c.clearRect(0,0,80,120);
-  c.save(); c.translate(40,92); c.scale(0.85,0.85); drawMajster(c,0); c.restore();
-}
-
-const GW=400,GH=360;
-let gCanvas,gCtx,gRAF,gRunning=false;
-let gScore,gLives,gLevel,gWorker,gItems,gFrame,gSpeed,gSpawnRate;
-let gPredakActive=false,gPredakTimer=0,gPredakX=0,gPredakDir=-1;
-let gSkladnikX=-200,gSkladnikActive=false,gSkladnikTimer=600;
-let gFlash=0,gFlashColor='';
-
-const MAJSTER_QUOTES=[
-  'Čo to robíš?! Moja babička by to urobila rýchlejšie!',
-  'To nie je možné! Pozri koľko dielov si pustil!',
-  'Takto sa to nerobí! Zajtra máme audit!',
-  'Nie som spokojný! Zavolaj vedúceho!',
-  'Reklamácia!! Toto je katastrofa!',
-  'Kto ťa naučil takto pracovať?!',
-];
-
-function initGame(){
-  gCanvas=document.getElementById('gameCanvas');
-  gCanvas.width=GW; gCanvas.height=GH;
-  gCtx=gCanvas.getContext('2d');
-  showStart();
-}
-
-function startGame(){
-  hideOverlay();
-  gScore=0; gLives=3; gLevel=1;
-  const LANES=[GW*0.2,GW*0.4,GW*0.6,GW*0.8];
-  gWorker={lane:1,x:LANES[1],y:GH-55,armAngle:0,armDir:1,lanes:LANES};
-  gItems=[]; gFrame=0; gSpeed=2.2; gSpawnRate=60;
-  gPredakActive=false; gPredakTimer=0; gPredakX=GW+60; gPredakDir=-1;
-  gSkladnikX=GW+100; gSkladnikActive=false; gSkladnikTimer=500+Math.floor(Math.random()*300);
-  gRunning=true;
-  document.getElementById('gPredakBanner').style.display='none';
-  updateGameHUD(); cancelAnimationFrame(gRAF); gameLoop();
-}
-
-function updateGameHUD(){
-  document.getElementById('gScore').textContent=gScore;
-  document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,gLives));
-  document.getElementById('gLevel').textContent=gLevel+(gPredakActive?' 🔥':'');
-}
-function flashScreen(col){gFlash=10;gFlashColor=col;}
-
-function gameLoop(){
-  if(!gRunning)return;
-  gFrame++;
-  const LANES=gWorker.lanes;
-
-  // Worker movement
-  gWorker.x+=(LANES[gWorker.lane]-gWorker.x)*0.18;
-  gWorker.armAngle+=0.12*gWorker.armDir;
-  if(gWorker.armAngle>0.55||gWorker.armAngle<-0.55)gWorker.armDir*=-1;
-
-  // Predak — appears every ~700 frames
-  if(!gPredakActive&&gFrame>200&&gFrame%700===0){
-    gPredakActive=true; gPredakTimer=260;
-    gPredakX=GW+60; gPredakDir=-1;
-    document.getElementById('gPredakBanner').style.display='block';
-    gSpeed=Math.min(gSpeed+1.4,10); gSpawnRate=Math.max(20,gSpawnRate-14);
-    updateGameHUD();
-  }
-  if(gPredakActive){
-    gPredakX+=gPredakDir*1.6;
-    gPredakTimer--;
-    if(gPredakX<40&&gPredakDir<0)gPredakDir=1;
-    if(gPredakX>GW-30&&gPredakDir>0)gPredakDir=-1;
-    if(gPredakTimer<=0){
-      gPredakActive=false;
-      document.getElementById('gPredakBanner').style.display='none';
-      gSpeed=Math.max(gSpeed-0.9,2.2+gLevel*0.22);
-      gSpawnRate=Math.min(gSpawnRate+10,62-gLevel*4);
-      updateGameHUD();
-    }
-  }
-
-  // Skladnik walks across
-  gSkladnikTimer--;
-  if(gSkladnikTimer<=0&&!gSkladnikActive){
-    gSkladnikActive=true; gSkladnikX=GW+120;
-    gSkladnikTimer=600+Math.floor(Math.random()*500);
-  }
-  if(gSkladnikActive){
-    gSkladnikX-=1.4;
-    if(gSkladnikX<-200)gSkladnikActive=false;
-  }
-
-  // Level up
-  if(gScore>0&&gScore%(300*gLevel)===0&&!gPredakActive){
-    gLevel++; gSpeed=Math.min(gSpeed+0.2,7);
-    gSpawnRate=Math.max(32,gSpawnRate-4);
-    updateGameHUD();
-  }
-
-  // Spawn items
-  if(gFrame%gSpawnRate===0){
-    const lane=Math.floor(Math.random()*4);
-    const bad=Math.random()<(0.22+gLevel*0.04+(gPredakActive?0.12:0));
-    gItems.push({lane,x:LANES[lane],y:-20,bad,speed:gSpeed+Math.random()*0.9});
-  }
-
-  // Update + catch
-  for(let i=gItems.length-1;i>=0;i--){
-    const it=gItems[i]; it.y+=it.speed;
-    if(it.y>GH-82&&it.y<GH-36&&Math.abs(it.x-gWorker.x)<32){
-      if(!it.bad)gScore+=10*gLevel;
-      else{gLives--;flashScreen('#ff000088');}
-      gItems.splice(i,1); updateGameHUD();
-      if(gLives<=0){gameOver();return;} continue;
-    }
-    if(it.y>GH+20){
-      if(!it.bad){gLives--;flashScreen('#ff550055');updateGameHUD();if(gLives<=0){gameOver();return;}}
-      gItems.splice(i,1);
-    }
-  }
-  draw();
-  gRAF=requestAnimationFrame(gameLoop);
-}
-
-function gameOver(){
-  gRunning=false;
-  const q=MAJSTER_QUOTES[Math.floor(Math.random()*MAJSTER_QUOTES.length)];
-  showGameOver('💀 KONIEC HRY<br><span style="font-size:14px;color:#bbb;">Skóre: '+gScore+' | Úroveň: '+gLevel+'</span>',q);
-}
-
-function draw(){
-  const c=gCtx;
-  c.fillStyle='#1e1e1e'; c.fillRect(0,0,GW,GH);
-
-  // Conveyor belt
-  c.fillStyle='#252525'; c.fillRect(0,0,GW,26);
-  const bx=(gFrame*2.2)%64;
-  for(let x=bx-64;x<GW;x+=64){
-    c.fillStyle='#3c3c3c'; c.fillRect(x,2,48,22);
-    c.fillStyle='#2a2a2a'; c.fillRect(x+48,2,16,22);
-  }
-  c.strokeStyle='#666';c.lineWidth=2;c.strokeRect(0,0,GW,26);
-  // Rollers at ends
-  c.fillStyle='#555';
-  c.beginPath();c.arc(0,13,13,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(GW,13,13,0,Math.PI*2);c.fill();
-  c.fillStyle='#777';
-  c.beginPath();c.arc(0,13,6,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(GW,13,6,0,Math.PI*2);c.fill();
-
-  // Lane guides
-  gWorker.lanes.forEach((lx,i)=>{
-    c.fillStyle=i===gWorker.lane?'rgba(0,255,0,0.05)':'rgba(255,255,255,0.015)';
-    c.fillRect(lx-26,0,52,GH);
-    c.strokeStyle='#2c2c2c';c.lineWidth=1;
-    c.beginPath();c.setLineDash([4,12]);c.moveTo(lx,26);c.lineTo(lx,GH-54);c.stroke();c.setLineDash([]);
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
+    if(e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
   });
-
-  // Floor
-  c.fillStyle='#181818'; c.fillRect(0,GH-50,GW,50);
-  for(let x=0;x<GW;x+=50){
-    c.fillStyle='#222';c.fillRect(x,GH-48,48,8);
-    c.fillStyle='#1c1c1c';c.fillRect(x,GH-40,48,3);
-  }
-
-  // Skladnik
-  if(gSkladnikActive) drawSkladnik(c,gSkladnikX,GH-50);
-
-  // Items
-  gItems.forEach(it=>drawPart(c,it.x,it.y,it.bad));
-
-  // Worker
-  drawWorkerFigure(c,gSelectedChar,gWorker.armAngle,gWorker.x,gWorker.y);
-
-  // Predak
-  if(gPredakActive) drawPredak(c,gPredakX,GH-50,gPredakDir);
-
-  // Flash
-  if(gFlash>0){c.fillStyle=gFlashColor;c.fillRect(0,0,GW,GH);gFlash--;}
-}
-
-// ===== DRAW PART =====
-function drawPart(c,x,y,bad){
-  c.save();c.translate(x,y);
-  c.fillStyle=bad?'#aa1818':'#3a6a99';
-  c.strokeStyle=bad?'#ff5555':'#6699cc';
-  c.lineWidth=1.5;
-  c.beginPath();c.roundRect(-16,-10,32,20,5);c.fill();c.stroke();
-  c.fillStyle=bad?'#ff7777':'#88bbdd';
-  c.fillRect(-10,-5,8,10);c.fillRect(2,-5,8,10);
-  c.fillStyle=bad?'#881111':'#2255aa';
-  c.beginPath();c.roundRect(-5,10,10,6,2);c.fill();
-  if(bad){
-    c.strokeStyle='#ffee00';c.lineWidth=2;
-    c.beginPath();c.moveTo(-7,-7);c.lineTo(7,7);c.stroke();
-    c.beginPath();c.moveTo(7,-7);c.lineTo(-7,7);c.stroke();
-  }
-  c.restore();
-}
-
-// ===== DRAW WORKER =====
-function drawWorkerFigure(c,gender,arm,wx,wy){
-  c.save();
-  if(wx!==undefined)c.translate(wx,wy);
-  const fem=gender==='female';
-  const skin=fem?'#d4956a':'#c8845a';
-  const hair=fem?'#7a3a10':'#1e1208';
-
-  // Shadow
-  c.fillStyle='rgba(0,0,0,0.2)';c.beginPath();c.ellipse(0,40,15,4,0,0,Math.PI*2);c.fill();
-  // Legs
-  if(fem){
-    c.fillStyle='#225588';
-    c.beginPath();c.moveTo(-11,20);c.lineTo(11,20);c.lineTo(9,42);c.lineTo(-9,42);c.closePath();c.fill();
-  } else {
-    c.fillStyle='#334455';c.fillRect(-10,20,8,22);c.fillRect(2,20,8,22);
-  }
-  // Shoes
-  c.fillStyle='#111';
-  c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
-  c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
-  // Body
-  c.fillStyle='#3a3a3a';
-  c.beginPath();c.roundRect(-13,0,26,fem?24:22,4);c.fill();
-  c.fillStyle='#2a2a2a';c.beginPath();c.moveTo(-4,0);c.lineTo(0,6);c.lineTo(4,0);c.closePath();c.fill();
-  c.fillStyle='#cc0000';c.beginPath();c.arc(0,13,2.5,0,Math.PI*2);c.fill();
-  // Arms
-  c.save();c.translate(-13,5);c.rotate(-arm-0.4);
-  c.fillStyle=skin;c.fillRect(-3,-2,6,16);
-  c.fillStyle=fem?'#e8c0a0':'#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
-  c.restore();
-  c.save();c.translate(13,5);c.rotate(arm+0.4);
-  c.fillStyle=skin;c.fillRect(-3,-2,6,16);
-  c.fillStyle=fem?'#e8c0a0':'#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
-  c.restore();
-  // Neck + Head
-  c.fillStyle=skin;c.fillRect(-4,-5,8,8);
-  c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
-  // Hair
-  c.fillStyle=hair;
-  c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();
-  c.fillRect(-11,-20,22,5);
-  if(fem){
-    c.beginPath();c.ellipse(-11,-13,4,9,0.25,0,Math.PI*2);c.fill();
-    c.beginPath();c.ellipse(11,-13,4,9,-0.25,0,Math.PI*2);c.fill();
-  } else {
-    c.fillRect(-11,-21,4,8);c.fillRect(7,-21,4,8);
-  }
-  // Eyes
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-4,-15,1.8,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(4,-15,1.8,0,Math.PI*2);c.fill();
-  if(fem){c.strokeStyle='#111';c.lineWidth=1;c.beginPath();c.moveTo(-6,-17);c.lineTo(-4,-15);c.stroke();c.beginPath();c.moveTo(6,-17);c.lineTo(4,-15);c.stroke();}
-  c.strokeStyle=hair;c.lineWidth=1.5;
-  c.beginPath();c.moveTo(-7,-19);c.lineTo(-1,-17);c.stroke();
-  c.beginPath();c.moveTo(7,-19);c.lineTo(1,-17);c.stroke();
-  c.strokeStyle='#8b5a3a';c.lineWidth=1.5;
-  c.beginPath();c.arc(0,-11,3.5,0.2,Math.PI-0.2);c.stroke();
-  c.restore();
-}
-
-// ===== PREDAK — woman, orange shirt, auburn bob =====
-function drawPredak(c,x,y,dir){
-  c.save();c.translate(x,y);
-  if(dir>0){c.scale(-1,1);}
-
-  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,14,3,0,0,Math.PI*2);c.fill();
-  // Legs
-  c.fillStyle='#1a1a2e';c.fillRect(-9,-2,7,20);c.fillRect(2,-2,7,20);
-  c.fillStyle='#111';
-  c.beginPath();c.roundRect(-11,16,11,6,2);c.fill();
-  c.beginPath();c.roundRect(0,16,11,6,2);c.fill();
-  // Orange shirt
-  c.fillStyle='#e86820';
-  c.beginPath();c.roundRect(-12,-22,24,22,4);c.fill();
-  c.fillStyle='#c05010';c.fillRect(-12,-9,24,4);
-  // Clipboard
-  c.fillStyle='#888';c.fillRect(13,-20,13,16);
-  c.fillStyle='#bbb';c.fillRect(14,-19,11,11);
-  c.fillStyle='#444';c.fillRect(15,-17,9,2);c.fillRect(15,-14,9,2);c.fillRect(15,-11,7,2);
-  // Arms
-  c.fillStyle='#d4845a';c.fillRect(-16,-18,5,14);c.fillRect(11,-18,5,14);
-  // Neck + head
-  c.fillStyle='#d4845a';c.fillRect(-3,-25,6,6);
-  c.beginPath();c.arc(0,-34,10,0,Math.PI*2);c.fill();
-  // Auburn bob
-  c.fillStyle='#aa2800';
-  c.beginPath();c.arc(0,-37,10,Math.PI,0);c.fill();
-  c.fillRect(-10,-39,20,5);
-  c.beginPath();c.ellipse(-10,-30,4,9,0.2,0,Math.PI*2);c.fill();
-  c.beginPath();c.ellipse(10,-30,4,9,-0.2,0,Math.PI*2);c.fill();
-  // Eyes
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-3.5,-34,1.5,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(3.5,-34,1.5,0,Math.PI*2);c.fill();
-  c.strokeStyle='#7a2010';c.lineWidth=1.5;c.beginPath();c.moveTo(-4,-30);c.lineTo(4,-30);c.stroke();
-  // Speech bubble (flip back for text)
-  c.save();if(dir>0)c.scale(-1,1);
-  c.fillStyle='rgba(255,255,255,0.93)';
-  c.beginPath();c.roundRect(-56,-62,56,20,4);c.fill();
-  c.strokeStyle='#ccc';c.lineWidth=1;c.stroke();
-  // bubble tail
-  c.fillStyle='rgba(255,255,255,0.93)';
-  c.beginPath();c.moveTo(-4,-42);c.lineTo(0,-36);c.lineTo(4,-42);c.closePath();c.fill();
-  c.fillStyle='#c00';c.font='bold 9px sans-serif';c.textAlign='center';
-  c.fillText('Rýchlejšie!!',-28,-48);
-  c.restore();
-  c.restore();
-}
-
-// ===== SKLADNIK — red shirt + white stripe, roller cart with bins =====
-function drawSkladnik(c,x,y){
-  c.save();c.translate(x,y);
-  // Roller cart (moves left so person is on left = pushing)
-  const cW=90,cH=28;
-  c.fillStyle='#4a4a4a';c.fillRect(0,-cH,cW,cH);
-  c.strokeStyle='#666';c.lineWidth=1;c.strokeRect(0,-cH,cW,cH);
-  // Bins (bedničky)
-  const bcols=['#cc2222','#2255bb','#229922','#cc8811'];
-  for(let b=0;b<4;b++){
-    const bx=2+b*22;
-    c.fillStyle=bcols[b];c.fillRect(bx,-cH+2,20,cH-4);
-    c.strokeStyle='rgba(0,0,0,0.25)';c.lineWidth=0.5;c.strokeRect(bx,-cH+2,20,cH-4);
-    // Bin shine
-    c.fillStyle='rgba(255,255,255,0.15)';c.fillRect(bx+1,-cH+3,18,5);
-    // Bin label
-    c.fillStyle='rgba(255,255,255,0.6)';c.fillRect(bx+3,-cH+10,14,6);
-  }
-  // Rollers
-  for(let r=0;r<5;r++){
-    const rx=8+r*18;
-    c.fillStyle='#777';c.beginPath();c.arc(rx,0,7,0,Math.PI*2);c.fill();
-    c.fillStyle='#999';c.beginPath();c.arc(rx,0,4,0,Math.PI*2);c.fill();
-    // Spin illusion
-    c.strokeStyle='#666';c.lineWidth=1;
-    c.beginPath();c.moveTo(rx-4,0);c.lineTo(rx+4,0);c.stroke();
-    c.beginPath();c.moveTo(rx,4);c.lineTo(rx,-4);c.stroke();
-  }
-  // Handle
-  c.fillStyle='#555';c.fillRect(-7,-cH-16,6,cH+16);
-  c.fillStyle='#777';c.beginPath();c.roundRect(-10,-cH-16,12,5,3);c.fill();
-
-  // Person (skladnik) pushing
-  c.save();c.translate(-24,-2);
-  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,13,3,0,0,Math.PI*2);c.fill();
-  c.fillStyle='#222233';c.fillRect(-8,-2,7,20);c.fillRect(1,-2,7,20);
-  c.fillStyle='#111';
-  c.beginPath();c.roundRect(-10,16,10,6,2);c.fill();
-  c.beginPath();c.roundRect(0,16,10,6,2);c.fill();
-  // Red shirt with white stripe
-  c.fillStyle='#cc1111';c.beginPath();c.roundRect(-11,-20,22,20,3);c.fill();
-  c.fillStyle='#ffffff';c.fillRect(-11,-8,22,5);
-  // Arms pushing forward
-  c.fillStyle='#c07050';
-  c.save();c.translate(-11,-15);c.rotate(0.5);c.fillRect(-3,0,6,16);c.restore();
-  c.save();c.translate(11,-15);c.rotate(-0.5);c.fillRect(-3,0,6,16);c.restore();
-  // Head
-  c.fillStyle='#c07050';c.fillRect(-3,-23,6,6);
-  c.beginPath();c.arc(0,-30,9,0,Math.PI*2);c.fill();
-  c.fillStyle='#3a2010';
-  c.beginPath();c.arc(0,-33,9,Math.PI,0);c.fill();c.fillRect(-9,-35,18,5);
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-3,-30,1.5,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(3,-30,1.5,0,Math.PI*2);c.fill();
-  c.strokeStyle='#7a4020';c.lineWidth=1;
-  c.beginPath();c.arc(0,-26,3,0.2,Math.PI-0.2);c.stroke();
-  c.restore();
-  c.restore();
-}
-
-// ===== MAJSTER — black shirt, angry =====
-function drawMajster(c,arm){
-  c.save();
-  c.fillStyle='rgba(0,0,0,0.18)';c.beginPath();c.ellipse(0,40,16,4,0,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.fillRect(-10,20,8,22);c.fillRect(2,20,8,22);
-  c.fillStyle='#080808';
-  c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
-  c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
-  // Black shirt
-  c.fillStyle='#0f0f0f';c.beginPath();c.roundRect(-13,0,26,22,4);c.fill();
-  c.fillStyle='#e0e0e0';c.fillRect(-4,-1,8,5);
-  // Angry raised arms
-  c.save();c.translate(-13,5);c.rotate(-1.3);
-  c.fillStyle='#b07050';c.fillRect(-3,-2,6,16);
-  c.fillStyle='#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
-  c.restore();
-  c.save();c.translate(13,5);c.rotate(1.3);
-  c.fillStyle='#b07050';c.fillRect(-3,-2,6,16);
-  c.fillStyle='#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
-  c.restore();
-  c.fillStyle='#c8845a';c.fillRect(-4,-5,8,8);
-  c.fillStyle='#c8845a';c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
-  // Black hair
-  c.fillStyle='#111';c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();c.fillRect(-11,-20,22,5);
-  // Angry eyebrows V-shape
-  c.strokeStyle='#0a0a0a';c.lineWidth=2.5;
-  c.beginPath();c.moveTo(-9,-22);c.lineTo(-1,-18);c.stroke();
-  c.beginPath();c.moveTo(9,-22);c.lineTo(1,-18);c.stroke();
-  // Eyes — narrow angry
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-4,-15,2,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(4,-15,2,0,Math.PI*2);c.fill();
-  // Red flush
-  c.fillStyle='rgba(220,0,0,0.18)';c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
-  // Open shouting mouth
-  c.fillStyle='#111';c.beginPath();c.arc(0,-10,4,0,Math.PI);c.fill();
-  c.fillStyle='#cc0000';c.beginPath();c.arc(0,-10,2,0,Math.PI);c.fill();
-  c.restore();
-}
-
-// ===== CONTROLS =====
-let gLeftHeld=false,gRightHeld=false,gMoveInterval=null;
-function gStartLeft(){ if(!gRunning)return; gMoveLeft(); clearInterval(gMoveInterval); gMoveInterval=setInterval(()=>{if(gLeftHeld)gMoveLeft();},125); gLeftHeld=true; }
-function gStartRight(){ if(!gRunning)return; gMoveRight(); clearInterval(gMoveInterval); gMoveInterval=setInterval(()=>{if(gRightHeld)gMoveRight();},125); gRightHeld=true; }
-function gStopLeft(){ gLeftHeld=false; clearInterval(gMoveInterval); }
-function gStopRight(){ gRightHeld=false; clearInterval(gMoveInterval); }
-function gMoveLeft(){ if(gWorker&&gWorker.lane>0)gWorker.lane--; }
-function gMoveRight(){ if(gWorker&&gWorker.lane<3)gWorker.lane++; }
-
-document.addEventListener('DOMContentLoaded',()=>{
-  const bl=document.getElementById('gBtnLeft'), br=document.getElementById('gBtnRight');
-  if(!bl||!br)return;
-  bl.addEventListener('mousedown',gStartLeft);bl.addEventListener('mouseup',gStopLeft);bl.addEventListener('mouseleave',gStopLeft);
-  br.addEventListener('mousedown',gStartRight);br.addEventListener('mouseup',gStopRight);br.addEventListener('mouseleave',gStopRight);
-  bl.addEventListener('touchstart',e=>{e.preventDefault();gStartLeft();},{passive:false});
-  bl.addEventListener('touchend',e=>{e.preventDefault();gStopLeft();},{passive:false});
-  br.addEventListener('touchstart',e=>{e.preventDefault();gStartRight();},{passive:false});
-  br.addEventListener('touchend',e=>{e.preventDefault();gStopRight();},{passive:false});
-  const cv=document.getElementById('gameCanvas'); if(!cv)return;
-  let gTX=null;
-  cv.addEventListener('touchstart',e=>{gTX=e.touches[0].clientX;},{passive:true});
-  cv.addEventListener('touchend',e=>{
-    if(gTX===null)return;
-    const dx=e.changedTouches[0].clientX-gTX;
-    if(Math.abs(dx)>35){if(dx<0)gMoveLeft();else gMoveRight();}
-    else{const r=cv.getBoundingClientRect();if(e.changedTouches[0].clientX-r.left<r.width/2)gMoveLeft();else gMoveRight();}
-    gTX=null;
-  },{passive:true});
-  setTimeout(()=>{if(document.getElementById('gPreviewM'))drawCharPreviews();},150);
-});
-
-document.addEventListener('keydown',e=>{
-  if(!gRunning)return;
-  if(e.key==='ArrowLeft'){e.preventDefault();gMoveLeft();}
-  if(e.key==='ArrowRight'){e.preventDefault();gMoveRight();}
-});
-
+  
+  // Spuštění hry + pozadí
+  initBackground();
+  showStartMenu();
 </script>
 </body>
 </html>
