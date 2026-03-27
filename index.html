@@ -1,12 +1,14 @@
-Вот полностью переработанная HTML-игра в стиле Pixel Car Racer, где вы управляете гоночным автомобилем, собираете бонусы и избегаете препятствий на трассе.
+Понял! Нужно сделать игру про ЛИСОВНЮ (пресс/штамповку) с графикой в стиле Pixel Car Racer. Сохраняем заводскую тематику, но визуал делаем как в той игре — насыщенные неоновые цвета, пиксельная графика, динамичная камера, HUD как в аркаде.
+
+Вот полностью переработанная версия:
 
 ```html
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>PIXEL CAR RACER — STREET TUNER</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>LISOVNA — PIXEL PRESS RACER</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
@@ -15,11 +17,10 @@
   padding: 0;
   box-sizing: border-box;
   -webkit-tap-highlight-color: transparent;
-  user-select: none;
 }
 
 body {
-  background: #0a0c12;
+  background: #050510;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -27,13 +28,13 @@ body {
   font-family: 'Press Start 2P', monospace;
 }
 
-.game-container {
+.game-wrapper {
   position: relative;
   width: 100%;
-  max-width: 560px;
+  max-width: 520px;
   margin: 0 auto;
-  box-shadow: 0 0 0 4px #ffcc00, 0 0 0 8px #0a0a1a;
-  border-radius: 0px;
+  box-shadow: 0 0 0 4px #ffcc44, 0 8px 0 0 #332200;
+  border-radius: 0;
 }
 
 canvas {
@@ -42,63 +43,63 @@ canvas {
   height: auto;
   image-rendering: crisp-edges;
   image-rendering: pixelated;
-  image-rendering: pixelated;
   cursor: pointer;
 }
 
 .hud {
   display: flex;
   justify-content: space-between;
-  background: #0f0f1c;
-  padding: 8px 12px;
-  border-bottom: 3px solid #ffcc33;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 12px;
-  color: #fff;
-  text-shadow: 2px 2px 0 #000;
+  background: #0a0a1a;
+  padding: 10px 16px;
+  border-bottom: 3px solid #ffaa33;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.hud-item {
-  background: #1a1a2a;
+.hud-card {
+  background: #111122;
   padding: 6px 12px;
-  border-left: 3px solid #ffcc33;
-  border-right: 3px solid #ffcc33;
-  letter-spacing: 1px;
+  border-left: 3px solid #ffaa33;
+  border-right: 3px solid #ffaa33;
+  font-size: 10px;
+  color: #ccddff;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
 }
 
 .hud-value {
   color: #ffcc44;
   font-size: 16px;
-  margin-left: 8px;
+  font-weight: bold;
 }
 
 .controls {
   display: flex;
   gap: 12px;
-  padding: 12px;
-  background: #0f0f1c;
-  border-top: 3px solid #ffcc33;
+  padding: 10px;
+  background: #0a0a1a;
+  border-top: 3px solid #ffaa33;
   justify-content: center;
 }
 
-.ctrl-btn {
+.press-btn {
   font-family: 'Press Start 2P', monospace;
-  background: #1e1e2e;
-  border: 3px solid #ffcc33;
-  color: #ffcc33;
-  font-size: 28px;
-  padding: 8px 24px;
+  background: #1e1e2a;
+  border: 3px solid #ffaa33;
+  color: #ffaa33;
+  font-size: 24px;
+  padding: 8px 28px;
   cursor: pointer;
-  transition: all 0.05s linear;
+  transition: 0.03s linear;
   touch-action: manipulation;
-  box-shadow: 0 3px 0 #664400;
+  box-shadow: 0 4px 0 #553300;
 }
 
-.ctrl-btn:active {
-  transform: translateY(2px);
-  background: #ffcc33;
+.press-btn:active {
+  transform: translateY(3px);
+  background: #ffaa33;
   color: #0a0a1a;
-  border-color: #fff;
   box-shadow: none;
 }
 
@@ -108,83 +109,80 @@ canvas {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.85);
+  background: rgba(0, 0, 0, 0.88);
+  backdrop-filter: blur(3px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 20;
-  backdrop-filter: blur(3px);
+  z-index: 30;
 }
 
-.menu-panel {
-  background: #0a0a12;
-  border: 4px solid #ffcc33;
+.panel {
+  background: #0c0c18;
+  border: 4px solid #ffaa33;
   padding: 20px 16px;
   text-align: center;
   width: 280px;
-  image-rendering: pixelated;
-  box-shadow: 8px 8px 0 #00000066;
+  box-shadow: 8px 8px 0 #00000088;
 }
 
-.menu-title {
-  font-size: 18px;
-  color: #ffcc33;
-  text-shadow: 3px 3px 0 #aa6600;
-  margin-bottom: 16px;
+.panel-title {
+  font-size: 14px;
+  color: #ffaa33;
+  text-shadow: 2px 2px 0 #553300;
+  margin-bottom: 12px;
   letter-spacing: 2px;
 }
 
-.menu-sub {
-  font-size: 8px;
-  color: #aaa;
-  margin: 12px 0;
+.panel-sub {
+  font-size: 7px;
+  color: #aaaacc;
+  margin: 8px 0;
   line-height: 1.5;
 }
 
-.car-selector {
+.worker-select {
   display: flex;
   gap: 12px;
   justify-content: center;
   margin: 16px 0;
 }
 
-.car-card {
-  border: 3px solid #333;
-  background: #11111a;
+.worker-card {
+  border: 3px solid #333355;
+  background: #111122;
   padding: 8px;
   cursor: pointer;
-  transition: all 0.1s;
+  transition: 0.1s;
   text-align: center;
 }
 
-.car-card.selected {
-  border-color: #ffcc33;
-  background: #22223a;
-  box-shadow: 0 0 0 2px #ffcc33;
+.worker-card.selected {
+  border-color: #ffaa33;
+  background: #222244;
+  box-shadow: 0 0 0 2px #ffaa33;
 }
 
-.car-card canvas {
+.worker-card canvas {
   display: block;
   margin: 0 auto;
 }
 
-.car-name {
+.worker-name {
   font-size: 7px;
-  color: #ddd;
+  color: #ddddff;
   margin-top: 6px;
-  font-family: monospace;
 }
 
 .menu-btn {
-  background: #1a2a1a;
+  background: #2a2a3a;
   border: 2px solid #88ff88;
   color: #88ff88;
   font-family: 'Press Start 2P', monospace;
   font-size: 10px;
-  padding: 10px 20px;
+  padding: 10px;
   margin-top: 12px;
   cursor: pointer;
-  transition: 0.05s linear;
   width: 100%;
 }
 
@@ -194,561 +192,540 @@ canvas {
 }
 
 .gameover-panel {
-  background: #0a0a12;
-  border: 4px solid #ff5555;
+  background: #0c0c18;
+  border: 4px solid #ff6666;
   padding: 20px;
   text-align: center;
   width: 280px;
 }
 
 .gameover-title {
-  color: #ff5555;
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-
-.score-display {
-  color: #ffcc33;
-  font-size: 12px;
-  margin: 12px 0;
-}
-
-.quote {
-  font-size: 7px;
-  color: #ffaa88;
-  margin: 12px 0;
-  line-height: 1.4;
+  color: #ff6666;
+  font-size: 14px;
 }
 
 .hidden {
   display: none;
 }
 
-.nitro-flash {
+.flash-effect {
   position: absolute;
   pointer-events: none;
-  z-index: 15;
-}
-
-@media (max-width: 500px) {
-  .ctrl-btn {
-    font-size: 24px;
-    padding: 6px 20px;
-  }
-  .hud-item {
-    font-size: 9px;
-  }
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 200, 0, 0);
+  z-index: 20;
+  transition: 0.02s;
 }
 </style>
 </head>
 <body>
-<div class="game-container">
+<div class="game-wrapper">
   <div class="hud">
-    <div class="hud-item">🏁 SCORE <span class="hud-value" id="scoreValue">0</span></div>
-    <div class="hud-item">⚡ NITRO <span class="hud-value" id="nitroValue">0</span></div>
-    <div class="hud-item">🏆 DIST <span class="hud-value" id="distValue">0</span></div>
+    <div class="hud-card">🔩 PRESS <span class="hud-value" id="scoreValue">0</span></div>
+    <div class="hud-card">⚡ TURBO <span class="hud-value" id="turboValue">0</span></div>
+    <div class="hud-card">🏭 SHIFT <span class="hud-value" id="shiftValue">1</span></div>
   </div>
-  <canvas id="gameCanvas" width="540" height="360"></canvas>
+  <canvas id="gameCanvas" width="500" height="400"></canvas>
   <div class="controls">
-    <button class="ctrl-btn" id="leftBtn">◀</button>
-    <button class="ctrl-btn" id="rightBtn">▶</button>
+    <button class="press-btn" id="leftBtn">◀ LIS</button>
+    <button class="press-btn" id="rightBtn">LIS ▶</button>
   </div>
 
   <div id="overlay" class="overlay">
-    <div id="menuPanel" class="menu-panel">
-      <div class="menu-title">🏎️ PIXEL CAR RACER</div>
-      <div class="menu-sub">STREET TUNER EDITION<br>DODGE TRAFFIC · COLLECT NITRO</div>
-      <div class="car-selector">
-        <div class="car-card" id="carRed">
-          <canvas id="previewRed" width="48" height="48"></canvas>
-          <div class="car-name">RED BLAZE</div>
+    <div id="menuPanel" class="panel">
+      <div class="panel-title">🏭 LISOVNA PRESS 🏭</div>
+      <div class="panel-sub">PIXEL STAMPING SIMULATOR<br>CHYTAJ DIELY · TURBO LIS</div>
+      <div class="worker-select">
+        <div class="worker-card" id="workerM">
+          <canvas id="previewM" width="48" height="56"></canvas>
+          <div class="worker-name">OPERATOR M</div>
         </div>
-        <div class="car-card" id="carBlue">
-          <canvas id="previewBlue" width="48" height="48"></canvas>
-          <div class="car-name">NEON DRIFT</div>
-        </div>
-        <div class="car-card" id="carYellow">
-          <canvas id="previewYellow" width="48" height="48"></canvas>
-          <div class="car-name">GOLD RUSH</div>
+        <div class="worker-card" id="workerF">
+          <canvas id="previewF" width="48" height="56"></canvas>
+          <div class="worker-name">OPERATOR F</div>
         </div>
       </div>
-      <button class="menu-btn" id="startBtn">🏁 START RACE 🏁</button>
-      <div class="menu-sub" style="margin-top:12px;">← →  or  touch sides</div>
+      <button class="menu-btn" id="startBtn">⚙️ START PRESS ⚙️</button>
+      <div class="panel-sub">← →  or touch sides</div>
     </div>
     <div id="gameoverPanel" class="gameover-panel hidden">
-      <div class="gameover-title">💥 GAME OVER 💥</div>
+      <div class="gameover-title">💥 LIS CRASH 💥</div>
       <canvas id="wreckPreview" width="64" height="64"></canvas>
-      <div class="score-display" id="finalScore">SCORE: 0</div>
-      <div class="quote" id="gameoverQuote">"TOO MUCH UNDERSTEER!"</div>
-      <button class="menu-btn" id="restartBtn">🔁 RESTART</button>
+      <div class="panel-sub" id="finalScore">SCORE: 0</div>
+      <div class="panel-sub" id="gameoverQuote">"PRESSURE TOO HIGH!"</div>
+      <button class="menu-btn" id="restartBtn">🔄 RESTART</button>
       <button class="menu-btn" id="menuBtn">🏠 MENU</button>
     </div>
   </div>
+  <div id="flashOverlay" class="flash-effect"></div>
 </div>
 
 <script>
 (function(){
-  // ---------- CANVAS ----------
+  // ========== PIXEL CANVAS ==========
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
   ctx.imageSmoothingEnabled = false;
-  
-  let W = 540, H = 360;
+  let W = 500, H = 400;
   canvas.width = W; canvas.height = H;
   
-  // ---------- GLOBALS ----------
+  // ========== GAME STATE ==========
   let gameRunning = false;
   let animFrame = null;
   let frame = 0;
   
-  // Player
-  let playerCar = {
-    x: W/2 - 16,
-    y: H - 68,
-    width: 32,
-    height: 48,
-    lane: 1,      // 0=left, 1=middle, 2=right
-    color: 'red'
+  // Player (worker at press machine)
+  let player = {
+    x: W/2 - 18,
+    y: H - 72,
+    width: 36,
+    height: 52,
+    lane: 1,      // 0=left press, 1=center, 2=right press
+    gender: 'm'
   };
   
-  // Lane positions (X center of each lane)
-  const LANE_POS = [W*0.25 - 8, W/2 - 16, W*0.75 - 8];
+  // Lane positions (X for each press machine)
+  const LANE_X = [W*0.22 - 18, W/2 - 18, W*0.78 - 18];
   
   // Game stats
   let score = 0;
-  let distance = 0;
-  let nitro = 0;
-  let gameSpeed = 4.2;
-  let baseSpeed = 4.2;
-  let speedMultiplier = 1.0;
-  let nitroActive = false;
-  let nitroFrames = 0;
+  let turbo = 0;        // "turbo" = press energy
+  let shift = 1;        // level / shift speed
+  let gameSpeed = 3.2;
+  let baseSpeed = 3.2;
+  let speedMult = 1.0;
+  let turboActive = false;
+  let turboFrames = 0;
   
-  // Objects
-  let obstacles = [];      // other cars / traffic
-  let powerups = [];       // nitro cans
+  // Objects on conveyor
+  let parts = [];       // good parts
+  let defects = [];     // bad parts (scrap)
+  let boostItems = [];  // turbo cans
   
   // Spawn timers
-  let obstacleCooldown = 0;
-  let powerupCooldown = 0;
+  let partTimer = 0;
+  let defectTimer = 0;
+  let boostTimer = 0;
   
-  // Visual effects
+  // Visual FX
   let screenFlash = 0;
-  let streakEffect = 0;
-  let roadOffset = 0;
+  let flashColor = '';
+  let comboCount = 0;
+  let comboAnim = 0;
+  let conveyorOffset = 0;
   
   // Quotes
   const QUOTES = [
-    "TOO MUCH UNDERSTEER!", "REV LIMITER HIT!", "TURBO LAG!",
-    "NO GRIP!", "WALL TAP!", "ENGINE OVERHEAT!", "YOU CRASHED!",
-    "SPUN OUT!", "NITRO EXPLOSION!", "BUSTED SUSPENSION!"
+    "PRESS OVERLOAD!", "FORM SHIFT ERROR!", "TOO MUCH TONNAGE!",
+    "OPERATOR FATIGUE!", "HYDRAULIC FAIL!", "STAMP MISALIGN!",
+    "QUALITY REJECT!", "LISOVNA STOP!"
   ];
   
-  // Car color palettes
-  const CAR_COLORS = {
-    red: { body: '#c02020', light: '#e04040', dark: '#801010', window: '#2a3a5a', neon: '#ff6666' },
-    blue: { body: '#2080c0', light: '#40a0e0', dark: '#104080', window: '#1a2a4a', neon: '#66aaff' },
-    yellow: { body: '#c0a020', light: '#e0c040', dark: '#806010', window: '#2a2a3a', neon: '#ffdd66' }
+  // ========== PIXEL ART STYLES (Pixel Car Racer aesthetic) ==========
+  const WORKER_STYLES = {
+    m: { skin: '#e8bc8c', shirt: '#2a4a6a', pants: '#1e2a3a', hair: '#2a1a0a', glove: '#cc8844', neon: '#44aaff' },
+    f: { skin: '#f0cc9c', shirt: '#6a2a4a', pants: '#2a1e3a', hair: '#7a3a1a', glove: '#dd9966', neon: '#ff66cc' }
   };
   
-  let currentColor = CAR_COLORS.red;
-  
-  // Pixel preview canvas drawing
-  function drawPixelCar(ctx, x, y, colorStyle, scale=1) {
-    const c = CAR_COLORS[colorStyle];
-    if(!c) return;
-    const w = 32 * scale, h = 48 * scale;
-    const rx = x, ry = y;
-    // body
-    ctx.fillStyle = c.body;
-    ctx.fillRect(rx, ry, w, h);
-    // dark bottom
-    ctx.fillStyle = c.dark;
-    ctx.fillRect(rx, ry + h-12*scale, w, 10*scale);
-    // windows
-    ctx.fillStyle = c.window;
-    ctx.fillRect(rx + 6*scale, ry + 8*scale, 8*scale, 12*scale);
-    ctx.fillRect(rx + 18*scale, ry + 8*scale, 8*scale, 12*scale);
-    // light
-    ctx.fillStyle = c.neon;
-    ctx.fillRect(rx + 2*scale, ry + h-8*scale, 6*scale, 4*scale);
-    ctx.fillRect(rx + w-8*scale, ry + h-8*scale, 6*scale, 4*scale);
-    // headlights
-    ctx.fillStyle = '#ffeeaa';
-    ctx.fillRect(rx + 2*scale, ry + 4*scale, 6*scale, 5*scale);
-    ctx.fillRect(rx + w-8*scale, ry + 4*scale, 6*scale, 5*scale);
-    // rims
-    ctx.fillStyle = '#333';
-    ctx.fillRect(rx + 4*scale, ry + h-14*scale, 6*scale, 6*scale);
-    ctx.fillRect(rx + w-10*scale, ry + h-14*scale, 6*scale, 6*scale);
-    // racing stripe
-    ctx.fillStyle = '#ffcc44';
-    ctx.fillRect(rx + 12*scale, ry + 24*scale, 8*scale, 4*scale);
-  }
-  
-  function drawObstacleCar(ctx, x, y, type='traffic') {
-    // oncoming traffic / opponent car (dark menace)
-    ctx.fillStyle = '#2a2a3a';
-    ctx.fillRect(x, y, 30, 46);
-    ctx.fillStyle = '#1a1a2a';
-    ctx.fillRect(x+4, y+8, 22, 12);
-    ctx.fillStyle = '#8a8aaa';
-    ctx.fillRect(x+8, y+28, 6, 8);
-    ctx.fillRect(x+16, y+28, 6, 8);
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(x+12, y+12, 6, 6);
-    ctx.fillStyle = '#ccccdd';
-    ctx.fillRect(x+4, y+38, 22, 4);
-  }
-  
-  function drawNitroCan(ctx, x, y) {
+  // Draw player worker (pixel perfect)
+  function drawWorker(ctx, x, y, gender, frameTick, catchAnim=0) {
+    const style = WORKER_STYLES[gender];
+    if(!style) return;
+    const bob = Math.sin(frameTick * 0.15) * 2;
+    const yy = y + Math.floor(bob);
+    
+    // body overalls
+    ctx.fillStyle = style.pants;
+    ctx.fillRect(x+8, yy+32, 20, 20);
+    // shirt
+    ctx.fillStyle = style.shirt;
+    ctx.fillRect(x+8, yy+20, 20, 16);
+    // arms (swinging)
+    const armSwing = Math.sin(frameTick * 0.2) * 4;
+    ctx.fillStyle = style.skin;
+    ctx.fillRect(x+2, yy+24 + armSwing*0.5, 6, 12);
+    ctx.fillRect(x+28, yy+24 - armSwing*0.5, 6, 12);
+    // head
+    ctx.fillStyle = style.skin;
+    ctx.fillRect(x+12, yy+6, 12, 16);
+    // hair
+    ctx.fillStyle = style.hair;
+    ctx.fillRect(x+12, yy+4, 12, 5);
+    // helmet / cap
     ctx.fillStyle = '#ffaa33';
-    ctx.fillRect(x, y, 14, 14);
-    ctx.fillStyle = '#ff6600';
-    ctx.fillRect(x+4, y+2, 6, 10);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(x+6, y+4, 2, 6);
-    ctx.fillStyle = '#ffdd88';
-    ctx.fillRect(x+2, y+12, 10, 3);
+    ctx.fillRect(x+10, yy+2, 16, 4);
+    // safety glasses
+    ctx.fillStyle = '#88ccff';
+    ctx.fillRect(x+14, yy+12, 4, 3);
+    ctx.fillRect(x+18, yy+12, 4, 3);
+    // mouth (determined)
+    ctx.fillStyle = '#aa6644';
+    ctx.fillRect(x+15, yy+18, 6, 2);
+    // catch effect (glow)
+    if(catchAnim > 0) {
+      ctx.fillStyle = `rgba(255,200,100,${catchAnim/15})`;
+      ctx.fillRect(x-4, yy-4, 44, 60);
+    }
+    // glove with part
+    if(catchAnim > 5) {
+      ctx.fillStyle = '#ffcc44';
+      ctx.fillRect(x+30, yy+28, 8, 8);
+      ctx.fillStyle = '#ff8844';
+      ctx.fillRect(x+32, yy+30, 4, 4);
+    }
   }
   
-  // Draw road & pixel environment (Midnight street, neon)
-  function drawRoad() {
-    // asphalt
-    ctx.fillStyle = '#101018';
-    ctx.fillRect(0, 0, W, H);
-    // asphalt grain
-    for(let i=0;i<80;i++) {
-      ctx.fillStyle = `rgba(30,40,60,${Math.random()*0.3})`;
-      ctx.fillRect((i*37)%W, (frame*2 + i*13)%H, 2, 2);
-    }
-    // lane markings (dashed)
-    const offset = (roadOffset % 40);
-    for(let y = offset-40; y < H+40; y+=40) {
-      ctx.fillStyle = '#ffee88';
-      ctx.fillRect(W/2 - 8, y, 16, 8);
-    }
-    // side lines
-    ctx.fillStyle = '#ffaa33';
-    ctx.fillRect(40, 0, 4, H);
-    ctx.fillRect(W-44, 0, 4, H);
-    // retro reflectors
-    for(let y=0; y<H; y+=30) {
-      ctx.fillStyle = '#ff8800';
-      ctx.fillRect(38, y+10, 4, 6);
-      ctx.fillRect(W-42, y+10, 4, 6);
-    }
-    // city scape (pixel skyline)
-    ctx.fillStyle = '#0f1420';
-    ctx.fillRect(0, 0, W, 70);
-    for(let i=0;i<12;i++) {
-      let h = 25 + Math.sin(i)*12;
-      ctx.fillStyle = '#1a2540';
-      ctx.fillRect(20 + i*38, 70-h, 22, h);
+  // Draw Press Machine (industrial, neon style)
+  function drawPress(x, y, w, h, activeGlow) {
+    // machine base
+    ctx.fillStyle = '#2a2a3e';
+    ctx.fillRect(x, y, w, h);
+    // hydraulic cylinder
+    ctx.fillStyle = '#5a5a7a';
+    ctx.fillRect(x+w/2-12, y-12, 24, 18);
+    ctx.fillStyle = '#8888aa';
+    ctx.fillRect(x+w/2-8, y-8, 16, 12);
+    // press stamp
+    ctx.fillStyle = '#aa8866';
+    ctx.fillRect(x+10, y+h-20, w-20, 12);
+    // neon active light
+    if(activeGlow) {
+      ctx.fillStyle = `rgba(255,100,0,${0.6+Math.sin(frame*0.2)*0.3})`;
+      ctx.fillRect(x+4, y+4, w-8, 8);
       ctx.fillStyle = '#ffaa44';
-      ctx.fillRect(26 + i*38, 70-h+5, 4, 8);
+      ctx.fillRect(x+w-16, y+12, 8, 8);
     }
-    // neon glow on horizon
-    ctx.fillStyle = '#ff2288';
-    ctx.globalAlpha = 0.2;
-    ctx.fillRect(0, 40, W, 35);
+    // control panel
+    ctx.fillStyle = '#111122';
+    ctx.fillRect(x+8, y+8, 28, 20);
+    ctx.fillStyle = '#44ff44';
+    ctx.fillRect(x+12, y+14, 6, 6);
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(x+22, y+14, 6, 6);
+    // ENGEL logo
+    ctx.font = "bold 6px 'Press Start 2P'";
+    ctx.fillStyle = '#77aaff';
+    ctx.fillText("ENGEL", x+12, y+h-8);
+  }
+  
+  // Draw part (good stamping)
+  function drawGoodPart(x, y) {
+    ctx.fillStyle = '#44aa66';
+    ctx.fillRect(x, y, 14, 12);
+    ctx.fillStyle = '#88ffaa';
+    ctx.fillRect(x+3, y+2, 4, 4);
+    ctx.fillRect(x+8, y+6, 4, 3);
+    ctx.fillStyle = '#226633';
+    ctx.fillRect(x+5, y+9, 4, 2);
+  }
+  
+  function drawDefect(x, y) {
+    ctx.fillStyle = '#cc4444';
+    ctx.fillRect(x, y, 14, 12);
+    ctx.fillStyle = '#ff8888';
+    ctx.fillRect(x+2, y+3, 10, 6);
+    ctx.fillStyle = '#aa2222';
+    ctx.fillRect(x+5, y+5, 4, 4);
+  }
+  
+  function drawTurboBoost(x, y) {
+    ctx.fillStyle = '#ffaa33';
+    ctx.fillRect(x, y, 12, 12);
+    ctx.fillStyle = '#ffdd88';
+    ctx.fillRect(x+3, y+3, 6, 6);
+    ctx.fillStyle = '#ff6600';
+    ctx.fillRect(x+5, y+8, 2, 5);
+  }
+  
+  // ========== ROAD / CONVEYOR BELT (Pixel Car Racer style) ==========
+  function drawFactoryFloor() {
+    // asphalt texture
+    ctx.fillStyle = '#151525';
+    ctx.fillRect(0, 0, W, H);
+    // floor grid
+    for(let i=0;i<W+30;i+=40) {
+      ctx.fillStyle = '#2a2a44';
+      ctx.fillRect(i + (conveyorOffset%40), H-70, 20, 4);
+    }
+    // glowing lanes
+    ctx.fillStyle = '#3366aa';
+    ctx.globalAlpha = 0.3;
+    for(let l=0;l<3;l++) {
+      ctx.fillRect(LANE_X[l]-10, H-110, 72, 100);
+    }
     ctx.globalAlpha = 1;
-    // stars
-    for(let s=0;s<50;s++) {
-      if((s*131)%255 > 200) {
-        ctx.fillStyle = '#ffffff';
-        ctx.fillRect((s*97)%W, (s*33)%55, 1, 1);
+    // conveyor belt lines (moving)
+    for(let l=0;l<3;l++) {
+      let beltX = LANE_X[l]-6;
+      ctx.fillStyle = '#2a2a3a';
+      ctx.fillRect(beltX, H-95, 60, 18);
+      ctx.fillStyle = '#ffaa33';
+      let offset = (conveyorOffset + l*20) % 36;
+      for(let o=offset; o<60; o+=24) {
+        ctx.fillRect(beltX+o, H-89, 12, 4);
       }
     }
-  }
-  
-  // draw player with exhaust flame
-  function drawPlayer() {
-    const col = CAR_COLORS[playerCar.color];
-    const px = playerCar.x, py = playerCar.y;
-    // body
-    ctx.fillStyle = col.body;
-    ctx.fillRect(px, py, 32, 48);
-    ctx.fillStyle = col.dark;
-    ctx.fillRect(px, py+36, 32, 12);
-    // windows
-    ctx.fillStyle = col.window;
-    ctx.fillRect(px+6, py+8, 8, 14);
-    ctx.fillRect(px+18, py+8, 8, 14);
-    // neon stripe
-    ctx.fillStyle = col.neon;
-    ctx.fillRect(px+8, py+24, 16, 4);
-    // headlights
-    ctx.fillStyle = '#ffffaa';
-    ctx.fillRect(px+4, py+4, 6, 6);
-    ctx.fillRect(px+22, py+4, 6, 6);
-    // rims
-    ctx.fillStyle = '#222';
-    ctx.fillRect(px+5, py+40, 6, 5);
-    ctx.fillRect(px+21, py+40, 6, 5);
-    // exhaust flame if nitro
-    if(nitroActive && nitroFrames>0) {
-      ctx.fillStyle = '#ff6600';
-      ctx.fillRect(px-8, py+36, 10, 8);
-      ctx.fillStyle = '#ffaa22';
-      ctx.fillRect(px-12, py+38, 8, 4);
-    }
-    // streak effect at high speed
-    if(gameSpeed > 6.5) {
-      ctx.fillStyle = `rgba(255,100,0,${Math.sin(frame*0.5)*0.3})`;
-      for(let i=0;i<3;i++) ctx.fillRect(px-4-i*3, py+20, 3, 12);
+    // industrial lights
+    for(let l=0;l<3;l++) {
+      ctx.fillStyle = `rgba(255,200,100,${0.5+Math.sin(frame*0.1)*0.3})`;
+      ctx.fillRect(LANE_X[l]+10, H-110, 16, 6);
     }
   }
   
-  // UI update
-  function updateUI() {
-    document.getElementById('scoreValue').innerText = Math.floor(score);
-    document.getElementById('nitroValue').innerText = nitro;
-    document.getElementById('distValue').innerText = Math.floor(distance/10);
-  }
-  
-  // Spawn logic
-  function spawnObstacle() {
-    if(!gameRunning) return;
-    const lane = Math.floor(Math.random() * 3);
-    const xPos = LANE_POS[lane];
-    obstacles.push({
-      x: xPos,
-      y: -60,
-      width: 30,
-      height: 46,
-      lane: lane,
-      type: 'car'
-    });
-  }
-  
-  function spawnPowerup() {
-    if(!gameRunning) return;
-    const lane = Math.floor(Math.random() * 3);
-    const xPos = LANE_POS[lane] + 1;
-    powerups.push({
-      x: xPos,
-      y: -20,
-      width: 14,
-      height: 16,
-      lane: lane
-    });
-  }
-  
+  // ========== UPDATE LOGIC ==========
   function updateGame() {
     if(!gameRunning) return;
     
-    // speed & nitro handling
-    if(nitroActive && nitroFrames > 0) {
-      speedMultiplier = 1.8;
-      nitroFrames--;
-      if(nitroFrames <= 0) {
-        nitroActive = false;
-        speedMultiplier = 1.0;
+    // turbo mode
+    if(turboActive && turboFrames > 0) {
+      speedMult = 2.1;
+      turboFrames--;
+      if(turboFrames <= 0) {
+        turboActive = false;
+        speedMult = 1.0;
       }
     } else {
-      speedMultiplier = 1.0;
+      speedMult = 1.0;
     }
     
-    let currentSpeed = baseSpeed * (1 + (score/2500)) * speedMultiplier;
-    currentSpeed = Math.min(currentSpeed, 12.5);
+    let currentSpeed = baseSpeed * (1 + shift * 0.12) * speedMult;
+    currentSpeed = Math.min(currentSpeed, 9.5);
     gameSpeed = currentSpeed;
+    conveyorOffset = (conveyorOffset + gameSpeed) % 60;
     
-    // update road scroll
-    roadOffset = (roadOffset + gameSpeed) % 80;
-    
-    // move obstacles
-    for(let i=0;i<obstacles.length;i++) {
-      obstacles[i].y += gameSpeed;
-      if(obstacles[i].y > H+100) {
-        obstacles.splice(i,1);
-        i--;
-      }
+    // move parts
+    for(let i=0;i<parts.length;i++) {
+      parts[i].y += gameSpeed;
+      if(parts[i].y > H+40) parts.splice(i,1), i--;
+    }
+    for(let i=0;i<defects.length;i++) {
+      defects[i].y += gameSpeed;
+      if(defects[i].y > H+40) defects.splice(i,1), i--;
+    }
+    for(let i=0;i<boostItems.length;i++) {
+      boostItems[i].y += gameSpeed;
+      if(boostItems[i].y > H+40) boostItems.splice(i,1), i--;
     }
     
-    // move powerups
-    for(let i=0;i<powerups.length;i++) {
-      powerups[i].y += gameSpeed;
-      if(powerups[i].y > H+80) {
-        powerups.splice(i,1);
-        i--;
-      }
-    }
-    
-    // collision: player vs obstacles
-    for(let i=0;i<obstacles.length;i++) {
-      const obs = obstacles[i];
-      const playerRect = {x: playerCar.x, y: playerCar.y, w: 32, h: 48};
-      const obsRect = {x: obs.x, y: obs.y, w: 30, h: 46};
-      if(playerRect.x < obsRect.x+obsRect.w && playerRect.x+playerRect.w > obsRect.x &&
-         playerRect.y < obsRect.y+obsRect.h && playerRect.y+playerRect.h > obsRect.y) {
-        // CRASH
-        gameRunning = false;
-        screenFlash = 15;
-        const finalScoreSpan = document.getElementById('finalScore');
-        finalScoreSpan.innerText = `SCORE: ${Math.floor(score)}  NITRO: ${nitro}`;
-        const quoteIdx = Math.floor(Math.random() * QUOTES.length);
-        document.getElementById('gameoverQuote').innerText = QUOTES[quoteIdx];
-        document.getElementById('gameoverPanel').classList.remove('hidden');
-        document.getElementById('menuPanel').classList.add('hidden');
-        drawWreckPreview();
-        cancelAnimationFrame(animFrame);
-        return;
-      }
-    }
-    
-    // powerup collection
-    for(let i=0;i<powerups.length;i++) {
-      const pow = powerups[i];
-      const playerRect = {x: playerCar.x, y: playerCar.y, w: 32, h: 48};
-      const powRect = {x: pow.x, y: pow.y, w: 14, h: 16};
-      if(playerRect.x < powRect.x+powRect.w && playerRect.x+playerRect.w > powRect.x &&
-         playerRect.y < powRect.y+powRect.h && playerRect.y+playerRect.h > powRect.y) {
-        nitro += 15;
-        if(nitro > 100) nitro = 100;
-        powerups.splice(i,1);
+    // collision: player catches parts
+    const playerRect = {x: player.x, y: player.y, w: 36, h: 52};
+    // good parts
+    for(let i=0;i<parts.length;i++) {
+      const p = parts[i];
+      const partRect = {x: p.x, y: p.y, w: 14, h: 12};
+      if(playerRect.x < partRect.x+partRect.w && playerRect.x+playerRect.w > partRect.x &&
+         playerRect.y < partRect.y+partRect.h && playerRect.y+playerRect.h > partRect.y) {
+        score += 10 * shift;
+        comboCount++;
+        screenFlash = 6;
+        flashColor = '#88ff88';
+        parts.splice(i,1);
+        // turbo fill on catch
+        turbo = Math.min(turbo + 4, 100);
         updateUI();
-        // small flash
-        screenFlash = 4;
+        break;
+      }
+    }
+    // defects (bad parts) -> damage
+    for(let i=0;i<defects.length;i++) {
+      const d = defects[i];
+      const dRect = {x: d.x, y: d.y, w: 14, h: 12};
+      if(playerRect.x < dRect.x+dRect.w && playerRect.x+playerRect.w > dRect.x &&
+         playerRect.y < dRect.y+dRect.h && playerRect.y+playerRect.h > dRect.y) {
+        shift = Math.max(1, shift-1);
+        screenFlash = 12;
+        flashColor = '#ff6666';
+        defects.splice(i,1);
+        comboCount = 0;
+        updateUI();
+        if(shift <= 0) gameOver();
+        break;
+      }
+    }
+    // boost items
+    for(let i=0;i<boostItems.length;i++) {
+      const b = boostItems[i];
+      const bRect = {x: b.x, y: b.y, w: 12, h: 12};
+      if(playerRect.x < bRect.x+bRect.w && playerRect.x+playerRect.w > bRect.x &&
+         playerRect.y < bRect.y+bRect.h && playerRect.y+playerRect.h > bRect.y) {
+        turbo = Math.min(turbo + 25, 100);
+        boostItems.splice(i,1);
+        screenFlash = 5;
+        flashColor = '#ffaa44';
+        updateUI();
         break;
       }
     }
     
-    // use nitro on button? auto can be used with N key, but manual trigger via nitro button? Let's add auto activation on collect streak
-    if(nitro >= 25 && !nitroActive && (Math.random()<0.005 || (frame % 180 === 0 && nitro>30))) {
-      nitroActive = true;
-      nitroFrames = 45;
-      nitro -= 25;
-      if(nitro<0) nitro=0;
+    // auto turbo activation when full
+    if(turbo >= 50 && !turboActive && Math.random()<0.02) {
+      turboActive = true;
+      turboFrames = 50;
+      turbo -= 35;
+      if(turbo<0) turbo=0;
       updateUI();
     }
     
-    // increase score and distance based on speed
-    score += Math.floor(gameSpeed * 0.9) + 1;
-    distance += gameSpeed;
-    updateUI();
-    
-    // level up difficulty spawn rates
-    let spawnDelay = Math.max(28, 42 - Math.floor(score/300));
-    if(obstacleCooldown <= 0 && obstacles.length < 6) {
-      if(Math.random() < 0.38) {
-        spawnObstacle();
-        obstacleCooldown = spawnDelay;
+    // spawn system
+    let spawnDelay = Math.max(18, 45 - Math.floor(score/400) - shift*2);
+    if(partTimer <= 0 && parts.length < 8) {
+      if(Math.random() < 0.45) {
+        let lane = Math.floor(Math.random()*3);
+        parts.push({x: LANE_X[lane]+9, y: -20, lane: lane});
+        partTimer = spawnDelay;
       }
-    } else {
-      obstacleCooldown--;
-    }
+    } else partTimer--;
     
-    if(powerupCooldown <= 0 && powerups.length < 3) {
-      if(Math.random() < 0.2 && nitro < 85) {
-        spawnPowerup();
-        powerupCooldown = 45 + Math.floor(Math.random()*30);
+    if(defectTimer <= 0 && defects.length < 5) {
+      if(Math.random() < 0.25 + shift*0.02) {
+        let lane = Math.floor(Math.random()*3);
+        defects.push({x: LANE_X[lane]+9, y: -20, lane: lane});
+        defectTimer = 35 + Math.random()*20;
       }
-    } else {
-      powerupCooldown--;
+    } else defectTimer--;
+    
+    if(boostTimer <= 0 && boostItems.length < 2 && turbo < 75) {
+      if(Math.random() < 0.12) {
+        let lane = Math.floor(Math.random()*3);
+        boostItems.push({x: LANE_X[lane]+12, y: -20, lane: lane});
+        boostTimer = 90;
+      }
+    } else boostTimer--;
+    
+    // score-based shift increase
+    if(score > 0 && score % (400 + shift*50) === 0 && shift < 8 && frame%20===0) {
+      shift = Math.min(shift+1, 8);
+      updateUI();
     }
     
     if(screenFlash>0) screenFlash--;
+    comboAnim = Math.max(0, comboAnim-1);
+    if(comboCount>2) comboAnim = 15;
+    
+    updateUI();
   }
   
   function draw() {
-    drawRoad();
+    drawFactoryFloor();
     
-    // draw obstacles (traffic)
-    for(let obs of obstacles) {
-      drawObstacleCar(ctx, obs.x, obs.y);
-      // red rear lights
-      ctx.fillStyle = '#ff3333';
-      ctx.fillRect(obs.x+5, obs.y+40, 8, 4);
-      ctx.fillRect(obs.x+17, obs.y+40, 8, 4);
+    // draw press machines
+    for(let i=0;i<3;i++) {
+      const isActive = (player.lane === i && turboActive);
+      drawPress(LANE_X[i]-12, H-112, 60, 70, isActive);
     }
     
-    // draw powerups (nitro cans)
-    for(let pow of powerups) {
-      drawNitroCan(ctx, pow.x, pow.y);
+    // draw all objects
+    for(let p of parts) drawGoodPart(p.x, p.y);
+    for(let d of defects) drawDefect(d.x, d.y);
+    for(let b of boostItems) drawTurboBoost(b.x, b.y);
+    
+    // draw player worker with catch animation
+    let catchAnim = 0;
+    if(screenFlash>0 && flashColor.includes('88ff88')) catchAnim = 12 - screenFlash;
+    drawWorker(ctx, player.x, player.y, player.gender, frame, catchAnim);
+    
+    // combo effect
+    if(comboAnim>0 && comboCount>=3) {
+      ctx.font = "bold 8px 'Press Start 2P'";
+      ctx.fillStyle = '#ffaa44';
+      ctx.shadowBlur = 0;
+      ctx.fillText(`COMBO x${Math.min(comboCount,99)}`, player.x+20, player.y-12);
     }
     
-    drawPlayer();
+    // turbo gauge (Pixel Car Racer style)
+    ctx.fillStyle = '#222233';
+    ctx.fillRect(12, H-42, 120, 16);
+    ctx.fillStyle = '#ff8822';
+    let turboW = (turbo/100) * 118;
+    ctx.fillRect(13, H-41, turboW, 14);
+    ctx.fillStyle = '#ffdd88';
+    ctx.font = "6px 'Press Start 2P'";
+    ctx.fillText("TURBO", 16, H-48);
     
-    // road glow particles at high speed
-    if(gameSpeed > 7) {
-      ctx.fillStyle = `rgba(255,180,0,0.3)`;
-      for(let i=0;i<8;i++) {
-        ctx.fillRect((frame*12 + i*37)%W, H-30+Math.sin(frame+i)*5, 8, 6);
-      }
+    // score & shift on canvas
+    ctx.fillStyle = '#ffdd99';
+    ctx.fillText(`SCORE ${Math.floor(score)}`, W-100, 28);
+    ctx.fillStyle = '#88aaff';
+    ctx.fillText(`SHIFT ${shift}`, W-100, 48);
+    if(turboActive) {
+      ctx.fillStyle = '#ffaa44';
+      ctx.fillText("TURBO PRESS!", W-110, 72);
     }
     
-    // speed blur / nitro effect
-    if(nitroActive && nitroFrames>0) {
-      ctx.fillStyle = 'rgba(255,100,0,0.2)';
-      ctx.fillRect(0, 0, W, H);
-      for(let i=0;i<5;i++) {
-        ctx.fillStyle = `rgba(255,200,0,0.2)`;
-        ctx.fillRect(10+ i*50, H-40, 30, 12);
-      }
-    }
-    
-    // screen flash on collect/crash
+    // screen flash
     if(screenFlash > 0) {
-      ctx.fillStyle = `rgba(255,255,200,${0.3})`;
-      ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = flashColor + (screenFlash/15);
+      ctx.fillRect(0,0,W,H);
     }
     
-    // dashboard / HUD pixel style on canvas
-    ctx.font = "bold 8px 'Press Start 2P'";
-    ctx.fillStyle = "#ffcc88";
-    ctx.shadowBlur = 0;
-    ctx.fillText(`SPD ${Math.floor(gameSpeed*10)}`, W-70, 25);
-    if(nitroActive) ctx.fillStyle = "#ff8822";
-    ctx.fillText(`NITRO ${nitro}%`, W-70, 45);
-    ctx.fillStyle = "#88aaff";
-    ctx.fillText(`SCORE ${Math.floor(score)}`, 12, 25);
-    ctx.fillStyle = "#ccccaa";
-    ctx.fillText(`DIST ${Math.floor(distance/10)}m`, 12, 45);
+    // scanlines
+    ctx.globalAlpha = 0.1;
+    for(let i=0;i<H;i+=6) {
+      ctx.fillStyle = '#000000';
+      ctx.fillRect(0,i,W,2);
+    }
+    ctx.globalAlpha = 1;
   }
   
   function gameLoop() {
-    if(!gameRunning && animFrame) {
-      // if not running but overlay showing, keep static draw
-      draw();
-      animFrame = requestAnimationFrame(gameLoop);
+    if(!gameRunning) {
+      if(animFrame) cancelAnimationFrame(animFrame);
       return;
     }
-    if(!gameRunning) return;
     updateGame();
     draw();
     frame++;
     animFrame = requestAnimationFrame(gameLoop);
   }
   
-  function startGame(selectedColor) {
-    // reset everything
+  function gameOver() {
+    gameRunning = false;
+    if(animFrame) cancelAnimationFrame(animFrame);
+    document.getElementById('finalScore').innerHTML = `SCORE: ${Math.floor(score)}  SHIFT: ${shift}`;
+    let quote = QUOTES[Math.floor(Math.random()*QUOTES.length)];
+    document.getElementById('gameoverQuote').innerHTML = quote;
+    document.getElementById('gameoverPanel').classList.remove('hidden');
+    document.getElementById('menuPanel').classList.add('hidden');
+    document.getElementById('overlay').classList.remove('hidden');
+    drawWreckPreview();
+  }
+  
+  function startGame(gender) {
     gameRunning = true;
     score = 0;
-    distance = 0;
-    nitro = 25;
-    obstacles = [];
-    powerups = [];
-    obstacleCooldown = 0;
-    powerupCooldown = 0;
-    gameSpeed = 4.2;
-    baseSpeed = 4.2;
-    speedMultiplier = 1.0;
-    nitroActive = false;
-    nitroFrames = 0;
+    turbo = 30;
+    shift = 1;
+    parts = [];
+    defects = [];
+    boostItems = [];
+    gameSpeed = 3.2;
+    baseSpeed = 3.2;
+    speedMult = 1.0;
+    turboActive = false;
+    turboFrames = 0;
     screenFlash = 0;
+    comboCount = 0;
     frame = 0;
-    playerCar.color = selectedColor;
-    currentColor = CAR_COLORS[selectedColor];
-    playerCar.lane = 1;
-    playerCar.x = LANE_POS[1];
-    playerCar.y = H - 68;
+    player.gender = gender;
+    player.lane = 1;
+    player.x = LANE_X[1];
+    player.y = H - 72;
+    partTimer = 0;
+    defectTimer = 15;
+    boostTimer = 20;
     updateUI();
     document.getElementById('overlay').classList.add('hidden');
-    document.getElementById('menuPanel').classList.add('hidden');
-    document.getElementById('gameoverPanel').classList.add('hidden');
     if(animFrame) cancelAnimationFrame(animFrame);
     gameLoop();
+  }
+  
+  function updateUI() {
+    document.getElementById('scoreValue').innerText = Math.floor(score);
+    document.getElementById('turboValue').innerText = Math.floor(turbo);
+    document.getElementById('shiftValue').innerText = shift;
   }
   
   function showMenu() {
@@ -757,118 +734,96 @@ canvas {
     document.getElementById('overlay').classList.remove('hidden');
     document.getElementById('menuPanel').classList.remove('hidden');
     document.getElementById('gameoverPanel').classList.add('hidden');
-    drawPreviewCars();
+    drawPreviewWorkers();
     draw();
   }
   
-  function drawPreviewCars() {
-    const redCanvas = document.getElementById('previewRed');
-    const blueCanvas = document.getElementById('previewBlue');
-    const yellowCanvas = document.getElementById('previewYellow');
-    if(redCanvas) {
-      const rctx = redCanvas.getContext('2d');
-      rctx.clearRect(0,0,48,48);
-      drawPixelCar(rctx, 8, 8, 'red', 0.7);
+  function drawPreviewWorkers() {
+    const previewM = document.getElementById('previewM');
+    const previewF = document.getElementById('previewF');
+    if(previewM) {
+      const mctx = previewM.getContext('2d');
+      mctx.clearRect(0,0,48,56);
+      drawWorker(mctx, 8, 8, 'm', 0, 0);
     }
-    if(blueCanvas) {
-      const bctx = blueCanvas.getContext('2d');
-      bctx.clearRect(0,0,48,48);
-      drawPixelCar(bctx, 8, 8, 'blue', 0.7);
-    }
-    if(yellowCanvas) {
-      const yctx = yellowCanvas.getContext('2d');
-      yctx.clearRect(0,0,48,48);
-      drawPixelCar(yctx, 8, 8, 'yellow', 0.7);
+    if(previewF) {
+      const fctx = previewF.getContext('2d');
+      fctx.clearRect(0,0,48,56);
+      drawWorker(fctx, 8, 8, 'f', 0, 0);
     }
   }
   
   function drawWreckPreview() {
-    const wreckCanvas = document.getElementById('wreckPreview');
-    if(!wreckCanvas) return;
-    const wctx = wreckCanvas.getContext('2d');
-    wctx.fillStyle = '#2a1a1a';
+    const wreck = document.getElementById('wreckPreview');
+    if(!wreck) return;
+    const wctx = wreck.getContext('2d');
+    wctx.fillStyle = '#331111';
     wctx.fillRect(0,0,64,64);
-    wctx.fillStyle = '#aa4444';
-    wctx.fillRect(20,20,28,32);
-    wctx.fillStyle = '#663333';
-    wctx.fillRect(24,28,20,12);
-    wctx.fillStyle = '#ffaa33';
-    wctx.fillRect(28,35,8,6);
+    wctx.fillStyle = '#aa5533';
+    wctx.fillRect(20,22,28,28);
+    wctx.fillStyle = '#882222';
+    wctx.fillRect(26,30,12,12);
   }
   
-  // Car selection
-  let selectedCarColor = 'red';
-  document.getElementById('carRed')?.addEventListener('click', () => {
-    selectedCarColor = 'red';
-    document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('carRed').classList.add('selected');
-  });
-  document.getElementById('carBlue')?.addEventListener('click', () => {
-    selectedCarColor = 'blue';
-    document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('carBlue').classList.add('selected');
-  });
-  document.getElementById('carYellow')?.addEventListener('click', () => {
-    selectedCarColor = 'yellow';
-    document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('carYellow').classList.add('selected');
-  });
-  
-  document.getElementById('startBtn')?.addEventListener('click', () => {
-    startGame(selectedCarColor);
-  });
-  document.getElementById('restartBtn')?.addEventListener('click', () => {
-    startGame(selectedCarColor);
-  });
-  document.getElementById('menuBtn')?.addEventListener('click', () => {
-    showMenu();
-  });
-  
-  // Controls movement
+  // ========== CONTROLS ==========
   function moveLeft() {
     if(!gameRunning) return;
-    if(playerCar.lane > 0) {
-      playerCar.lane--;
-      playerCar.x = LANE_POS[playerCar.lane];
+    if(player.lane > 0) {
+      player.lane--;
+      player.x = LANE_X[player.lane];
     }
   }
   function moveRight() {
     if(!gameRunning) return;
-    if(playerCar.lane < 2) {
-      playerCar.lane++;
-      playerCar.x = LANE_POS[playerCar.lane];
+    if(player.lane < 2) {
+      player.lane++;
+      player.x = LANE_X[player.lane];
     }
   }
+  
   document.getElementById('leftBtn').addEventListener('click', moveLeft);
   document.getElementById('rightBtn').addEventListener('click', moveRight);
   document.addEventListener('keydown', (e) => {
     if(e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
     if(e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
-    if(e.key === ' ' || e.key === 'n') {
-      if(gameRunning && nitro >= 25 && !nitroActive) {
-        nitroActive = true;
-        nitroFrames = 45;
-        nitro -= 25;
+    if(e.key === ' ' || e.key === 't') {
+      if(gameRunning && turbo >= 25 && !turboActive) {
+        turboActive = true;
+        turboFrames = 45;
+        turbo -= 25;
         updateUI();
       }
     }
   });
   
-  // Touch for canvas swipe
-  let touchStartX = null;
-  canvas.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-  });
+  // touch swipe on canvas
+  let touchX = null;
+  canvas.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; });
   canvas.addEventListener('touchend', (e) => {
-    if(touchStartX === null) return;
-    const endX = e.changedTouches[0].clientX;
-    if(endX - touchStartX > 30) moveRight();
-    else if(touchStartX - endX > 30) moveLeft();
-    touchStartX = null;
+    if(touchX === null) return;
+    let diff = e.changedTouches[0].clientX - touchX;
+    if(diff > 35) moveRight();
+    else if(diff < -35) moveLeft();
+    touchX = null;
   });
   
-  drawPreviewCars();
-  draw();
+  let selectedGender = 'm';
+  document.getElementById('workerM')?.addEventListener('click', () => {
+    selectedGender = 'm';
+    document.querySelectorAll('.worker-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('workerM').classList.add('selected');
+  });
+  document.getElementById('workerF')?.addEventListener('click', () => {
+    selectedGender = 'f';
+    document.querySelectorAll('.worker-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('workerF').classList.add('selected');
+  });
+  
+  document.getElementById('startBtn')?.addEventListener('click', () => startGame(selectedGender));
+  document.getElementById('restartBtn')?.addEventListener('click', () => startGame(selectedGender));
+  document.getElementById('menuBtn')?.addEventListener('click', showMenu);
+  
+  drawPreviewWorkers();
   showMenu();
 })();
 </script>
