@@ -1,4 +1,4 @@
-Zde je opravená verze hry. Hlavní chyba byla v duplicitní deklaraci proměnné LANES uvnitř funkce update(). Dále jsem opravil problém s ovládáním a přidal chybějící definici GW a GH při startu hry. Hra nyní běží bez chyb.
+Zde je kompletně přepracovaná hra s tabulkou rekordů (uloženou v localStorage), možností zadat jméno, zvukovými efekty a plynulejším nárůstem obtížnosti. Hra začíná pomalu jako hra s dinosaurem a predák přichází až později.
 
 ```html
 <!DOCTYPE html>
@@ -8,8 +8,8 @@ Zde je opravená verze hry. Hlavní chyba byla v duplicitní deklaraci proměnn�
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>LISOVNA MAGNA - výroba zrkadiel</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html,body { width:100%; height:100%; overflow:hidden; background:#111; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; user-select:none; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
+html,body { width:100%; height:100%; overflow:hidden; background:#111; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; }
 
 #app {
   width:100%; height:100%;
@@ -38,7 +38,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
   width:100%; max-width:500px;
   overflow:hidden;
 }
-#gameCanvas { display:block; touch-action:none; }
+#gameCanvas { display:block; touch-action:none; background:#1e2a1a; border-radius:12px; box-shadow:0 5px 20px rgba(0,0,0,0.5); }
 
 #controls {
   width:100%; max-width:500px;
@@ -56,10 +56,11 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
 
 #overlay {
   position:absolute; top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.92);
+  background:rgba(0,0,0,0.94);
   display:flex; flex-direction:column;
   align-items:center; justify-content:center;
   gap:14px; z-index:20; padding:20px;
+  backdrop-filter:blur(4px);
 }
 #overlay.hidden { display:none; }
 
@@ -72,16 +73,6 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
   z-index:15; display:none;
   animation:slideDown 0.3s ease;
 }
-#nastavovacBanner {
-  position:absolute; top:0; left:0; right:0;
-  background:linear-gradient(90deg,#222,#444);
-  color:#ff4; font-weight:bold;
-  font-size:clamp(11px,3vw,15px);
-  text-align:center; padding:5px 8px;
-  z-index:15; display:none;
-  animation:slideDown 0.3s ease;
-}
-
 @keyframes slideDown { from{transform:translateY(-100%);} to{transform:translateY(0);} }
 
 .ov-title { font-size:clamp(26px,7vw,40px); font-weight:900; color:#ff0; letter-spacing:2px; text-shadow:0 0 20px #ff8800; }
@@ -95,11 +86,7 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
   transition:transform 0.1s;
 }
 .ov-btn:active { transform:scale(0.96); }
-.ov-btn-sec {
-  background:#222; color:#aaa; border:1px solid #444;
-  padding:9px 22px; font-size:14px; cursor:pointer;
-  border-radius:6px;
-}
+.ov-btn-sec { background:#222; color:#aaa; border:1px solid #444; padding:9px 22px; font-size:14px; cursor:pointer; border-radius:6px; }
 
 .char-cards { display:flex; gap:16px; justify-content:center; flex-wrap:wrap; }
 .char-card {
@@ -113,10 +100,25 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
 .char-card canvas { display:block; margin:0 auto; }
 .char-card .cname { color:#ccc; font-size:14px; margin-top:6px; }
 
+.name-input {
+  background:#2a2a2a; border:2px solid #5a5; padding:10px 16px;
+  font-size:18px; text-align:center; border-radius:40px;
+  color:#fff; font-family:monospace; width:200px;
+}
+.name-input:focus { outline:none; border-color:#0f0; }
+
+.leaderboard {
+  background:#0a0a0aaa; border-radius:16px; padding:12px; margin-top:12px;
+  width:100%; max-width:280px; max-height:180px; overflow-y:auto;
+}
+.leaderboard h4 { color:#ffa; margin-bottom:8px; font-size:14px; }
+.leaderboard-item { display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #333; font-size:12px; color:#ccc; }
+.leaderboard-rank { color:#ffa; width:30px; }
+.leaderboard-name { flex:1; text-align:left; }
+.leaderboard-score { color:#0f0; font-weight:bold; }
+
 .go-score { font-size:clamp(20px,5vw,28px); color:#fff; font-weight:bold; }
 .go-quote { font-size:clamp(12px,3vw,15px); color:#ff9999; font-style:italic; max-width:280px; text-align:center; line-height:1.4; }
-.majster-wrap canvas { border-radius:50%; }
-.go-btns { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
 .hint { font-size:10px; color:#555; text-align:center; font-family:monospace; padding:2px 0; flex-shrink:0; }
 </style>
 </head>
@@ -125,47 +127,51 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
   <div id="hud">
     <span class="hs">⭐ <span id="hScore">0</span></span>
     <span class="hh">❤️ <span id="hLives">3</span></span>
-    <span class="hl">LVL <span id="hLevel">1</span></span>
+    <span class="hl">⚙️ <span id="hPress">1</span> LIS</span>
   </div>
 
   <div id="canvasWrap">
     <canvas id="gameCanvas"></canvas>
     <div id="predakBanner">⚠️ PREDÁK: Vezmi aj druhý LIS! Rýchlejšie! ⚠️</div>
-    <div id="nastavovacBanner">🔧 NASTAVOVAČ: Porucha formy!! Stoj! 🔧</div>
+  </div>
 
-    <div id="overlay">
-      <div id="scrMenu" style="display:flex;flex-direction:column;align-items:center;gap:14px;">
-        <div class="ov-title">🏭 LISOVNA</div>
-        <div class="ov-sub">Chytaj plastové diely z konvejera!<br>Červené = chybné → stráca životy!</div>
-        <div style="color:#ff0;font-size:14px;font-weight:bold;">Vyber si postavu:</div>
-        <div class="char-cards">
-          <div class="char-card selected" id="cardM" onclick="selectChar('male')">
-            <canvas id="prevM" width="64" height="96"></canvas>
-            <div class="cname">👨 Muž</div>
-          </div>
-          <div class="char-card" id="cardF" onclick="selectChar('female')">
-            <canvas id="prevF" width="64" height="96"></canvas>
-            <div class="cname">👩 Žena</div>
-          </div>
+  <div id="overlay">
+    <div id="scrMenu" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
+      <div class="ov-title">🏭 LISOVNA</div>
+      <div class="ov-sub">Chytaj plastové diely!<br>Červené = chybné → strata života</div>
+      <input type="text" id="playerName" class="name-input" placeholder="TVOJE MENO" maxlength="15" autocomplete="off">
+      <div style="color:#ff0;font-size:13px;font-weight:bold;">Vyber si postavu:</div>
+      <div class="char-cards">
+        <div class="char-card selected" id="cardM" onclick="selectChar('male')">
+          <canvas id="prevM" width="64" height="96"></canvas>
+          <div class="cname">👨 Muž</div>
         </div>
-        <button class="ov-btn" onclick="startGame()">HRAŤ ▶</button>
-        <div class="ov-sub" style="font-size:11px;color:#555;">← → klávesy | tlačidlá | ťukni na plátno</div>
+        <div class="char-card" id="cardF" onclick="selectChar('female')">
+          <canvas id="prevF" width="64" height="96"></canvas>
+          <div class="cname">👩 Žena</div>
+        </div>
       </div>
+      <button class="ov-btn" onclick="startGame()">HRAŤ ▶</button>
+      
+      <div class="leaderboard">
+        <h4>🏆 TABUĽKA REKORDOV 🏆</h4>
+        <div id="leaderboardList"></div>
+      </div>
+      <div class="ov-sub" style="font-size:10px;">← → klávesy | tlačidlá | ťukni na plátno</div>
+    </div>
 
-      <div id="scrOver" style="display:none;flex-direction:column;align-items:center;gap:12px;">
-        <div class="majster-wrap"><canvas id="majsterPrev" width="90" height="130"></canvas></div>
-        <div class="go-score" id="goScore">Skóre: 0</div>
-        <div class="go-quote" id="goQuote"></div>
-        <div class="go-btns">
-          <button class="ov-btn-sec" onclick="showMenu()">← Menu</button>
-          <button class="ov-btn" onclick="startGame()">ZNOVA ▶</button>
-        </div>
+    <div id="scrOver" style="display:none;flex-direction:column;align-items:center;gap:12px;">
+      <canvas id="majsterPrev" width="90" height="130"></canvas>
+      <div class="go-score" id="goScore">Skóre: 0</div>
+      <div class="go-quote" id="goQuote"></div>
+      <div class="go-btns">
+        <button class="ov-btn-sec" onclick="showMenu()">← Menu</button>
+        <button class="ov-btn" onclick="startGame()">ZNOVA ▶</button>
       </div>
     </div>
   </div>
 
-  <div class="hint" id="hint">← → klávesy alebo tlačidlá dole</div>
-
+  <div class="hint">← → klávesy alebo tlačidlá dole</div>
   <div id="controls">
     <button id="btnL" ontouchstart="startL(event)" ontouchend="stopL()" onmousedown="startL()" onmouseup="stopL()" onmouseleave="stopL()">◀</button>
     <button id="btnR" ontouchstart="startR(event)" ontouchend="stopR()" onmousedown="startR()" onmouseup="stopR()" onmouseleave="stopR()">▶</button>
@@ -174,47 +180,107 @@ html,body { width:100%; height:100%; overflow:hidden; background:#111; font-fami
 
 <script>
 // ============================================================
-//  LISOVNA  —  main game
+//  ZVUKOVÉ EFEKTY (Web Audio API)
 // ============================================================
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let audioEnabled = false;
 
+function playBeep(freq, duration, type='sine', volume=0.2) {
+  if(!audioEnabled) return;
+  try {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = volume;
+    osc.start();
+    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
+    osc.stop(audioCtx.currentTime + duration);
+  } catch(e) {}
+}
+
+function playCatch() { playBeep(880, 0.12, 'sine', 0.15); }
+function playBad() { playBeep(220, 0.25, 'sawtooth', 0.2); }
+function playPredak() { playBeep(660, 0.35, 'square', 0.25); playBeep(880, 0.3, 'square', 0.2); }
+function playGameOver() { playBeep(150, 0.8, 'sawtooth', 0.3); playBeep(100, 0.6, 'sawtooth', 0.3); }
+function playLevelUp() { playBeep(523, 0.15, 'sine', 0.2); playBeep(659, 0.15, 'sine', 0.2); }
+
+// ============================================================
+//  TABUĽKA REKORDOV (localStorage)
+// ============================================================
+let leaderboard = [];
+
+function loadLeaderboard() {
+  try {
+    const saved = localStorage.getItem('lisovna_leaderboard');
+    if(saved) leaderboard = JSON.parse(saved);
+    else leaderboard = [];
+    leaderboard.sort((a,b) => b.score - a.score);
+    leaderboard = leaderboard.slice(0, 8);
+  } catch(e) { leaderboard = []; }
+  updateLeaderboardDisplay();
+}
+
+function saveLeaderboard() {
+  leaderboard.sort((a,b) => b.score - a.score);
+  leaderboard = leaderboard.slice(0, 8);
+  localStorage.setItem('lisovna_leaderboard', JSON.stringify(leaderboard));
+  updateLeaderboardDisplay();
+}
+
+function addScore(name, score) {
+  if(!name || name.trim() === '') name = 'ANONYM';
+  leaderboard.push({ name: name.trim().substring(0, 15), score: score });
+  leaderboard.sort((a,b) => b.score - a.score);
+  leaderboard = leaderboard.slice(0, 8);
+  saveLeaderboard();
+}
+
+function updateLeaderboardDisplay() {
+  const container = document.getElementById('leaderboardList');
+  if(!container) return;
+  if(leaderboard.length === 0) {
+    container.innerHTML = '<div class="leaderboard-item">Zatiaľ žiadne rekordy</div>';
+    return;
+  }
+  container.innerHTML = leaderboard.map((entry, idx) => `
+    <div class="leaderboard-item">
+      <span class="leaderboard-rank">${idx+1}.</span>
+      <span class="leaderboard-name">${escapeHtml(entry.name)}</span>
+      <span class="leaderboard-score">${entry.score}</span>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(str) { return str.replace(/[&<>]/g, function(m){ if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
+
+// ============================================================
+//  HERNÉ PREMenné
+// ============================================================
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-let GW = 400, GH = 500;
+let GW = 450, GH = 500;
+let selectedChar = 'male';
+let playerName = '';
+
+let running = false, raf = null;
+let score, lives, pressCount, frame, baseSpeed, spawnRate;
+let worker, items;
+let predakActive=false, predakTimer=0, predakX=0, predakDir=-1;
+let skladnikActive=false, skladnikX=0, skladnikTimer=500;
+let flash=0, flashCol='';
+let gameStartFrame = 0;
 
 function resizeCanvas(){
   const wrap = document.getElementById('canvasWrap');
   const w = Math.min(wrap.clientWidth, 500);
   const h = wrap.clientHeight;
-  if(w > 0 && h > 0) {
-    GW = w;
-    GH = h;
-    canvas.width = GW;
-    canvas.height = GH;
-  }
+  if(w > 0 && h > 0) { GW = w; GH = h; canvas.width = GW; canvas.height = GH; }
 }
 window.addEventListener('resize', ()=>{ resizeCanvas(); if(!running) drawMenuBg(); });
 resizeCanvas();
-
-// ---- State ----
-let selectedChar = 'male';
-let running = false, raf = null;
-let score, lives, level, frame, speed, spawnRate;
-let worker, items;
-let predakActive=false, predakTimer=0, predakX=0, predakDir=-1, predakLisCount=0;
-let nastavovacActive=false, nastavovacTimer=0, nastavovacX=-80, nastavovacDir=1;
-let skladnikActive=false, skladnikX=0, skladnikTimer=500;
-let flash=0, flashCol='';
-let extraLis = 0;
-
-const MAJSTER_LINES=[
-  'Čo to robíš?! Moja babička by to robila rýchlejšie!',
-  'To nie je možné! Pozri koľko dielov si pustil!',
-  'Zajtra máme audit a ty toto robíš?!',
-  'Nie som spokojný! Zavolaj vedúceho!',
-  'Reklamácia!! Toto je totálna katastrofa!',
-  'Kto ťa naučil takto pracovať?!',
-  'Takýto výkon nestačí! Ide o sériový diel!',
-];
 
 function computeLanes(count){
   const lanes=[];
@@ -226,17 +292,16 @@ function computeLanes(count){
 function updateHUD(){
   document.getElementById('hScore').textContent=score;
   document.getElementById('hLives').textContent=lives;
-  document.getElementById('hLevel').textContent=level+(predakActive?' 🔥':'')+(nastavovacActive?' 🔧':'');
+  document.getElementById('hPress').textContent=pressCount;
 }
 
 function doFlash(col){ flash=10; flashCol=col; }
 
-// ---- Overlay helpers ----
 function showOverlay(){ document.getElementById('overlay').classList.remove('hidden'); }
 function hideOverlay(){ document.getElementById('overlay').classList.add('hidden'); }
 
 function showMenu(){
-  stopGame();
+  if(running) stopGame();
   document.getElementById('scrMenu').style.display='flex';
   document.getElementById('scrOver').style.display='none';
   showOverlay();
@@ -245,13 +310,23 @@ function showMenu(){
 }
 
 function showGameOver(){
+  playGameOver();
   document.getElementById('scrMenu').style.display='none';
   const ov=document.getElementById('scrOver');
   ov.style.display='flex';
-  document.getElementById('goScore').textContent='Skóre: '+score+' | Úroveň: '+level;
-  document.getElementById('goQuote').textContent=MAJSTER_LINES[Math.floor(Math.random()*MAJSTER_LINES.length)];
+  document.getElementById('goScore').textContent='Skóre: '+score;
+  const quotes = [
+    'Čo to robíš?! Moja babička by to robila rýchlejšie!',
+    'To nie je možné! Pozri koľko dielov si pustil!',
+    'Zajtra máme audit a ty toto robíš?!',
+    'Nie som spokojný! Zavolaj vedúceho!',
+    'Reklamácia!! Toto je totálna katastrofa!',
+    'Takýto výkon nestačí! Ide o sériový diel!'
+  ];
+  document.getElementById('goQuote').textContent=quotes[Math.floor(Math.random()*quotes.length)];
   drawMajsterPreview();
   showOverlay();
+  if(score > 0) addScore(playerName, score);
 }
 
 function selectChar(g){
@@ -267,7 +342,7 @@ function drawPreviews(){
     const el=document.getElementById(id); if(!el)return;
     const c=el.getContext('2d'); c.clearRect(0,0,64,96);
     c.save(); c.translate(32,80); c.scale(0.78,0.78);
-    drawWorker(c,g,0);
+    drawWorkerFigure(c,g,0);
     c.restore();
   });
 }
@@ -276,7 +351,7 @@ function drawMajsterPreview(){
   const el=document.getElementById('majsterPrev'); if(!el)return;
   const c=el.getContext('2d'); c.clearRect(0,0,90,130);
   c.save(); c.translate(45,105); c.scale(0.85,0.85);
-  drawMajster(c);
+  drawMajsterFigure(c);
   c.restore();
 }
 
@@ -288,45 +363,38 @@ function drawMenuBg(){
   for(let y=0;y<GH;y+=40){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(GW,y);ctx.stroke();}
 }
 
-function hideBanners(){
-  const pb=document.getElementById('predakBanner');
-  const nb=document.getElementById('nastavovacBanner');
-  if(pb) pb.style.display='none';
-  if(nb) nb.style.display='none';
-}
-
-function stopGame(){ 
-  running=false; 
-  if(raf) cancelAnimationFrame(raf); 
-  raf=null; 
-  hideBanners(); 
-}
+function stopGame(){ running=false; if(raf) cancelAnimationFrame(raf); raf=null; }
 
 function startGame(){
-  hideOverlay();
-  score=0; lives=3; level=1; frame=0; speed=2.4; spawnRate=58;
-  extraLis=0; predakLisCount=0;
-  predakActive=false; predakTimer=0; predakX=GW+60; predakDir=-1;
-  nastavovacActive=false; nastavovacTimer=0; nastavovacX=-80; nastavovacDir=1;
-  skladnikActive=false; skladnikX=GW+120; skladnikTimer=500+Math.floor(Math.random()*300);
+  const nameInput = document.getElementById('playerName');
+  playerName = nameInput.value.trim();
+  if(playerName === '') playerName = 'PRACOVNÍK';
   
-  const LANES = computeLanes(4);
+  // Povolení zvuku při první interakci
+  if(!audioEnabled) {
+    audioCtx.resume().then(() => { audioEnabled = true; });
+  }
+  
+  hideOverlay();
+  score = 0; lives = 3; pressCount = 1; frame = 0; gameStartFrame = 0;
+  baseSpeed = 1.8;        // Pomalý začiatok ako Chrome dinosaurus
+  spawnRate = 75;         // Pomalé spawnovanie na začiatku
+  
+  predakActive = false; predakTimer = 0; predakX = GW+60; predakDir = -1;
+  skladnikActive = false; skladnikX = GW+120; skladnikTimer = 400;
+  
+  const LANES = computeLanes(3);  // Začiatok s 3 dráhami (jednoduchšie)
   worker = { lane:1, x:LANES[1], y:GH-60, armAngle:0, armDir:1, lanes:LANES };
-  items=[];
-  running=true;
-  hideBanners();
+  items = [];
+  running = true;
   updateHUD();
   if(raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(loop);
 }
 
-function gameOver(){ 
-  running=false; 
-  hideBanners(); 
-  showGameOver(); 
-}
+function gameOver(){ running=false; showGameOver(); }
 
-// ---- Main loop ----
+// ========== HERNÁ LOGIKA ==========
 function loop(){
   if(!running) return;
   frame++;
@@ -338,359 +406,268 @@ function loop(){
 function update(){
   const LANES = worker.lanes;
   if(!LANES.length) return;
-
-  // Smooth worker move
+  
   worker.x += (LANES[worker.lane]-worker.x)*0.2;
-  worker.armAngle+=0.13*worker.armDir;
+  worker.armAngle += 0.12*worker.armDir;
   if(worker.armAngle>0.55||worker.armAngle<-0.55) worker.armDir*=-1;
-
-  // ---- PREDAK ----
-  if(!predakActive && !nastavovacActive && frame>250 && frame%600===0){
-    predakActive=true; predakTimer=300;
-    predakX=GW+60; predakDir=-1;
-    const pb=document.getElementById('predakBanner');
-    if(pb) pb.style.display='block';
-    speed=Math.min(speed+1.5,11); spawnRate=Math.max(18,spawnRate-14);
-    predakLisCount++;
-    if(extraLis<2){
-      extraLis++;
-      const newLanes=computeLanes(4+extraLis);
-      worker.lane=Math.min(worker.lane,newLanes.length-1);
-      worker.lanes=newLanes;
-    }
+  
+  // PREDÁK - prichádza až po 500 framoch a keď je skóre aspoň 200 (nie príliš skoro)
+  if(!predakActive && frame > 500 && score > 200 && pressCount < 3 && frame % 800 === 0){
+    predakActive = true;
+    predakTimer = 320;
+    predakX = GW + 60;
+    predakDir = -1;
+    const pb = document.getElementById('predakBanner');
+    if(pb) pb.style.display = 'block';
+    playPredak();
+    
+    // Pridanie ďalšieho lisu - mierne zvýšenie obtiažnosti
+    pressCount = Math.min(3, pressCount + 1);
+    const newLanes = computeLanes(3 + (pressCount - 1));
+    worker.lane = Math.min(worker.lane, newLanes.length-1);
+    worker.lanes = newLanes;
+    
+    // Mierne zvýšenie rýchlosti
+    baseSpeed = Math.min(3.5, baseSpeed + 0.5);
+    spawnRate = Math.max(45, spawnRate - 8);
     updateHUD();
   }
+  
   if(predakActive){
-    predakX+=predakDir*1.8;
+    predakX += predakDir * 1.5;
     predakTimer--;
-    if(predakX<50&&predakDir<0) predakDir=1;
-    if(predakX>GW-50&&predakDir>0) predakDir=-1;
-    if(predakTimer<=0){
-      predakActive=false;
-      const pb=document.getElementById('predakBanner');
-      if(pb) pb.style.display='none';
-      speed=Math.max(speed-0.8,2.4+level*0.18);
-      spawnRate=Math.min(spawnRate+10,58-level*3);
-      updateHUD();
+    if(predakX<40 && predakDir<0) predakDir = 1;
+    if(predakX>GW-50 && predakDir>0) predakDir = -1;
+    if(predakTimer <= 0){
+      predakActive = false;
+      const pb = document.getElementById('predakBanner');
+      if(pb) pb.style.display = 'none';
     }
   }
-
-  // ---- NASTAVOVAC ----
-  if(!nastavovacActive && !predakActive && frame>400 && frame%900===0){
-    nastavovacActive=true; nastavovacTimer=180;
-    nastavovacX=-80; nastavovacDir=1;
-    const nb=document.getElementById('nastavovacBanner');
-    if(nb) nb.style.display='block';
-    updateHUD();
-  }
-  if(nastavovacActive){
-    if(nastavovacDir!==0) nastavovacX+=nastavovacDir*1.2;
-    nastavovacTimer--;
-    if(nastavovacX>GW*0.45&&nastavovacDir>0) nastavovacDir=0;
-    if(nastavovacTimer<=0){
-      nastavovacActive=false;
-      const nb=document.getElementById('nastavovacBanner');
-      if(nb) nb.style.display='none';
-      nastavovacDir=1;
-      updateHUD();
-    }
-  }
-  if(!nastavovacActive && nastavovacDir===1 && nastavovacX>-80 && nastavovacX<GW+100){
-    nastavovacX+=1.5;
-  }
-
-  // ---- SKLADNIK ----
+  
+  // SKLADNÍK
   skladnikTimer--;
   if(skladnikTimer<=0 && !skladnikActive){
-    skladnikActive=true; skladnikX=GW+120;
-    skladnikTimer=600+Math.floor(Math.random()*500);
+    skladnikActive = true;
+    skladnikX = GW + 120;
+    skladnikTimer = 450 + Math.floor(Math.random() * 400);
   }
   if(skladnikActive){
-    skladnikX-=1.5;
-    if(skladnikX<-220) skladnikActive=false;
+    skladnikX -= 1.3;
+    if(skladnikX < -200) skladnikActive = false;
   }
-
-  // ---- LEVEL UP ----
-  if(score>0 && score%(250*level)===0 && !predakActive && frame%4===0){
-    level++; speed=Math.min(speed+0.18,7);
-    spawnRate=Math.max(30,spawnRate-3);
-    updateHUD();
+  
+  // Postupné zvyšovanie obtiažnosti (ako Chrome dinosaurus)
+  if(frame % 300 === 0 && frame > 200 && baseSpeed < 3.8){
+    baseSpeed += 0.08;
+    if(spawnRate > 42) spawnRate -= 1;
   }
-
-  // ---- SPAWN ----
-  if(!nastavovacActive && frame%spawnRate===0){
-    const lane=Math.floor(Math.random()*LANES.length);
-    const bad=Math.random()<(0.20+level*0.035+(predakActive?0.12:0));
-    items.push({lane, x:LANES[lane], y:-22, bad, speed:speed+Math.random()*1.1});
+  
+  // SPAWNOVANIE
+  if(frame % spawnRate === 0){
+    const lane = Math.floor(Math.random() * LANES.length);
+    const bad = Math.random() < (0.15 + (pressCount > 1 ? 0.05 : 0) + (score/3000));
+    items.push({ lane, x:LANES[lane], y:-22, bad, speed: baseSpeed + Math.random() * 0.8 });
   }
-
-  // ---- ITEMS ----
-  for(let i=items.length-1;i>=0;i--){
-    const it=items[i]; it.y+=it.speed;
-    if(it.y>GH-85&&it.y<GH-40&&Math.abs(it.x-worker.x)<34){
-      if(!it.bad) score+=10*level;
-      else { lives--; doFlash('#ff000088'); }
-      items.splice(i,1); updateHUD();
-      if(lives<=0){ gameOver(); return; }
+  
+  // KOLIZE
+  for(let i=items.length-1; i>=0; i--){
+    const it = items[i];
+    it.y += it.speed;
+    const catchZone = (it.y > GH-85 && it.y < GH-42 && Math.abs(it.x - worker.x) < 34);
+    if(catchZone){
+      if(!it.bad){ 
+        score += 10 * pressCount; 
+        playCatch();
+        updateHUD();
+        if(score > 0 && score % 500 === 0) playLevelUp();
+      } else { 
+        lives--; 
+        playBad();
+        doFlash('#ff000088'); 
+        updateHUD();
+      }
+      items.splice(i,1);
+      if(lives <= 0){ gameOver(); return; }
       continue;
     }
-    if(it.y>GH+24){
-      if(!it.bad){ lives--; doFlash('#ff550066'); updateHUD(); if(lives<=0){gameOver();return;} }
+    if(it.y > GH+25){
+      if(!it.bad){ 
+        lives--; 
+        playBad();
+        doFlash('#ff550066'); 
+        updateHUD(); 
+        if(lives <= 0){ gameOver(); return; }
+      }
       items.splice(i,1);
     }
   }
 }
 
-// ---- DRAW ----
+// ========== KRESLENIE ==========
 function draw(){
   if(!ctx) return;
-  const c=ctx;
-  c.fillStyle='#161616'; c.fillRect(0,0,GW,GH);
+  ctx.fillStyle='#1d2b1a'; ctx.fillRect(0,0,GW,GH);
   
-  const grad=c.createLinearGradient(0,0,GW,0);
-  grad.addColorStop(0,'rgba(30,50,80,0.15)');
-  grad.addColorStop(0.5,'rgba(40,60,90,0.08)');
-  grad.addColorStop(1,'rgba(30,50,80,0.15)');
-  c.fillStyle=grad; c.fillRect(0,0,GW,GH);
-
   const BELT_H=28;
-  c.fillStyle='#202020'; c.fillRect(0,0,GW,BELT_H);
-  const bx=(frame*2.5)%70;
+  ctx.fillStyle='#202020'; ctx.fillRect(0,0,GW,BELT_H);
+  const bx=(frame*2.2)%70;
   for(let x=bx-70;x<GW;x+=70){
-    c.fillStyle='#353535'; c.fillRect(x,3,54,BELT_H-6);
-    c.fillStyle='#1e1e1e'; c.fillRect(x+54,3,16,BELT_H-6);
+    ctx.fillStyle='#353535'; ctx.fillRect(x,3,54,BELT_H-6);
+    ctx.fillStyle='#1e1e1e'; ctx.fillRect(x+54,3,16,BELT_H-6);
   }
-  c.strokeStyle='#555'; c.lineWidth=2; c.strokeRect(0,0,GW,BELT_H);
-  for(const rx of [0,GW]){
-    c.fillStyle='#444'; c.beginPath(); c.arc(rx,BELT_H/2,BELT_H/2,0,Math.PI*2); c.fill();
-    c.fillStyle='#666'; c.beginPath(); c.arc(rx,BELT_H/2,BELT_H/4,0,Math.PI*2); c.fill();
-  }
-
-  c.fillStyle='#141414'; c.fillRect(0,GH-52,GW,52);
+  ctx.strokeStyle='#555'; ctx.lineWidth=2; ctx.strokeRect(0,0,GW,BELT_H);
+  
+  ctx.fillStyle='#141414'; ctx.fillRect(0,GH-52,GW,52);
   for(let x=0;x<GW;x+=52){
-    c.fillStyle='#1c1c1c'; c.fillRect(x,GH-50,50,9);
-    c.fillStyle='#181818'; c.fillRect(x,GH-41,50,4);
+    ctx.fillStyle='#1c1c1c'; ctx.fillRect(x,GH-50,50,9);
   }
-
+  
   if(worker && worker.lanes){
     worker.lanes.forEach((lx,i)=>{
-      c.fillStyle = i===worker.lane ? 'rgba(0,255,0,0.04)':'rgba(255,255,255,0.01)';
-      c.fillRect(lx-28,0,56,GH);
-      c.strokeStyle='#252525'; c.lineWidth=1;
-      c.beginPath(); c.setLineDash([5,14]); c.moveTo(lx,BELT_H); c.lineTo(lx,GH-54); c.stroke(); c.setLineDash([]);
+      ctx.fillStyle = i===worker.lane ? 'rgba(0,255,0,0.04)':'rgba(255,255,255,0.01)';
+      ctx.fillRect(lx-28,0,56,GH);
+      ctx.strokeStyle='#3a5a2a'; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.setLineDash([5,12]); ctx.moveTo(lx,BELT_H); ctx.lineTo(lx,GH-54); ctx.stroke();
+      ctx.setLineDash([]);
     });
   }
-
-  if(skladnikActive) drawSkladnik(c, skladnikX, GH-52);
-  items.forEach(it=>drawPart(c, it.x, it.y, it.bad));
-  if(worker) drawWorker(c, selectedChar, worker.armAngle, worker.x, worker.y);
-  if(predakActive) drawPredak(c, predakX, GH-52, predakDir);
-  if(nastavovacActive || (typeof nastavovacX !== 'undefined' && nastavovacX > -80)) drawNastavovac(c, nastavovacX, GH-52, 1);
   
-  if(flash>0){ c.fillStyle=flashCol; c.fillRect(0,0,GW,GH); flash--; }
+  if(skladnikActive) drawSkladnikFigure(ctx, skladnikX, GH-52);
+  items.forEach(it=>drawPart(ctx, it.x, it.y, it.bad));
+  if(worker) drawWorkerFigure(ctx, selectedChar, worker.armAngle, worker.x, worker.y);
+  if(predakActive) drawPredakFigure(ctx, predakX, GH-52, predakDir);
+  
+  if(flash>0){ ctx.fillStyle=flashCol; ctx.fillRect(0,0,GW,GH); flash--; }
+  
+  // Rýchlostný indikátor
+  ctx.font = 'bold 10px monospace';
+  ctx.fillStyle = '#aaa';
+  ctx.fillText(`⚡ ${Math.round(baseSpeed*10)/10}`, GW-40, 22);
 }
 
-// ========== DRAWING FUNCTIONS ==========
 function drawPart(c,x,y,bad){
   c.save(); c.translate(x,y);
   c.fillStyle=bad?'#aa1818':'#3a6a99';
-  c.strokeStyle=bad?'#ff5555':'#6699cc';
-  c.lineWidth=1.5;
-  c.beginPath(); c.roundRect(-16,-10,32,20,5); c.fill(); c.stroke();
+  c.beginPath(); c.roundRect(-14,-9,28,18,5); c.fill();
   c.fillStyle=bad?'#ff7777':'#88bbdd';
-  c.fillRect(-10,-5,8,10); c.fillRect(2,-5,8,10);
-  c.fillStyle=bad?'#881111':'#2255aa';
-  c.beginPath(); c.roundRect(-5,10,10,6,2); c.fill();
+  c.fillRect(-8,-4,6,8); c.fillRect(2,-4,6,8);
   if(bad){
     c.strokeStyle='#ffee00'; c.lineWidth=2;
-    c.beginPath();c.moveTo(-7,-7);c.lineTo(7,7);c.stroke();
-    c.beginPath();c.moveTo(7,-7);c.lineTo(-7,7);c.stroke();
+    c.beginPath();c.moveTo(-7,-6);c.lineTo(7,4);c.stroke();
+    c.beginPath();c.moveTo(7,-6);c.lineTo(-7,4);c.stroke();
+  } else {
+    c.fillStyle='#f5cf6a';
+    c.beginPath();c.ellipse(0,2,4,3,0,0,Math.PI*2);c.fill();
   }
   c.restore();
 }
 
-function drawWorker(c, gender, arm, wx, wy){
-  c.save();
-  if(wx!==undefined) c.translate(wx,wy);
+function drawWorkerFigure(c, gender, arm, wx, wy){
+  c.save(); c.translate(wx,wy);
   const fem=gender==='female';
-  const skin=fem?'#d4956a':'#c8845a';
-  const hair=fem?'#7a3a10':'#1e1208';
-  c.fillStyle='rgba(0,0,0,0.2)'; c.beginPath(); c.ellipse(0,40,15,4,0,0,Math.PI*2); c.fill();
+  c.fillStyle='#3a4042'; c.beginPath();c.roundRect(-13,-6,26,28,6);c.fill();
+  c.fillStyle='#5c6265'; c.fillRect(-7,2,14,6);
+  c.fillStyle='#d49c6a';
+  c.save();c.translate(-12,-2);c.rotate(arm-0.2);c.fillRect(-3,-2,6,16);c.restore();
+  c.save();c.translate(12,-2);c.rotate(-arm+0.2);c.fillRect(-3,-2,6,16);c.restore();
+  c.fillStyle='#e0ac77';
+  c.beginPath();c.arc(0,-13,11,0,Math.PI*2);c.fill();
   if(fem){
-    c.fillStyle='#225588';
-    c.beginPath();c.moveTo(-11,20);c.lineTo(11,20);c.lineTo(9,42);c.lineTo(-9,42);c.closePath();c.fill();
+    c.fillStyle='#7a3a10'; c.fillRect(-6,-20,12,6);
+    c.fillStyle='#9a5a2a'; c.beginPath();c.ellipse(-7,-17,3,5,-0.2,0,Math.PI*2);c.fill();
+    c.beginPath();c.ellipse(7,-17,3,5,0.2,0,Math.PI*2);c.fill();
   } else {
-    c.fillStyle='#334455'; c.fillRect(-10,20,8,22); c.fillRect(2,20,8,22);
+    c.fillStyle='#2d2a18'; c.fillRect(-8,-20,16,6);
   }
   c.fillStyle='#111';
-  c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
-  c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
-  c.fillStyle='#3a3a3a'; c.beginPath();c.roundRect(-13,0,26,fem?24:22,4);c.fill();
-  c.fillStyle='#2a2a2a'; c.beginPath();c.moveTo(-4,0);c.lineTo(0,6);c.lineTo(4,0);c.closePath();c.fill();
-  c.fillStyle='#cc0000'; c.beginPath();c.arc(0,13,2.5,0,Math.PI*2);c.fill();
-  c.save();c.translate(-13,5);c.rotate(-arm-0.4);
-  c.fillStyle=skin;c.fillRect(-3,-2,6,16);
-  c.fillStyle=fem?'#e8c0a0':'#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
-  c.restore();
-  c.save();c.translate(13,5);c.rotate(arm+0.4);
-  c.fillStyle=skin;c.fillRect(-3,-2,6,16);
-  c.fillStyle=fem?'#e8c0a0':'#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
-  c.restore();
-  c.fillStyle=skin;c.fillRect(-4,-5,8,8);
-  c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
-  c.fillStyle=hair;
-  c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();
-  c.fillRect(-11,-20,22,5);
-  if(fem){
-    c.beginPath();c.ellipse(-11,-13,4,9,0.25,0,Math.PI*2);c.fill();
-    c.beginPath();c.ellipse(11,-13,4,9,-0.25,0,Math.PI*2);c.fill();
-  } else {
-    c.fillRect(-11,-21,4,8); c.fillRect(7,-21,4,8);
-  }
-  c.fillStyle='#111';
-  c.beginPath();c.arc(-4,-15,1.8,0,Math.PI*2);c.fill();
-  c.beginPath();c.arc(4,-15,1.8,0,Math.PI*2);c.fill();
-  if(fem){
-    c.strokeStyle='#111';c.lineWidth=1;
-    c.beginPath();c.moveTo(-6,-17);c.lineTo(-4,-15);c.stroke();
-    c.beginPath();c.moveTo(6,-17);c.lineTo(4,-15);c.stroke();
-  }
-  c.strokeStyle=hair;c.lineWidth=1.5;
-  c.beginPath();c.moveTo(-7,-19);c.lineTo(-1,-17);c.stroke();
-  c.beginPath();c.moveTo(7,-19);c.lineTo(1,-17);c.stroke();
-  c.strokeStyle='#8b5a3a';c.lineWidth=1.5;
-  c.beginPath();c.arc(0,-11,3.5,0.2,Math.PI-0.2);c.stroke();
+  c.beginPath();c.arc(-3,-14,1.5,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(3,-14,1.5,0,Math.PI*2);c.fill();
+  c.fillStyle='#fecc88';
+  c.beginPath();c.ellipse(0,-8,2.5,1.8,0,0,Math.PI*2);c.fill();
   c.restore();
 }
 
-function drawPredak(c, x, y, dir){
+function drawPredakFigure(c, x, y, dir){
   c.save(); c.translate(x,y);
   if(dir>0) c.scale(-1,1);
-  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,14,3,0,0,Math.PI*2);c.fill();
-  c.fillStyle='#1a1a2e';c.fillRect(-9,-2,7,20);c.fillRect(2,-2,7,20);
-  c.fillStyle='#111';c.beginPath();c.roundRect(-11,16,11,6,2);c.fill();c.beginPath();c.roundRect(0,16,11,6,2);c.fill();
-  c.fillStyle='#e86820'; c.beginPath();c.roundRect(-12,-22,24,22,4);c.fill();
-  c.fillStyle='#c05010'; c.fillRect(-12,-9,24,4);
-  c.fillStyle='#888';c.fillRect(13,-20,13,16);
-  c.fillStyle='#bbb';c.fillRect(14,-19,11,11);
-  c.fillStyle='#444';c.fillRect(15,-17,9,2);c.fillRect(15,-14,9,2);c.fillRect(15,-11,7,2);
-  c.fillStyle='#d4845a';c.fillRect(-16,-18,5,14);c.fillRect(11,-18,5,14);
-  c.fillStyle='#d4845a';c.fillRect(-3,-25,6,6);
-  c.beginPath();c.arc(0,-34,10,0,Math.PI*2);c.fill();
-  c.fillStyle='#aa2800';c.beginPath();c.arc(0,-37,10,Math.PI,0);c.fill();
-  c.fillRect(-10,-39,20,5);
-  c.beginPath();c.ellipse(-10,-30,4,9,0.2,0,Math.PI*2);c.fill();
-  c.beginPath();c.ellipse(10,-30,4,9,-0.2,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.beginPath();c.arc(-3.5,-34,1.5,0,Math.PI*2);c.fill();c.beginPath();c.arc(3.5,-34,1.5,0,Math.PI*2);c.fill();
-  c.strokeStyle='#7a2010';c.lineWidth=1.5;c.beginPath();c.moveTo(-4,-30);c.lineTo(4,-30);c.stroke();
+  c.fillStyle='#e87c30'; c.beginPath();c.roundRect(-14,-26,28,26,6);c.fill();
+  c.fillStyle='#c06020'; c.fillRect(-14,-10,28,5);
+  c.fillStyle='#d4845a'; c.fillRect(-4,-31,8,7);
+  c.beginPath();c.arc(0,-40,11,0,Math.PI*2);c.fill();
+  c.fillStyle='#aa4010'; c.beginPath();c.arc(0,-44,11,Math.PI,0);c.fill();
+  c.fillRect(-10,-46,20,6);
+  c.fillStyle='#111';
+  c.beginPath();c.arc(-3,-41,1.5,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(3,-41,1.5,0,Math.PI*2);c.fill();
+  c.fillStyle='#fff7cf'; c.font='bold 8px monospace';
+  c.fillText('➕ LIS!', -20, -55);
   c.restore();
 }
 
-function drawNastavovac(c, x, y, dir){
-  c.save(); c.translate(x, y);
-  if(dir<0) c.scale(-1,1);
-  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,14,3,0,0,Math.PI*2);c.fill();
-  c.fillStyle='#1a1a1a';c.fillRect(-9,-2,7,20);c.fillRect(2,-2,7,20);
-  c.fillStyle='#0a0a0a';c.beginPath();c.roundRect(-11,16,11,6,2);c.fill();c.beginPath();c.roundRect(0,16,11,6,2);c.fill();
-  c.fillStyle='#0f0f0f';c.beginPath();c.roundRect(-12,-22,24,22,4);c.fill();
-  c.fillStyle='#b07050';c.save();c.translate(-12,-16);c.rotate(-0.3);c.fillRect(-3,0,6,16);c.restore();
-  c.save();c.translate(12,-16);c.rotate(0.5);c.fillRect(-3,0,6,14);
-  c.fillStyle='#888';c.fillRect(-3,14,6,10);c.beginPath();c.arc(0,24,5,0,Math.PI*2);c.fill();c.beginPath();c.arc(-2,13,3.5,0,Math.PI*2);c.fill();c.restore();
-  c.fillStyle='#c08858';c.fillRect(-4,-25,8,6);
-  c.beginPath();c.arc(0,-34,11,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.beginPath();c.arc(0,-38,11,Math.PI,0);c.fill();c.fillRect(-11,-40,22,6);c.fillRect(-11,-40,4,10);c.fillRect(7,-40,4,10);
-  c.fillStyle='#1a1a1a';c.beginPath();c.ellipse(0,-27,7,5,0,0,Math.PI*2);c.fill();c.beginPath();c.arc(0,-26,8,0,Math.PI);c.fill();
-  c.strokeStyle='#333';c.lineWidth=0.8;c.beginPath();c.moveTo(-4,-28);c.lineTo(-3,-22);c.stroke();c.beginPath();c.moveTo(0,-29);c.lineTo(0,-22);c.stroke();c.beginPath();c.moveTo(4,-28);c.lineTo(3,-22);c.stroke();
-  c.fillStyle='#111';c.beginPath();c.ellipse(-3,-29,3.5,2.5,0.2,0,Math.PI*2);c.fill();c.beginPath();c.ellipse(3,-29,3.5,2.5,-0.2,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.beginPath();c.arc(-4,-34,2,0,Math.PI*2);c.fill();c.beginPath();c.arc(4,-34,2,0,Math.PI*2);c.fill();
-  c.strokeStyle='#111';c.lineWidth=2;c.beginPath();c.moveTo(-7,-38);c.lineTo(-1,-36);c.stroke();c.beginPath();c.moveTo(7,-38);c.lineTo(1,-36);c.stroke();
-  c.restore();
-}
-
-function drawSkladnik(c, x, y){
-  c.save(); c.translate(x, y);
-  const cW=90,cH=28;
+function drawSkladnikFigure(c, x, y){
+  c.save(); c.translate(x,y);
+  const cW=85,cH=26;
   c.fillStyle='#3a3a3a';c.fillRect(0,-cH,cW,cH);
-  c.strokeStyle='#555';c.strokeRect(0,-cH,cW,cH);
   const bcols=['#cc2222','#2255bb','#229922','#cc8811'];
-  for(let b=0;b<4;b++){ const bx=2+b*22;
-    c.fillStyle=bcols[b];c.fillRect(bx,-cH+2,20,cH-4);
-    c.fillStyle='rgba(255,255,255,0.18)';c.fillRect(bx+1,-cH+3,18,5);
-  }
-  for(let r=0;r<5;r++){ const rx=8+r*18;
-    c.fillStyle='#666';c.beginPath();c.arc(rx,0,7,0,Math.PI*2);c.fill();
-    c.fillStyle='#888';c.beginPath();c.arc(rx,0,4,0,Math.PI*2);c.fill();
-  }
-  c.fillStyle='#444';c.fillRect(-7,-cH-18,6,cH+18);
-  c.fillStyle='#666';c.beginPath();c.roundRect(-10,-cH-18,12,6,3);c.fill();
-  c.save();c.translate(-24,-2);
-  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,13,3,0,0,Math.PI*2);c.fill();
-  c.fillStyle='#222233';c.fillRect(-8,-2,7,20);c.fillRect(1,-2,7,20);
-  c.fillStyle='#111';c.beginPath();c.roundRect(-10,16,10,6,2);c.fill();c.beginPath();c.roundRect(0,16,10,6,2);c.fill();
-  c.fillStyle='#cc1111';c.beginPath();c.roundRect(-11,-20,22,20,3);c.fill();
-  c.fillStyle='#ffffff';c.fillRect(-11,-8,22,5);
-  c.fillStyle='#c07050';c.save();c.translate(-11,-15);c.rotate(0.5);c.fillRect(-3,0,6,16);c.restore();
-  c.save();c.translate(11,-15);c.rotate(-0.5);c.fillRect(-3,0,6,16);c.restore();
-  c.fillStyle='#c07050';c.fillRect(-3,-23,6,6);
-  c.beginPath();c.arc(0,-30,9,0,Math.PI*2);c.fill();
-  c.fillStyle='#3a2010';c.beginPath();c.arc(0,-33,9,Math.PI,0);c.fill();c.fillRect(-9,-35,18,5);
-  c.fillStyle='#111';c.beginPath();c.arc(-3,-30,1.5,0,Math.PI*2);c.fill();c.beginPath();c.arc(3,-30,1.5,0,Math.PI*2);c.fill();
+  for(let b=0;b<4;b++){ c.fillStyle=bcols[b];c.fillRect(4+b*20,-cH+3,18,cH-6); }
+  for(let r=0;r<5;r++){ c.fillStyle='#666';c.beginPath();c.arc(10+r*18,0,6,0,Math.PI*2);c.fill(); }
+  c.save();c.translate(-24,-5);
+  c.fillStyle='#cc1111';c.beginPath();c.roundRect(-10,-20,20,22,5);c.fill();
+  c.fillStyle='#ffffff';c.fillRect(-10,-8,20,5);
+  c.fillStyle='#c07050';c.fillRect(-8,-2,5,14);c.fillRect(3,-2,5,14);
+  c.fillStyle='#c07050';c.fillRect(-3,-24,6,6);
+  c.beginPath();c.arc(0,-32,9,0,Math.PI*2);c.fill();
+  c.fillStyle='#3a2010';c.fillRect(-6,-36,12,5);
+  c.fillStyle='#111';c.beginPath();c.arc(-3,-33,1.3,0,Math.PI*2);c.fill();c.beginPath();c.arc(3,-33,1.3,0,Math.PI*2);c.fill();
   c.restore();
   c.restore();
 }
 
-function drawMajster(c){
-  c.fillStyle='rgba(0,0,0,0.18)';c.beginPath();c.ellipse(0,40,16,4,0,0,Math.PI*2);c.fill();
+function drawMajsterFigure(c){
   c.fillStyle='#111';c.fillRect(-10,20,8,22);c.fillRect(2,20,8,22);
-  c.fillStyle='#080808';c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
   c.fillStyle='#0f0f0f';c.beginPath();c.roundRect(-13,0,26,22,4);c.fill();
   c.fillStyle='#e0e0e0';c.fillRect(-4,-1,8,5);
-  c.save();c.translate(-13,5);c.rotate(-1.3);c.fillStyle='#b07050';c.fillRect(-3,-2,6,16);c.fillStyle='#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();c.restore();
-  c.save();c.translate(13,5);c.rotate(1.3);c.fillStyle='#b07050';c.fillRect(-3,-2,6,16);c.fillStyle='#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();c.restore();
+  c.fillStyle='#b07050';c.fillRect(-12,5,6,16);c.fillRect(6,5,6,16);
   c.fillStyle='#c8845a';c.fillRect(-4,-5,8,8);
   c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
-  c.fillStyle='#111';c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();c.fillRect(-11,-20,22,5);
+  c.fillStyle='#111';c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();
   c.strokeStyle='#0a0a0a';c.lineWidth=2.5;
   c.beginPath();c.moveTo(-9,-22);c.lineTo(-1,-18);c.stroke();
   c.beginPath();c.moveTo(9,-22);c.lineTo(1,-18);c.stroke();
   c.fillStyle='#111';c.beginPath();c.arc(-4,-15,2,0,Math.PI*2);c.fill();c.beginPath();c.arc(4,-15,2,0,Math.PI*2);c.fill();
-  c.fillStyle='rgba(220,0,0,0.22)';c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
   c.fillStyle='#111';c.beginPath();c.arc(0,-10,4,0,Math.PI);c.fill();
-  c.fillStyle='#cc0000';c.beginPath();c.arc(0,-10,2,0,Math.PI);c.fill();
 }
 
-// ========== CONTROLS ==========
+// ========== OVLÁDANIE ==========
 let lHeld=false,rHeld=false,moveInt=null;
-function movL(){ if(worker && worker.lane>0){ worker.lane--; } }
-function movR(){ if(worker && worker.lane<worker.lanes.length-1){ worker.lane++; } }
-function startL(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movL(); clearInterval(moveInt); moveInt=setInterval(()=>{if(lHeld)movL();},120); lHeld=true; const btn=document.getElementById('btnL'); if(btn)btn.classList.add('held'); }
-function stopL(){ lHeld=false; clearInterval(moveInt); const btn=document.getElementById('btnL'); if(btn)btn.classList.remove('held'); }
-function startR(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movR(); clearInterval(moveInt); moveInt=setInterval(()=>{if(rHeld)movR();},120); rHeld=true; const btn=document.getElementById('btnR'); if(btn)btn.classList.add('held'); }
-function stopR(){ rHeld=false; clearInterval(moveInt); const btn=document.getElementById('btnR'); if(btn)btn.classList.remove('held'); }
+function movL(){ if(worker && worker.lane>0) worker.lane--; }
+function movR(){ if(worker && worker.lane<worker.lanes.length-1) worker.lane++; }
+function startL(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movL(); clearInterval(moveInt); moveInt=setInterval(()=>{if(lHeld)movL();},120); lHeld=true; }
+function stopL(){ lHeld=false; clearInterval(moveInt); }
+function startR(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movR(); clearInterval(moveInt); moveInt=setInterval(()=>{if(rHeld)movR();},120); rHeld=true; }
+function stopR(){ rHeld=false; clearInterval(moveInt); }
 
-document.addEventListener('keydown',e=>{
-  if(!running)return;
-  if(e.key==='ArrowLeft'){ e.preventDefault(); movL(); }
-  if(e.key==='ArrowRight'){ e.preventDefault(); movR(); }
-});
+document.addEventListener('keydown',e=>{ if(!running)return; if(e.key==='ArrowLeft'){ e.preventDefault(); movL(); } if(e.key==='ArrowRight'){ e.preventDefault(); movR(); } });
 
-let touchStartX=null;
-canvas.addEventListener('touchstart',e=>{ touchStartX=e.touches[0].clientX; },{passive:true});
+let touchX=null;
+canvas.addEventListener('touchstart',e=>{ touchX=e.touches[0].clientX; },{passive:true});
 canvas.addEventListener('touchend',e=>{
-  if(touchStartX===null)return;
-  const dx=e.changedTouches[0].clientX-touchStartX;
+  if(touchX===null)return;
   const rect=canvas.getBoundingClientRect();
   const tx=e.changedTouches[0].clientX-rect.left;
-  if(Math.abs(dx)>40){ dx<0?movL():movR(); }
-  else { tx<rect.width/2?movL():movR(); }
-  touchStartX=null;
+  tx<rect.width/2?movL():movR();
+  touchX=null;
 },{passive:true});
 
+// Inicializácia
 window.addEventListener('load',()=>{
   resizeCanvas();
+  loadLeaderboard();
   drawPreviews();
   drawMenuBg();
   showOverlay();
+  document.getElementById('playerName').value = '';
 });
 </script>
 </body>
