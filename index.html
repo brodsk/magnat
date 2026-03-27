@@ -1,1301 +1,877 @@
+Вот полностью переработанная HTML-игра в стиле Pixel Car Racer, где вы управляете гоночным автомобилем, собираете бонусы и избегаете препятствий на трассе.
+
+```html
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LISOVNA</title>
+<title>PIXEL CAR RACER — STREET TUNER</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a;}
-
-#app{
-  width:100%;height:100%;
-  display:flex;flex-direction:column;
-  align-items:center;
-  background:#0a0a0a;
-  position:relative;
-  overflow:hidden;
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+body {
+  background: #0a0c12;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Press Start 2P', monospace;
+}
 
-/* Pixel font everywhere */
-.pf{font-family:'Press Start 2P',monospace;}
+.game-container {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+  box-shadow: 0 0 0 4px #ffcc00, 0 0 0 8px #0a0a1a;
+  border-radius: 0px;
+}
 
-/* HUD */
-#hud{
-  width:100%;max-width:600px;
-  display:flex;gap:0;
-  background:#111;
-  border-bottom:4px solid #333;
-  flex-shrink:0;
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(8px,2vw,11px);
+canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  image-rendering: crisp-edges;
+  image-rendering: pixelated;
+  image-rendering: pixelated;
+  cursor: pointer;
 }
-#hud .hcell{
-  flex:1;padding:6px 4px;
-  text-align:center;
-  border-right:2px solid #333;
-  line-height:1.6;
-}
-#hud .hcell:last-child{border-right:none;}
-.hv{font-size:clamp(10px,2.5vw,14px);font-weight:bold;}
-#hScore .hv{color:#ff0;}
-#hLives .hv{color:#f55;}
-#hLevel .hv{color:#0ff;}
 
-/* Canvas wrap */
-#gw{
-  position:relative;flex:1;
-  width:100%;max-width:600px;
-  overflow:hidden;
+.hud {
+  display: flex;
+  justify-content: space-between;
+  background: #0f0f1c;
+  padding: 8px 12px;
+  border-bottom: 3px solid #ffcc33;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 12px;
+  color: #fff;
+  text-shadow: 2px 2px 0 #000;
 }
-#gc{width:100%;height:100%;}
 
-/* Banners */
-.banner{
-  position:absolute;top:0;left:0;right:0;
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(7px,1.8vw,10px);
-  text-align:center;padding:5px 4px;
-  z-index:15;display:none;
-  animation:slideD 0.2s steps(4) forwards;
+.hud-item {
+  background: #1a1a2a;
+  padding: 6px 12px;
+  border-left: 3px solid #ffcc33;
+  border-right: 3px solid #ffcc33;
+  letter-spacing: 1px;
 }
-#bPredak{background:#e86820;color:#fff;}
-#bNast{background:#111;color:#ff0;border-bottom:2px solid #ff0;}
-@keyframes slideD{from{transform:translateY(-100%);}to{transform:translateY(0);}}
 
-/* Controls */
-#ctrl{
-  width:100%;max-width:600px;
-  display:flex;gap:6px;padding:6px;
-  background:#111;border-top:4px solid #333;
-  flex-shrink:0;
+.hud-value {
+  color: #ffcc44;
+  font-size: 16px;
+  margin-left: 8px;
 }
-#ctrl button{
-  flex:1;
-  font-family:'Press Start 2P',monospace;
-  font-size:22px;
-  background:#1a1a2e;
-  color:#0ff;
-  border:3px solid #0ff;
-  padding:10px 0;
-  cursor:pointer;
-  border-radius:0;
-  touch-action:manipulation;
-  image-rendering:pixelated;
-  transition:background 0.05s;
-}
-#ctrl button:active,#ctrl button.held{background:#002244;color:#fff;border-color:#fff;}
 
-/* Overlay */
-#ov{
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.0);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  z-index:20;
-  font-family:'Press Start 2P',monospace;
+.controls {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  background: #0f0f1c;
+  border-top: 3px solid #ffcc33;
+  justify-content: center;
 }
-#ov.hidden{display:none;}
 
-/* Menu */
-#sMenu{
-  display:flex;flex-direction:column;
-  align-items:center;gap:10px;
-  background:rgba(0,0,8,0.92);
-  border:3px solid #0ff;
-  padding:16px 20px;
-  max-width:340px;width:90%;
-  image-rendering:pixelated;
+.ctrl-btn {
+  font-family: 'Press Start 2P', monospace;
+  background: #1e1e2e;
+  border: 3px solid #ffcc33;
+  color: #ffcc33;
+  font-size: 28px;
+  padding: 8px 24px;
+  cursor: pointer;
+  transition: all 0.05s linear;
+  touch-action: manipulation;
+  box-shadow: 0 3px 0 #664400;
 }
-.mtitle{
-  font-size:clamp(14px,4vw,22px);
-  color:#ff0;
-  text-shadow:3px 3px 0 #880,2px 2px 0 #880;
-  letter-spacing:2px;
-  text-align:center;
-}
-.msub{font-size:clamp(6px,1.5vw,9px);color:#888;text-align:center;line-height:1.8;}
-.msel-label{font-size:clamp(7px,1.8vw,10px);color:#0ff;}
 
-/* Char cards */
-.ccards{display:flex;gap:10px;justify-content:center;}
-.ccard{
-  border:3px solid #444;
-  background:#0a0a1a;
-  padding:8px;cursor:pointer;
-  text-align:center;
-  transition:border-color 0.1s;
-  min-width:90px;
+.ctrl-btn:active {
+  transform: translateY(2px);
+  background: #ffcc33;
+  color: #0a0a1a;
+  border-color: #fff;
+  box-shadow: none;
 }
-.ccard.sel{border-color:#0ff;background:#001122;}
-.ccard canvas{display:block;margin:0 auto;image-rendering:pixelated;}
-.ccard .cn{font-size:clamp(6px,1.5vw,8px);color:#aaa;margin-top:4px;}
 
-/* Buttons */
-.mbtn{
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(9px,2.5vw,13px);
-  background:#003300;color:#0f0;
-  border:3px solid #0f0;
-  padding:10px 24px;cursor:pointer;
-  letter-spacing:1px;
-  transition:background 0.08s;
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  backdrop-filter: blur(3px);
 }
-.mbtn:hover,.mbtn:active{background:#005500;color:#fff;}
-.mbtn.sec{background:#1a1a1a;color:#888;border-color:#444;font-size:clamp(7px,2vw,10px);padding:8px 16px;}
 
-/* Game over */
-#sOver{
-  display:none;flex-direction:column;
-  align-items:center;gap:10px;
-  background:rgba(0,0,8,0.94);
-  border:3px solid #f00;
-  padding:16px 20px;
-  max-width:340px;width:90%;
+.menu-panel {
+  background: #0a0a12;
+  border: 4px solid #ffcc33;
+  padding: 20px 16px;
+  text-align: center;
+  width: 280px;
+  image-rendering: pixelated;
+  box-shadow: 8px 8px 0 #00000066;
 }
-.go-title{font-size:clamp(14px,4vw,20px);color:#f00;text-shadow:2px 2px 0 #800;}
-.go-score{font-size:clamp(9px,2.5vw,13px);color:#ff0;}
-.go-quote{font-size:clamp(6px,1.5vw,8px);color:#f99;text-align:center;line-height:1.8;max-width:260px;}
-.go-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
-#majPrev{image-rendering:pixelated;}
+
+.menu-title {
+  font-size: 18px;
+  color: #ffcc33;
+  text-shadow: 3px 3px 0 #aa6600;
+  margin-bottom: 16px;
+  letter-spacing: 2px;
+}
+
+.menu-sub {
+  font-size: 8px;
+  color: #aaa;
+  margin: 12px 0;
+  line-height: 1.5;
+}
+
+.car-selector {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.car-card {
+  border: 3px solid #333;
+  background: #11111a;
+  padding: 8px;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-align: center;
+}
+
+.car-card.selected {
+  border-color: #ffcc33;
+  background: #22223a;
+  box-shadow: 0 0 0 2px #ffcc33;
+}
+
+.car-card canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+.car-name {
+  font-size: 7px;
+  color: #ddd;
+  margin-top: 6px;
+  font-family: monospace;
+}
+
+.menu-btn {
+  background: #1a2a1a;
+  border: 2px solid #88ff88;
+  color: #88ff88;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 10px;
+  padding: 10px 20px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: 0.05s linear;
+  width: 100%;
+}
+
+.menu-btn:active {
+  background: #88ff88;
+  color: #000;
+}
+
+.gameover-panel {
+  background: #0a0a12;
+  border: 4px solid #ff5555;
+  padding: 20px;
+  text-align: center;
+  width: 280px;
+}
+
+.gameover-title {
+  color: #ff5555;
+  font-size: 16px;
+  margin-bottom: 12px;
+}
+
+.score-display {
+  color: #ffcc33;
+  font-size: 12px;
+  margin: 12px 0;
+}
+
+.quote {
+  font-size: 7px;
+  color: #ffaa88;
+  margin: 12px 0;
+  line-height: 1.4;
+}
+
+.hidden {
+  display: none;
+}
+
+.nitro-flash {
+  position: absolute;
+  pointer-events: none;
+  z-index: 15;
+}
+
+@media (max-width: 500px) {
+  .ctrl-btn {
+    font-size: 24px;
+    padding: 6px 20px;
+  }
+  .hud-item {
+    font-size: 9px;
+  }
+}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="hud">
-    <div class="hcell pf" id="hScore"><div style="color:#888;font-size:0.7em;">SCORE</div><div class="hv" id="hSv">0</div></div>
-    <div class="hcell pf" id="hLives"><div style="color:#888;font-size:0.7em;">LIVES</div><div class="hv" id="hLv">❤❤❤</div></div>
-    <div class="hcell pf" id="hLevel"><div style="color:#888;font-size:0.7em;">LEVEL</div><div class="hv" id="hLLv">1</div></div>
+<div class="game-container">
+  <div class="hud">
+    <div class="hud-item">🏁 SCORE <span class="hud-value" id="scoreValue">0</span></div>
+    <div class="hud-item">⚡ NITRO <span class="hud-value" id="nitroValue">0</span></div>
+    <div class="hud-item">🏆 DIST <span class="hud-value" id="distValue">0</span></div>
+  </div>
+  <canvas id="gameCanvas" width="540" height="360"></canvas>
+  <div class="controls">
+    <button class="ctrl-btn" id="leftBtn">◀</button>
+    <button class="ctrl-btn" id="rightBtn">▶</button>
   </div>
 
-  <div id="gw">
-    <canvas id="gc"></canvas>
-    <div class="banner" id="bPredak">⚠ PREDAK: VEZMI AJ DRUHY LIS! ⚠</div>
-    <div class="banner" id="bNast">▶ NASTAVOVAC: PORUCHA FORMY! ◀</div>
-
-    <div id="ov">
-      <!-- MENU -->
-      <div id="sMenu">
-        <div class="mtitle">🏭 LISOVNA</div>
-        <div class="msub">Chytaj diely z konvejera!<br>Stoj pri lise a ber diely!</div>
-        <div class="msel-label">— VYBER POSTAVU —</div>
-        <div class="ccards">
-          <div class="ccard sel" id="cM" onclick="selChar('m')">
-            <canvas id="pM" width="40" height="56"></canvas>
-            <div class="cn">MUZ</div>
-          </div>
-          <div class="ccard" id="cF" onclick="selChar('f')">
-            <canvas id="pF" width="40" height="56"></canvas>
-            <div class="cn">ZENA</div>
-          </div>
+  <div id="overlay" class="overlay">
+    <div id="menuPanel" class="menu-panel">
+      <div class="menu-title">🏎️ PIXEL CAR RACER</div>
+      <div class="menu-sub">STREET TUNER EDITION<br>DODGE TRAFFIC · COLLECT NITRO</div>
+      <div class="car-selector">
+        <div class="car-card" id="carRed">
+          <canvas id="previewRed" width="48" height="48"></canvas>
+          <div class="car-name">RED BLAZE</div>
         </div>
-        <button class="mbtn" onclick="startGame()">▶ HRAT</button>
-        <div class="msub" style="font-size:0.6em;color:#444;">← → tlacidla alebo klavesy</div>
-      </div>
-
-      <!-- GAME OVER -->
-      <div id="sOver">
-        <div class="go-title">GAME OVER</div>
-        <canvas id="majPrev" width="60" height="90"></canvas>
-        <div class="go-score" id="goS">SCORE: 0</div>
-        <div class="go-quote" id="goQ"></div>
-        <div class="go-btns">
-          <button class="mbtn sec" onclick="showMenu()">MENU</button>
-          <button class="mbtn" onclick="startGame()">▶ ZNOVA</button>
+        <div class="car-card" id="carBlue">
+          <canvas id="previewBlue" width="48" height="48"></canvas>
+          <div class="car-name">NEON DRIFT</div>
+        </div>
+        <div class="car-card" id="carYellow">
+          <canvas id="previewYellow" width="48" height="48"></canvas>
+          <div class="car-name">GOLD RUSH</div>
         </div>
       </div>
+      <button class="menu-btn" id="startBtn">🏁 START RACE 🏁</button>
+      <div class="menu-sub" style="margin-top:12px;">← →  or  touch sides</div>
     </div>
-  </div>
-
-  <div id="ctrl">
-    <button id="bL"
-      ontouchstart="sl(event)" ontouchend="el()"
-      onmousedown="sl()" onmouseup="el()" onmouseleave="el()">◀</button>
-    <button id="bR"
-      ontouchstart="sr(event)" ontouchend="er()"
-      onmousedown="sr()" onmouseup="er()" onmouseleave="er()">▶</button>
+    <div id="gameoverPanel" class="gameover-panel hidden">
+      <div class="gameover-title">💥 GAME OVER 💥</div>
+      <canvas id="wreckPreview" width="64" height="64"></canvas>
+      <div class="score-display" id="finalScore">SCORE: 0</div>
+      <div class="quote" id="gameoverQuote">"TOO MUCH UNDERSTEER!"</div>
+      <button class="menu-btn" id="restartBtn">🔁 RESTART</button>
+      <button class="menu-btn" id="menuBtn">🏠 MENU</button>
+    </div>
   </div>
 </div>
 
 <script>
-// ============================================================
-// LISOVNA  —  pixel factory game
-// ============================================================
-
-const gc = document.getElementById('gc');
-const ctx = gc.getContext('2d');
-ctx.imageSmoothingEnabled = false;
-
-let GW=400, GH=300;
-
-function resize(){
-  const wrap = document.getElementById('gw');
-  GW = wrap.clientWidth;
-  GH = wrap.clientHeight;
-  gc.width  = GW;
-  gc.height = GH;
-}
-window.addEventListener('resize', ()=>{ resize(); if(!running) drawBg(); });
-resize();
-
-// ============================================================
-// PIXEL ART PALETTE  (Pixel Car Racer style — dark, neon accents)
-// ============================================================
-const P = {
-  bg:    '#0a0a12',
-  sky1:  '#0a0a18',
-  sky2:  '#12122a',
-  ground:'#1a1a1a',
-  road:  '#222233',
-  stripe:'#ffee00',
-  wall:  '#1e2230',
-  wallH: '#2a3050',
-  blue1: '#1144aa',
-  blue2: '#1166cc',
-  white: '#eeeeff',
-  glass: '#223355',
-  neon:  '#00ffff',
-  neonG: '#00ff88',
-  neonR: '#ff3344',
-  neonY: '#ffdd00',
-  engGr: '#4a9a20',  // Engel green
-  engDk: '#336610',
-  engGy: '#444455',
-  convBelt:'#333344',
-  convLine:'#555566',
-};
-
-// ============================================================
-// PIXEL DRAW HELPERS
-// ============================================================
-function px(c,x,y,w,h,col){ c.fillStyle=col; c.fillRect(Math.round(x),Math.round(y),w,h); }
-function pxText(c,txt,x,y,col,sz=8){
-  c.font=`${sz}px 'Press Start 2P'`;
-  c.fillStyle=col; c.fillText(txt,Math.round(x),Math.round(y));
-}
-
-// ============================================================
-// BACKGROUND  — pixel factory / Magna building
-// ============================================================
-let bgFrame = 0;
-
-function drawBg(){
-  const c = ctx;
-  // Sky gradient (pixelated bands)
-  const skyH = Math.floor(GH*0.45);
-  const bands = 8;
-  for(let i=0;i<bands;i++){
-    const t=i/bands;
-    const r=Math.round(10+t*8), g=Math.round(10+t*10), b=Math.round(18+t*28);
-    c.fillStyle=`rgb(${r},${g},${b})`;
-    c.fillRect(0,Math.floor(skyH*i/bands),GW,Math.ceil(skyH/bands)+1);
+(function(){
+  // ---------- CANVAS ----------
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  
+  let W = 540, H = 360;
+  canvas.width = W; canvas.height = H;
+  
+  // ---------- GLOBALS ----------
+  let gameRunning = false;
+  let animFrame = null;
+  let frame = 0;
+  
+  // Player
+  let playerCar = {
+    x: W/2 - 16,
+    y: H - 68,
+    width: 32,
+    height: 48,
+    lane: 1,      // 0=left, 1=middle, 2=right
+    color: 'red'
+  };
+  
+  // Lane positions (X center of each lane)
+  const LANE_POS = [W*0.25 - 8, W/2 - 16, W*0.75 - 8];
+  
+  // Game stats
+  let score = 0;
+  let distance = 0;
+  let nitro = 0;
+  let gameSpeed = 4.2;
+  let baseSpeed = 4.2;
+  let speedMultiplier = 1.0;
+  let nitroActive = false;
+  let nitroFrames = 0;
+  
+  // Objects
+  let obstacles = [];      // other cars / traffic
+  let powerups = [];       // nitro cans
+  
+  // Spawn timers
+  let obstacleCooldown = 0;
+  let powerupCooldown = 0;
+  
+  // Visual effects
+  let screenFlash = 0;
+  let streakEffect = 0;
+  let roadOffset = 0;
+  
+  // Quotes
+  const QUOTES = [
+    "TOO MUCH UNDERSTEER!", "REV LIMITER HIT!", "TURBO LAG!",
+    "NO GRIP!", "WALL TAP!", "ENGINE OVERHEAT!", "YOU CRASHED!",
+    "SPUN OUT!", "NITRO EXPLOSION!", "BUSTED SUSPENSION!"
+  ];
+  
+  // Car color palettes
+  const CAR_COLORS = {
+    red: { body: '#c02020', light: '#e04040', dark: '#801010', window: '#2a3a5a', neon: '#ff6666' },
+    blue: { body: '#2080c0', light: '#40a0e0', dark: '#104080', window: '#1a2a4a', neon: '#66aaff' },
+    yellow: { body: '#c0a020', light: '#e0c040', dark: '#806010', window: '#2a2a3a', neon: '#ffdd66' }
+  };
+  
+  let currentColor = CAR_COLORS.red;
+  
+  // Pixel preview canvas drawing
+  function drawPixelCar(ctx, x, y, colorStyle, scale=1) {
+    const c = CAR_COLORS[colorStyle];
+    if(!c) return;
+    const w = 32 * scale, h = 48 * scale;
+    const rx = x, ry = y;
+    // body
+    ctx.fillStyle = c.body;
+    ctx.fillRect(rx, ry, w, h);
+    // dark bottom
+    ctx.fillStyle = c.dark;
+    ctx.fillRect(rx, ry + h-12*scale, w, 10*scale);
+    // windows
+    ctx.fillStyle = c.window;
+    ctx.fillRect(rx + 6*scale, ry + 8*scale, 8*scale, 12*scale);
+    ctx.fillRect(rx + 18*scale, ry + 8*scale, 8*scale, 12*scale);
+    // light
+    ctx.fillStyle = c.neon;
+    ctx.fillRect(rx + 2*scale, ry + h-8*scale, 6*scale, 4*scale);
+    ctx.fillRect(rx + w-8*scale, ry + h-8*scale, 6*scale, 4*scale);
+    // headlights
+    ctx.fillStyle = '#ffeeaa';
+    ctx.fillRect(rx + 2*scale, ry + 4*scale, 6*scale, 5*scale);
+    ctx.fillRect(rx + w-8*scale, ry + 4*scale, 6*scale, 5*scale);
+    // rims
+    ctx.fillStyle = '#333';
+    ctx.fillRect(rx + 4*scale, ry + h-14*scale, 6*scale, 6*scale);
+    ctx.fillRect(rx + w-10*scale, ry + h-14*scale, 6*scale, 6*scale);
+    // racing stripe
+    ctx.fillStyle = '#ffcc44';
+    ctx.fillRect(rx + 12*scale, ry + 24*scale, 8*scale, 4*scale);
   }
-
-  // Stars (pixel dots)
-  const stars=[[12,8],[45,15],[80,5],[130,20],[200,10],[260,18],[320,6],[370,12],[420,8],[480,16],[540,4]];
-  c.fillStyle='#ffffff';
-  stars.forEach(([sx,sy])=>{ if(sx<GW&&sy<skyH) c.fillRect(sx%GW,sy,2,2); });
-
-  // Ground
-  px(c,0,skyH,GW,GH-skyH,P.ground);
-  // Road
-  const roadY = skyH+Math.floor((GH-skyH)*0.55);
-  px(c,0,roadY,GW,8,P.road);
-  // Road stripes
-  for(let x=(bgFrame*2)%60;x<GW;x+=60){
-    px(c,x,roadY+3,30,2,P.stripe);
+  
+  function drawObstacleCar(ctx, x, y, type='traffic') {
+    // oncoming traffic / opponent car (dark menace)
+    ctx.fillStyle = '#2a2a3a';
+    ctx.fillRect(x, y, 30, 46);
+    ctx.fillStyle = '#1a1a2a';
+    ctx.fillRect(x+4, y+8, 22, 12);
+    ctx.fillStyle = '#8a8aaa';
+    ctx.fillRect(x+8, y+28, 6, 8);
+    ctx.fillRect(x+16, y+28, 6, 8);
+    ctx.fillStyle = '#ff4444';
+    ctx.fillRect(x+12, y+12, 6, 6);
+    ctx.fillStyle = '#ccccdd';
+    ctx.fillRect(x+4, y+38, 22, 4);
   }
-
-  // === MAGNA FACTORY BUILDING (pixel art) ===
-  const bx = Math.floor(GW*0.08);
-  const bw = Math.floor(GW*0.72);
-  const bh = Math.floor(GH*0.38);
-  const by = skyH - Math.floor(bh*0.7);
-
-  // Main building body — white/light gray panels
-  px(c,bx,by,bw,bh,'#c8ccd8');
-
-  // Blue accent strips (top and sides)
-  px(c,bx,by,bw,8,P.blue1);
-  px(c,bx,by+bh-10,bw,10,P.blue2);
-  px(c,bx,by,10,bh,P.blue1);
-  px(c,bx+bw-10,by,10,bh,P.blue1);
-
-  // Building panels (horizontal lines)
-  for(let py2=by+20;py2<by+bh-10;py2+=18){
-    px(c,bx+10,py2,bw-20,2,'#aab0c0');
+  
+  function drawNitroCan(ctx, x, y) {
+    ctx.fillStyle = '#ffaa33';
+    ctx.fillRect(x, y, 14, 14);
+    ctx.fillStyle = '#ff6600';
+    ctx.fillRect(x+4, y+2, 6, 10);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x+6, y+4, 2, 6);
+    ctx.fillStyle = '#ffdd88';
+    ctx.fillRect(x+2, y+12, 10, 3);
   }
-
-  // Windows row 1
-  const winY1 = by+14;
-  const winY2 = by+14+30;
-  const winH = 22;
-  const winW = Math.floor((bw-20)/8);
-  for(let wi=0;wi<7;wi++){
-    const wx2=bx+14+wi*(winW+4);
-    // Window frame
-    px(c,wx2,winY1,winW,winH,P.blue1);
-    px(c,wx2+2,winY1+2,winW-4,winH-4,P.glass);
-    // Reflection
-    px(c,wx2+3,winY1+3,3,3,'#334466');
-    // Row 2
-    px(c,wx2,winY2,winW,winH,P.blue1);
-    px(c,wx2+2,winY2+2,winW-4,winH-4,P.glass);
-  }
-
-  // MAGNA logo on building (pixel letters approximation)
-  const logoX = bx + Math.floor(bw*0.1);
-  const logoY = by + Math.floor(bh*0.1);
-  // Red dot (Magna logo)
-  px(c,logoX,logoY,8,8,'#cc0000');
-  px(c,logoX+2,logoY+2,4,4,'#ff2222');
-  // "MAGNA" text
-  pxText(c,'MAGNA',logoX+12,logoY+8,'#1a2255',8);
-
-  // Right section of building
-  const bx2=bx+bw+4;
-  const bw2=Math.floor(GW*0.14);
-  const bh2=Math.floor(bh*0.72);
-  const by2=by+Math.floor(bh*0.28);
-  px(c,bx2,by2,bw2,bh2,'#bcc0cc');
-  px(c,bx2,by2,bw2,8,P.blue2);
-  px(c,bx2,by2+bh2-6,bw2,6,P.blue1);
-  for(let wi=0;wi<2;wi++){
-    const wx3=bx2+6+wi*22;
-    px(c,wx3,by2+12,16,20,P.blue1);
-    px(c,wx3+2,by2+14,12,16,P.glass);
-  }
-  // Second MAGNA logo
-  px(c,bx2+6,by2+2,6,6,'#cc0000');
-  pxText(c,'MAGNA',bx2+14,by2+8,'#1a2255',6);
-
-  // Building shadow / ground connection
-  px(c,bx-4,by+bh,bw+8,6,'#0f1020');
-
-  // Trees (pixel triangles)
-  const treePositions=[bx+bw-20, bx2+bw2+8];
-  treePositions.forEach(tx=>{
-    if(tx<GW){
-      // Trunk
-      px(c,tx+6,by+bh-14,6,14,'#553311');
-      // Foliage — pixel triangle
-      for(let row=0;row<5;row++){
-        const tw=4+row*4; const offs=(12-tw)/2;
-        px(c,tx+offs,by+bh-32+row*4,tw,4,'#224411');
-        px(c,tx+offs+1,by+bh-34+row*4,tw-2,2,'#338822');
+  
+  // Draw road & pixel environment (Midnight street, neon)
+  function drawRoad() {
+    // asphalt
+    ctx.fillStyle = '#101018';
+    ctx.fillRect(0, 0, W, H);
+    // asphalt grain
+    for(let i=0;i<80;i++) {
+      ctx.fillStyle = `rgba(30,40,60,${Math.random()*0.3})`;
+      ctx.fillRect((i*37)%W, (frame*2 + i*13)%H, 2, 2);
+    }
+    // lane markings (dashed)
+    const offset = (roadOffset % 40);
+    for(let y = offset-40; y < H+40; y+=40) {
+      ctx.fillStyle = '#ffee88';
+      ctx.fillRect(W/2 - 8, y, 16, 8);
+    }
+    // side lines
+    ctx.fillStyle = '#ffaa33';
+    ctx.fillRect(40, 0, 4, H);
+    ctx.fillRect(W-44, 0, 4, H);
+    // retro reflectors
+    for(let y=0; y<H; y+=30) {
+      ctx.fillStyle = '#ff8800';
+      ctx.fillRect(38, y+10, 4, 6);
+      ctx.fillRect(W-42, y+10, 4, 6);
+    }
+    // city scape (pixel skyline)
+    ctx.fillStyle = '#0f1420';
+    ctx.fillRect(0, 0, W, 70);
+    for(let i=0;i<12;i++) {
+      let h = 25 + Math.sin(i)*12;
+      ctx.fillStyle = '#1a2540';
+      ctx.fillRect(20 + i*38, 70-h, 22, h);
+      ctx.fillStyle = '#ffaa44';
+      ctx.fillRect(26 + i*38, 70-h+5, 4, 8);
+    }
+    // neon glow on horizon
+    ctx.fillStyle = '#ff2288';
+    ctx.globalAlpha = 0.2;
+    ctx.fillRect(0, 40, W, 35);
+    ctx.globalAlpha = 1;
+    // stars
+    for(let s=0;s<50;s++) {
+      if((s*131)%255 > 200) {
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect((s*97)%W, (s*33)%55, 1, 1);
       }
     }
-  });
-
-  // Cars in parking lot
-  const carColors=['#cc2222','#eeeeff','#334488','#888888'];
-  for(let ci=0;ci<4;ci++){
-    if(ci*40+bx+10<GW){
-      const cx2=bx+10+ci*44;
-      const cy2=roadY-16;
-      // Car body
-      px(c,cx2,cy2,34,10,carColors[ci]);
-      px(c,cx2+4,cy2-8,26,10,carColors[ci]);
-      // Windows
-      px(c,cx2+6,cy2-6,10,7,P.glass);
-      px(c,cx2+20,cy2-6,8,7,P.glass);
-      // Wheels
-      px(c,cx2+4,cy2+8,6,5,'#111');
-      px(c,cx2+24,cy2+8,6,5,'#111');
+  }
+  
+  // draw player with exhaust flame
+  function drawPlayer() {
+    const col = CAR_COLORS[playerCar.color];
+    const px = playerCar.x, py = playerCar.y;
+    // body
+    ctx.fillStyle = col.body;
+    ctx.fillRect(px, py, 32, 48);
+    ctx.fillStyle = col.dark;
+    ctx.fillRect(px, py+36, 32, 12);
+    // windows
+    ctx.fillStyle = col.window;
+    ctx.fillRect(px+6, py+8, 8, 14);
+    ctx.fillRect(px+18, py+8, 8, 14);
+    // neon stripe
+    ctx.fillStyle = col.neon;
+    ctx.fillRect(px+8, py+24, 16, 4);
+    // headlights
+    ctx.fillStyle = '#ffffaa';
+    ctx.fillRect(px+4, py+4, 6, 6);
+    ctx.fillRect(px+22, py+4, 6, 6);
+    // rims
+    ctx.fillStyle = '#222';
+    ctx.fillRect(px+5, py+40, 6, 5);
+    ctx.fillRect(px+21, py+40, 6, 5);
+    // exhaust flame if nitro
+    if(nitroActive && nitroFrames>0) {
+      ctx.fillStyle = '#ff6600';
+      ctx.fillRect(px-8, py+36, 10, 8);
+      ctx.fillStyle = '#ffaa22';
+      ctx.fillRect(px-12, py+38, 8, 4);
+    }
+    // streak effect at high speed
+    if(gameSpeed > 6.5) {
+      ctx.fillStyle = `rgba(255,100,0,${Math.sin(frame*0.5)*0.3})`;
+      for(let i=0;i<3;i++) ctx.fillRect(px-4-i*3, py+20, 3, 12);
     }
   }
-
-  // Fence
-  for(let fx=bx-10;fx<bx+bw+bx2+bw2;fx+=12){
-    if(fx<GW){
-      px(c,fx,roadY-20,2,20,'#334');
-      px(c,fx,roadY-22,3,3,'#556');
-    }
+  
+  // UI update
+  function updateUI() {
+    document.getElementById('scoreValue').innerText = Math.floor(score);
+    document.getElementById('nitroValue').innerText = nitro;
+    document.getElementById('distValue').innerText = Math.floor(distance/10);
   }
-  px(c,bx-10,roadY-14,bw+60,2,'#445');
-
-  // Neon glow at bottom (pixel effect)
-  for(let gi=0;gi<3;gi++){
-    c.globalAlpha=0.08-gi*0.02;
-    px(c,0,GH-50+gi*15,GW,15,'#0088ff');
-  }
-  c.globalAlpha=1;
-}
-
-// ============================================================
-// INJECTION MOLDING MACHINES (Engel-style, pixel art)
-// ============================================================
-// Each machine occupies a "lane" — player walks between them
-// Parts come out on horizontal conveyor from each machine
-
-function drawMachine(c, x, y, w, h, active, cycleT){
-  const gh = Math.floor(h*0.85);
-  const gy = y + h - gh;
-
-  // Base/bed — dark
-  px(c,x,gy+gh-8,w,8,P.engDk);
-
-  // Main body — Engel green
-  px(c,x+2,gy,w-4,gh-8,P.engGr);
-
-  // Pixel shading — left edge darker
-  px(c,x+2,gy,4,gh-8,P.engDk);
-  // Right edge
-  px(c,x+w-6,gy,4,gh-8,P.engDk);
-
-  // Panel lines (horizontal)
-  for(let py2=gy+10;py2<gy+gh-12;py2+=16){
-    px(c,x+8,py2,w-16,2,P.engDk);
-  }
-
-  // Control panel (right side, small box)
-  const cpx=x+w-24, cpy=gy+8, cpw=18, cph=32;
-  px(c,cpx,cpy,cpw,cph,'#222233');
-  px(c,cpx+2,cpy+2,cpw-4,12,P.glass);
-  // Buttons on panel
-  px(c,cpx+3,cpy+16,4,4,'#00ff00');
-  px(c,cpx+9,cpy+16,4,4,'#ff0000');
-  px(c,cpx+3,cpy+24,14,4,'#ff8800');
-
-  // Injection unit (right side cylinder)
-  const injX=x+w-6;
-  px(c,injX,gy+Math.floor(gh*0.25),22,Math.floor(gh*0.3),P.engGy);
-  px(c,injX+2,gy+Math.floor(gh*0.25)+2,18,Math.floor(gh*0.3)-4,'#3a3a4a');
-  // Nozzle tip
-  px(c,injX+22,gy+Math.floor(gh*0.35),6,Math.floor(gh*0.1),'#888899');
-
-  // Mold area (center gap)
-  const moldX=x+Math.floor(w*0.3), moldW=Math.floor(w*0.35);
-  px(c,moldX,gy+4,moldW,gh-12,'#1a1a2a');
-  // Mold plates
-  px(c,moldX,gy+4,8,gh-12,'#334455');
-  px(c,moldX+moldW-8,gy+4,8,gh-12,'#334455');
-
-  // Cycle indicator — flashing when active
-  if(active && Math.floor(cycleT/4)%2===0){
-    px(c,x+8,gy+4,8,8,P.neonG);
-  } else {
-    px(c,x+8,gy+4,8,8,P.engDk);
-  }
-
-  // "LIS" label
-  pxText(c,'LIS',x+Math.floor(w*0.15),gy+Math.floor(gh*0.5),'#ccddcc',6);
-
-  // ENGEL logo approximation
-  pxText(c,'ENGEL',x+6,gy+10,'#88cc44',5);
-
-  // Top — safety guard
-  px(c,x,y,w,h-gh+2,'#2a3040');
-  // Glass panel
-  px(c,x+4,y+2,w-8,h-gh-4,P.glass);
-}
-
-// ============================================================
-// CONVEYOR BELT (horizontal, at mid-height per lane)
-// ============================================================
-function drawConveyor(c, x, y, w, beltFrame){
-  const bh=12;
-  // Belt body
-  px(c,x,y,w,bh,P.convBelt);
-  // Moving lines
-  const offset=(beltFrame*3)%20;
-  for(let bx2=x-offset;bx2<x+w;bx2+=20){
-    if(bx2>=x) px(c,bx2,y+4,10,4,P.convLine);
-  }
-  // Border
-  px(c,x,y,w,2,'#555566');
-  px(c,x,y+bh-2,w,2,'#555566');
-  // End rollers
-  px(c,x,y,4,bh,'#666677');
-  px(c,x+w-4,y,4,bh,'#666677');
-}
-
-// ============================================================
-// PIXEL CHARACTER SPRITES  (Pixel Car Racer aesthetic)
-// ============================================================
-// 8x16 pixel characters, drawn with rectangles
-
-// Colors
-const SP = {
-  // Male worker
-  mSkin:  '#e8b87a',
-  mHair:  '#1a0e06',
-  mShirt: '#3a3a3a',  // dark gray
-  mPants: '#223344',
-  mShoe:  '#111111',
-  // Female worker
-  fSkin:  '#ecc090',
-  fHair:  '#7a3008',
-  fShirt: '#3a3a3a',
-  fPants: '#224488',
-  fShoe:  '#111111',
-  // Predak
-  prSkin: '#e8b07a',
-  prHair: '#aa2800',
-  prShirt:'#e86820',
-  prPants:'#1a1a2a',
-  // Nastavovac
-  naSkin: '#d8a060',
-  naHair: '#111111',
-  naShirt:'#0f0f0f',
-  naPants:'#111111',
-  naBeard:'#1a1a1a',
-  // Skladnik
-  skSkin: '#e0a870',
-  skHair: '#3a2010',
-  skShirt:'#cc1111',
-  skStripe:'#ffffff',
-  skPants:'#222233',
-  // Majster
-  maShirt:'#0f0f0f',
-};
-
-// Scale factor for pixel chars
-const PSCALE = 3;
-
-function pixChar(c, x, y, gender, frame){
-  const s = PSCALE;
-  const bobY = Math.floor(Math.sin(frame*0.18)*1.5); // walking bob
-  x = Math.round(x); y = Math.round(y+bobY);
-
-  if(gender==='m'){
-    // Shoes
-    px(c,x+0*s,y+14*s,4*s,2*s,SP.mShoe);
-    px(c,x+5*s,y+14*s,4*s,2*s,SP.mShoe);
-    // Pants
-    px(c,x+1*s,y+10*s,3*s,5*s,SP.mPants);
-    px(c,x+5*s,y+10*s,3*s,5*s,SP.mPants);
-    // Shirt body
-    px(c,x+0*s,y+5*s,9*s,6*s,SP.mShirt);
-    // Red dot logo
-    px(c,x+4*s,y+7*s,2*s,2*s,'#cc0000');
-    // Arms (animated)
-    const armOff=Math.round(Math.sin(frame*0.18)*2);
-    px(c,x-1*s,y+5*s+armOff,2*s,5*s,SP.mSkin);
-    px(c,x+9*s,y+5*s-armOff,2*s,5*s,SP.mSkin);
-    // Hands
-    px(c,x-1*s,y+9*s+armOff,3*s,2*s,SP.mSkin);
-    px(c,x+8*s,y+9*s-armOff,3*s,2*s,SP.mSkin);
-    // Neck
-    px(c,x+3*s,y+3*s,3*s,3*s,SP.mSkin);
-    // Head
-    px(c,x+1*s,y+0*s,7*s,5*s,SP.mSkin);
-    // Hair
-    px(c,x+1*s,y+0*s,7*s,2*s,SP.mHair);
-    px(c,x+1*s,y+0*s,2*s,4*s,SP.mHair);
-    // Eyes
-    px(c,x+2*s,y+2*s,1*s,1*s,'#111');
-    px(c,x+5*s,y+2*s,1*s,1*s,'#111');
-    // Mouth (pixel smile)
-    px(c,x+2*s,y+4*s,1*s,1*s,'#aa6644');
-    px(c,x+5*s,y+4*s,1*s,1*s,'#aa6644');
-  } else {
-    // Female
-    px(c,x+0*s,y+14*s,4*s,2*s,SP.fShoe);
-    px(c,x+5*s,y+14*s,4*s,2*s,SP.fShoe);
-    // Pants (slightly wider/skirt)
-    px(c,x+0*s,y+10*s,9*s,5*s,SP.fPants);
-    // Shirt
-    px(c,x+0*s,y+5*s,9*s,6*s,SP.fShirt);
-    px(c,x+4*s,y+7*s,2*s,2*s,'#cc0000');
-    // Arms
-    const armOf2=Math.round(Math.sin(frame*0.18)*2);
-    px(c,x-1*s,y+5*s+armOf2,2*s,5*s,SP.fSkin);
-    px(c,x+9*s,y+5*s-armOf2,2*s,5*s,SP.fSkin);
-    px(c,x-1*s,y+9*s+armOf2,3*s,2*s,SP.fSkin);
-    px(c,x+8*s,y+9*s-armOf2,3*s,2*s,SP.fSkin);
-    // Neck
-    px(c,x+3*s,y+3*s,3*s,3*s,SP.fSkin);
-    // Head
-    px(c,x+1*s,y+0*s,7*s,5*s,SP.fSkin);
-    // Hair (auburn, longer sides)
-    px(c,x+1*s,y+0*s,7*s,2*s,SP.fHair);
-    px(c,x+1*s,y+0*s,2*s,6*s,SP.fHair);
-    px(c,x+6*s,y+0*s,2*s,6*s,SP.fHair);
-    // Eyes + lashes
-    px(c,x+2*s,y+2*s,1*s,1*s,'#111');
-    px(c,x+5*s,y+2*s,1*s,1*s,'#111');
-    px(c,x+2*s,y+1*s,1*s,1*s,SP.fHair);
-    px(c,x+5*s,y+1*s,1*s,1*s,SP.fHair);
-    px(c,x+3*s,y+4*s,1*s,1*s,'#cc7788');
-    px(c,x+5*s,y+4*s,1*s,1*s,'#cc7788');
-  }
-}
-
-function pixPredak(c, x, y, frame, facing){
-  const s=PSCALE, flip=facing<0;
-  const bobY=Math.floor(Math.sin(frame*0.2)*1.5);
-  x=Math.round(x); y=Math.round(y+bobY);
-  if(flip){ c.save(); c.translate(x+9*s,0); c.scale(-1,1); x=0; }
-  // Shoes
-  px(c,x,y+14*s,4*s,2*s,SP.prPants);
-  px(c,x+5*s,y+14*s,4*s,2*s,SP.prPants);
-  // Pants
-  px(c,x+1*s,y+10*s,3*s,5*s,SP.prPants);
-  px(c,x+5*s,y+10*s,3*s,5*s,SP.prPants);
-  // Orange shirt
-  px(c,x+0*s,y+5*s,9*s,6*s,SP.prShirt);
-  // Darker stripe
-  px(c,x+0*s,y+8*s,9*s,2*s,'#c05010');
-  // Clipboard
-  px(c,x+9*s,y+5*s,4*s,6*s,'#888');
-  px(c,x+10*s,y+6*s,2*s,4*s,'#aaa');
-  // Arms
-  const ao=Math.round(Math.sin(frame*0.2)*2);
-  px(c,x-1*s,y+5*s+ao,2*s,5*s,SP.prSkin);
-  px(c,x+9*s,y+5*s-ao,2*s,5*s,SP.prSkin);
-  // Neck+head
-  px(c,x+3*s,y+3*s,3*s,3*s,SP.prSkin);
-  px(c,x+1*s,y+0*s,7*s,5*s,SP.prSkin);
-  // Auburn bob hair
-  px(c,x+1*s,y+0*s,7*s,2*s,SP.prHair);
-  px(c,x+1*s,y+0*s,2*s,5*s,SP.prHair);
-  px(c,x+6*s,y+0*s,2*s,5*s,SP.prHair);
-  // Eyes (serious)
-  px(c,x+2*s,y+2*s,1*s,1*s,'#111');
-  px(c,x+5*s,y+2*s,1*s,1*s,'#111');
-  // Serious mouth
-  px(c,x+2*s,y+4*s,4*s,1*s,'#aa4433');
-  if(flip) c.restore();
-}
-
-function pixNastavovac(c, x, y, frame){
-  const s=PSCALE;
-  const bobY=Math.floor(Math.sin(frame*0.15)*1);
-  x=Math.round(x); y=Math.round(y+bobY);
-  // Shoes
-  px(c,x+0*s,y+14*s,4*s,2*s,'#111');
-  px(c,x+5*s,y+14*s,4*s,2*s,'#111');
-  // Pants
-  px(c,x+1*s,y+10*s,3*s,5*s,SP.naPants);
-  px(c,x+5*s,y+10*s,3*s,5*s,SP.naPants);
-  // Black shirt
-  px(c,x+0*s,y+5*s,9*s,6*s,SP.naShirt);
-  // Wrench in hand
-  const wo=Math.round(Math.sin(frame*0.1)*2);
-  px(c,x+9*s,y+6*s+wo,2*s,7*s,'#888');
-  px(c,x+9*s,y+5*s+wo,4*s,2*s,'#777');
-  px(c,x+9*s,y+12*s+wo,4*s,3*s,'#666');
-  // Arms
-  px(c,x-1*s,y+6*s,2*s,5*s,SP.naSkin);
-  px(c,x+9*s,y+6*s+wo,2*s,5*s,SP.naSkin);
-  // Neck+head
-  px(c,x+3*s,y+3*s,3*s,3*s,SP.naSkin);
-  px(c,x+1*s,y+0*s,7*s,5*s,SP.naSkin);
-  // Dark hair
-  px(c,x+1*s,y+0*s,7*s,2*s,SP.naHair);
-  px(c,x+1*s,y+0*s,2*s,3*s,SP.naHair);
-  px(c,x+6*s,y+0*s,2*s,3*s,SP.naHair);
-  // Beard (dark pixel block)
-  px(c,x+1*s,y+3*s,7*s,2*s,SP.naBeard);
-  // Moustache
-  px(c,x+2*s,y+3*s,2*s,1*s,SP.naBeard);
-  px(c,x+5*s,y+3*s,2*s,1*s,SP.naBeard);
-  // Eyes (small, serious)
-  px(c,x+2*s,y+2*s,1*s,1*s,'#111');
-  px(c,x+5*s,y+2*s,1*s,1*s,'#111');
-  // Angry brows
-  px(c,x+2*s,y+1*s,2*s,1*s,'#111');
-  px(c,x+5*s,y+1*s,2*s,1*s,'#111');
-}
-
-function pixSkladnik(c, x, y, frame){
-  const s=PSCALE;
-  const bobY=Math.floor(Math.sin(frame*0.25)*1.5);
-  x=Math.round(x); y=Math.round(y+bobY);
-  // Shoes
-  px(c,x+0*s,y+14*s,4*s,2*s,'#111');
-  px(c,x+5*s,y+14*s,4*s,2*s,'#111');
-  // Pants
-  px(c,x+1*s,y+10*s,3*s,5*s,SP.skPants);
-  px(c,x+5*s,y+10*s,3*s,5*s,SP.skPants);
-  // Red shirt
-  px(c,x+0*s,y+5*s,9*s,6*s,SP.skShirt);
-  // White stripe
-  px(c,x+0*s,y+7*s,9*s,2*s,SP.skStripe);
-  // Arms (pushing cart)
-  const ao=Math.round(Math.sin(frame*0.2)*1.5);
-  px(c,x-1*s,y+5*s+ao,2*s,6*s,SP.skSkin);
-  px(c,x+9*s,y+5*s-ao,2*s,6*s,SP.skSkin);
-  // Neck+head
-  px(c,x+3*s,y+3*s,3*s,3*s,SP.skSkin);
-  px(c,x+1*s,y+0*s,7*s,5*s,SP.skSkin);
-  // Brown hair
-  px(c,x+1*s,y+0*s,7*s,2*s,SP.skHair);
-  px(c,x+1*s,y+0*s,2*s,3*s,SP.skHair);
-  // Eyes
-  px(c,x+2*s,y+2*s,1*s,1*s,'#111');
-  px(c,x+5*s,y+2*s,1*s,1*s,'#111');
-  px(c,x+3*s,y+4*s,1*s,1*s,'#88442a');
-}
-
-function pixMajster(c, x, y, frame){
-  const s=PSCALE;
-  const bobY=Math.floor(Math.sin(frame*0.1)*1);
-  x=Math.round(x); y=Math.round(y+bobY);
-  // Shoes
-  px(c,x+0*s,y+14*s,4*s,2*s,'#111');
-  px(c,x+5*s,y+14*s,4*s,2*s,'#111');
-  // Pants black
-  px(c,x+1*s,y+10*s,3*s,5*s,'#111');
-  px(c,x+5*s,y+10*s,3*s,5*s,'#111');
-  // Black shirt
-  px(c,x+0*s,y+5*s,9*s,6*s,SP.maShirt);
-  // White collar
-  px(c,x+3*s,y+5*s,3*s,2*s,'#ddd');
-  // ANGRY raised arms
-  px(c,x-2*s,y+3*s,3*s,5*s,SP.mSkin);
-  px(c,x+9*s,y+3*s,3*s,5*s,SP.mSkin);
-  // Fists
-  px(c,x-2*s,y+3*s,3*s,2*s,SP.mSkin);
-  px(c,x+9*s,y+3*s,3*s,2*s,SP.mSkin);
-  // Neck+head
-  px(c,x+3*s,y+3*s,3*s,3*s,SP.mSkin);
-  px(c,x+1*s,y+0*s,7*s,5*s,SP.mSkin);
-  // Red angry flush
-  px(c,x+1*s,y+0*s,7*s,5*s,'rgba(200,0,0,0.2)');
-  // Dark hair
-  px(c,x+1*s,y+0*s,7*s,2*s,'#111');
-  // ANGRY V brows
-  px(c,x+2*s,y+1*s,2*s,1*s,'#111');
-  px(c,x+5*s,y+1*s,2*s,1*s,'#111');
-  // Eyes
-  px(c,x+2*s,y+2*s,2*s,2*s,'#111');
-  px(c,x+5*s,y+2*s,2*s,2*s,'#111');
-  // Shouting mouth (open)
-  px(c,x+2*s,y+3*s,5*s,2*s,'#111');
-  px(c,x+3*s,y+4*s,3*s,1*s,'#cc0000');
-}
-
-// Cart with bins (for skladnik)
-function pixCart(c, x, y){
-  const s=PSCALE;
-  const cartW=10*s, cartH=8*s;
-  // Cart bed
-  px(c,x,y,cartW,cartH,'#3a3a4a');
-  px(c,x,y,cartW,2,'#555566');
-  // Bins
-  const bCols=['#cc2222','#2244bb','#229933','#cc8811'];
-  for(let b=0;b<4;b++){
-    const bx3=x+b*9+2; if(bx3+7>x+cartW)continue;
-    px(c,bx3,y-6*s,7,6*s,bCols[b]);
-    px(c,bx3+1,y-6*s+1,5,3,'rgba(255,255,255,0.2)');
-  }
-  // Wheels / rollers
-  for(let r=0;r<3;r++){
-    const rx=x+4+r*14;
-    px(c,rx,y+cartH,6,6,'#444455');
-    px(c,rx+2,y+cartH+2,2,2,'#777788');
-  }
-  // Handle
-  px(c,x-6,y-4*s,4,cartH+4*s,'#555');
-  px(c,x-8,y-4*s,8,3,'#777');
-}
-
-// Speech bubble (pixel style)
-function pixBubble(c, x, y, text, col='#fff', bg='rgba(0,0,8,0.9)', facing=1){
-  const bw=text.length*7+10;
-  const bh=18;
-  const bx=facing>0 ? x : x-bw;
-  const by=y-bh-8;
-  // Box
-  px(c,bx,by,bw,bh,bg);
-  // Border
-  c.strokeStyle=col; c.lineWidth=2;
-  c.strokeRect(bx,by,bw,bh);
-  // Tail
-  px(c,facing>0?bx+6:bx+bw-10,by+bh,6,6,bg);
-  // Text
-  pxText(c,text,bx+5,by+13,col,6);
-}
-
-// ============================================================
-// GAME STATE
-// ============================================================
-let running=false, raf=null;
-let score, lives, level, gframe, speed;
-let selectedChar='m';
-
-// Player state
-let player;
-
-// Machines (lanes)
-let machines;
-let numLanes;
-
-// Parts on conveyor
-let parts;
-
-// NPC walkers
-let predak, nastavovac, skladnik;
-let predakActive=false, predakTimer=0;
-let nastavovacActive=false, nastavovacTimer=0;
-let nastavovacStopX=0;
-
-// Belt animation
-let beltAnim=0;
-let flashT=0, flashCol='';
-
-const MAJSTER_Q=[
-  'CO TO ROBIS?!',
-  'MOJA BABICKA\nRYCHLEJSIE!',
-  'ZAJTRA AUDIT!!',
-  'NESPOKOJNY!!',
-  'REKLAMACIA!!',
-  'KTO TA NAUCIL?!',
-];
-
-// ============================================================
-// LAYOUT CALCULATIONS
-// ============================================================
-let MACHINE_W, MACHINE_H, MACHINE_Y, CONV_Y, FLOOR_Y;
-let PLAYER_W = 9*PSCALE;
-let PLAYER_H = 16*PSCALE;
-let LANE_XS = [];
-
-function computeLayout(){
-  numLanes = Math.min(3 + Math.floor(level/3), 5);
-  MACHINE_H = Math.floor(GH*0.40);
-  MACHINE_W = Math.floor((GW - 16) / numLanes) - 4;
-  MACHINE_Y = Math.floor(GH*0.32);
-  CONV_Y     = MACHINE_Y + MACHINE_H - 14;
-  FLOOR_Y    = MACHINE_Y + MACHINE_H + 4;
-
-  LANE_XS = [];
-  for(let i=0;i<numLanes;i++){
-    LANE_XS.push(16 + i*(MACHINE_W+4));
-  }
-  PLAYER_W = 9*PSCALE;
-  PLAYER_H = 16*PSCALE;
-}
-
-// ============================================================
-// INIT / START
-// ============================================================
-function showOverlay(){ document.getElementById('ov').classList.remove('hidden'); }
-function hideOverlay(){ document.getElementById('ov').classList.add('hidden'); }
-
-function showMenu(){
-  stopGame();
-  document.getElementById('sMenu').style.display='flex';
-  document.getElementById('sOver').style.display='none';
-  showOverlay();
-  drawPreviews();
-  drawBg();
-}
-
-function showGameOver(){
-  document.getElementById('sMenu').style.display='none';
-  const so=document.getElementById('sOver');
-  so.style.display='flex';
-  document.getElementById('goS').textContent='SCORE: '+score+'  LVL: '+level;
-  const q=MAJSTER_Q[Math.floor(Math.random()*MAJSTER_Q.length)];
-  document.getElementById('goQ').textContent=q;
-  drawMajsterPrev();
-  showOverlay();
-}
-
-function drawMajsterPrev(){
-  const el=document.getElementById('majPrev'); if(!el)return;
-  const c=el.getContext('2d'); c.clearRect(0,0,60,90);
-  c.imageSmoothingEnabled=false;
-  c.save(); c.scale(0.7,0.7); pixMajster(c,4,4,0); c.restore();
-}
-
-function selChar(g){
-  selectedChar=g;
-  document.getElementById('cM').className='ccard'+(g==='m'?' sel':'');
-  document.getElementById('cF').className='ccard'+(g==='f'?' sel':'');
-  drawPreviews();
-}
-
-function drawPreviews(){
-  ['m','f'].forEach(g=>{
-    const el=document.getElementById(g==='m'?'pM':'pF'); if(!el)return;
-    const c=el.getContext('2d'); c.clearRect(0,0,40,56);
-    c.imageSmoothingEnabled=false;
-    c.save(); c.scale(0.42,0.42);
-    pixChar(c,4,4,g,0);
-    c.restore();
-  });
-}
-
-function stopGame(){
-  running=false; cancelAnimationFrame(raf); raf=null;
-  hideBanners();
-}
-function hideBanners(){
-  document.getElementById('bPredak').style.display='none';
-  document.getElementById('bNast').style.display='none';
-}
-
-function startGame(){
-  hideOverlay();
-  score=0; lives=3; level=1; gframe=0; speed=1.8;
-  predakActive=false; predakTimer=0;
-  nastavovacActive=false; nastavovacTimer=0;
-  hideBanners();
-  computeLayout();
-
-  // Player starts at lane 0
-  player = {
-    lane:0,
-    x: LANE_XS[0] + MACHINE_W/2 - PLAYER_W/2,
-    y: FLOOR_Y,
-    frame:0,
-    catching:false,
-    catchAnim:0,
-  };
-
-  parts=[];
-  // Predak
-  predak={x:GW+40, y:FLOOR_Y, frame:0, dir:-1, bubble:0};
-  // Nastavovac
-  nastavovac={x:-60, y:FLOOR_Y, frame:0, stopped:false, bubble:0};
-  // Skladnik
-  skladnik={x:GW+80, y:FLOOR_Y, frame:0, active:false, timer:400+Math.floor(Math.random()*300)};
-
-  beltAnim=0; flashT=0;
-  updateHUD();
-  running=true;
-  cancelAnimationFrame(raf);
-  loop();
-}
-
-function updateHUD(){
-  document.getElementById('hSv').textContent=score;
-  document.getElementById('hLv').textContent='❤'.repeat(Math.max(0,lives));
-  document.getElementById('hLLv').textContent=level+(predakActive?'🔥':'')+(nastavovacActive?'🔧':'');
-}
-
-// ============================================================
-// MAIN LOOP
-// ============================================================
-function loop(){
-  if(!running)return;
-  gframe++; beltAnim++;
-  bgFrame=gframe;
-  update();
-  draw();
-  raf=requestAnimationFrame(loop);
-}
-
-// ============================================================
-// UPDATE
-// ============================================================
-function update(){
-  // Smooth player move
-  const targetX = LANE_XS[player.lane] + MACHINE_W/2 - PLAYER_W/2;
-  player.x += (targetX - player.x)*0.22;
-  player.frame++;
-
-  // Catch animation
-  if(player.catchAnim>0) player.catchAnim--;
-
-  // Belt animation speed up with predak
-  const beltSpd = predakActive ? speed*1.8 : speed;
-
-  // ---- SPAWN PARTS ----
-  // Parts come out from RIGHT side of each machine's conveyor
-  const spawnRate = nastavovacActive ? 9999 : Math.max(30, 90 - level*6 - (predakActive?15:0));
-  if(gframe % spawnRate === 0){
-    const lane = Math.floor(Math.random()*numLanes);
-    const bad = Math.random() < (0.2 + level*0.03 + (predakActive?0.1:0));
-    parts.push({
-      lane,
-      x: LANE_XS[lane] + MACHINE_W - 20, // starts near right side of machine
-      y: CONV_Y + 1,
-      bad,
-      speed: (speed + Math.random()*0.8) * (predakActive?1.4:1),
-      caught: false,
+  
+  // Spawn logic
+  function spawnObstacle() {
+    if(!gameRunning) return;
+    const lane = Math.floor(Math.random() * 3);
+    const xPos = LANE_POS[lane];
+    obstacles.push({
+      x: xPos,
+      y: -60,
+      width: 30,
+      height: 46,
+      lane: lane,
+      type: 'car'
     });
   }
-
-  // ---- MOVE PARTS (right to left on conveyor) ----
-  for(let i=parts.length-1;i>=0;i--){
-    const p=parts[i];
-    p.x -= p.speed; // move LEFT
-
-    // Check catch: player at same lane, part reaches player x zone
-    const convEnd = LANE_XS[player.lane]; // left end of current machine
-    const playerMidX = player.x + PLAYER_W/2;
-
-    if(!p.caught && p.lane===player.lane && p.x < playerMidX+20 && p.x > playerMidX-60){
-      if(!p.bad){
-        score += 10*level;
-        p.caught=true;
-        player.catchAnim=12;
-      } else {
-        lives--;
-        p.caught=true;
-        doFlash('#ff000088');
-        updateHUD();
-        if(lives<=0){gameOver();return;}
+  
+  function spawnPowerup() {
+    if(!gameRunning) return;
+    const lane = Math.floor(Math.random() * 3);
+    const xPos = LANE_POS[lane] + 1;
+    powerups.push({
+      x: xPos,
+      y: -20,
+      width: 14,
+      height: 16,
+      lane: lane
+    });
+  }
+  
+  function updateGame() {
+    if(!gameRunning) return;
+    
+    // speed & nitro handling
+    if(nitroActive && nitroFrames > 0) {
+      speedMultiplier = 1.8;
+      nitroFrames--;
+      if(nitroFrames <= 0) {
+        nitroActive = false;
+        speedMultiplier = 1.0;
+      }
+    } else {
+      speedMultiplier = 1.0;
+    }
+    
+    let currentSpeed = baseSpeed * (1 + (score/2500)) * speedMultiplier;
+    currentSpeed = Math.min(currentSpeed, 12.5);
+    gameSpeed = currentSpeed;
+    
+    // update road scroll
+    roadOffset = (roadOffset + gameSpeed) % 80;
+    
+    // move obstacles
+    for(let i=0;i<obstacles.length;i++) {
+      obstacles[i].y += gameSpeed;
+      if(obstacles[i].y > H+100) {
+        obstacles.splice(i,1);
+        i--;
       }
     }
-
-    // Part falls off left edge (missed)
-    if(p.x < LANE_XS[p.lane] - 30){
-      if(!p.bad && !p.caught){
-        lives--;
-        doFlash('#ff550066');
-        updateHUD();
-        if(lives<=0){gameOver();return;}
+    
+    // move powerups
+    for(let i=0;i<powerups.length;i++) {
+      powerups[i].y += gameSpeed;
+      if(powerups[i].y > H+80) {
+        powerups.splice(i,1);
+        i--;
       }
-      parts.splice(i,1);
-      continue;
     }
-    if(p.caught) parts.splice(i,1);
-  }
-
-  // ---- LEVEL UP ----
-  if(score > 0 && score % (200*level) === 0 && gframe%4===0 && !predakActive){
-    level++;
-    speed = Math.min(speed+0.15, 5.5);
-    updateHUD();
-  }
-
-  // ---- PREDAK ----
-  if(!predakActive && !nastavovacActive && gframe>200 && gframe%650===0){
-    predakActive=true; predakTimer=320;
-    predak.x=GW+40; predak.dir=-1;
-    document.getElementById('bPredak').style.display='block';
-    // Add lane
-    const newN=Math.min(numLanes+1,5);
-    if(newN!==numLanes){
-      numLanes=newN;
-      MACHINE_W=Math.floor((GW-16)/numLanes)-4;
-      LANE_XS=[];
-      for(let i=0;i<numLanes;i++) LANE_XS.push(16+i*(MACHINE_W+4));
+    
+    // collision: player vs obstacles
+    for(let i=0;i<obstacles.length;i++) {
+      const obs = obstacles[i];
+      const playerRect = {x: playerCar.x, y: playerCar.y, w: 32, h: 48};
+      const obsRect = {x: obs.x, y: obs.y, w: 30, h: 46};
+      if(playerRect.x < obsRect.x+obsRect.w && playerRect.x+playerRect.w > obsRect.x &&
+         playerRect.y < obsRect.y+obsRect.h && playerRect.y+playerRect.h > obsRect.y) {
+        // CRASH
+        gameRunning = false;
+        screenFlash = 15;
+        const finalScoreSpan = document.getElementById('finalScore');
+        finalScoreSpan.innerText = `SCORE: ${Math.floor(score)}  NITRO: ${nitro}`;
+        const quoteIdx = Math.floor(Math.random() * QUOTES.length);
+        document.getElementById('gameoverQuote').innerText = QUOTES[quoteIdx];
+        document.getElementById('gameoverPanel').classList.remove('hidden');
+        document.getElementById('menuPanel').classList.add('hidden');
+        drawWreckPreview();
+        cancelAnimationFrame(animFrame);
+        return;
+      }
     }
-    speed=Math.min(speed+1.2,9);
-    predak.bubble=180;
-    updateHUD();
+    
+    // powerup collection
+    for(let i=0;i<powerups.length;i++) {
+      const pow = powerups[i];
+      const playerRect = {x: playerCar.x, y: playerCar.y, w: 32, h: 48};
+      const powRect = {x: pow.x, y: pow.y, w: 14, h: 16};
+      if(playerRect.x < powRect.x+powRect.w && playerRect.x+playerRect.w > powRect.x &&
+         playerRect.y < powRect.y+powRect.h && playerRect.y+playerRect.h > powRect.y) {
+        nitro += 15;
+        if(nitro > 100) nitro = 100;
+        powerups.splice(i,1);
+        updateUI();
+        // small flash
+        screenFlash = 4;
+        break;
+      }
+    }
+    
+    // use nitro on button? auto can be used with N key, but manual trigger via nitro button? Let's add auto activation on collect streak
+    if(nitro >= 25 && !nitroActive && (Math.random()<0.005 || (frame % 180 === 0 && nitro>30))) {
+      nitroActive = true;
+      nitroFrames = 45;
+      nitro -= 25;
+      if(nitro<0) nitro=0;
+      updateUI();
+    }
+    
+    // increase score and distance based on speed
+    score += Math.floor(gameSpeed * 0.9) + 1;
+    distance += gameSpeed;
+    updateUI();
+    
+    // level up difficulty spawn rates
+    let spawnDelay = Math.max(28, 42 - Math.floor(score/300));
+    if(obstacleCooldown <= 0 && obstacles.length < 6) {
+      if(Math.random() < 0.38) {
+        spawnObstacle();
+        obstacleCooldown = spawnDelay;
+      }
+    } else {
+      obstacleCooldown--;
+    }
+    
+    if(powerupCooldown <= 0 && powerups.length < 3) {
+      if(Math.random() < 0.2 && nitro < 85) {
+        spawnPowerup();
+        powerupCooldown = 45 + Math.floor(Math.random()*30);
+      }
+    } else {
+      powerupCooldown--;
+    }
+    
+    if(screenFlash>0) screenFlash--;
   }
-  if(predakActive){
-    predak.x += predak.dir*1.6; predak.frame++;
-    predakTimer--;
-    if(predak.x<60&&predak.dir<0) predak.dir=1;
-    if(predak.x>GW-60&&predak.dir>0) predak.dir=-1;
-    if(predak.bubble>0) predak.bubble--;
-    if(predakTimer<=0){
-      predakActive=false;
-      document.getElementById('bPredak').style.display='none';
-      speed=Math.max(speed-0.7, 1.8+level*0.15);
-      updateHUD();
+  
+  function draw() {
+    drawRoad();
+    
+    // draw obstacles (traffic)
+    for(let obs of obstacles) {
+      drawObstacleCar(ctx, obs.x, obs.y);
+      // red rear lights
+      ctx.fillStyle = '#ff3333';
+      ctx.fillRect(obs.x+5, obs.y+40, 8, 4);
+      ctx.fillRect(obs.x+17, obs.y+40, 8, 4);
+    }
+    
+    // draw powerups (nitro cans)
+    for(let pow of powerups) {
+      drawNitroCan(ctx, pow.x, pow.y);
+    }
+    
+    drawPlayer();
+    
+    // road glow particles at high speed
+    if(gameSpeed > 7) {
+      ctx.fillStyle = `rgba(255,180,0,0.3)`;
+      for(let i=0;i<8;i++) {
+        ctx.fillRect((frame*12 + i*37)%W, H-30+Math.sin(frame+i)*5, 8, 6);
+      }
+    }
+    
+    // speed blur / nitro effect
+    if(nitroActive && nitroFrames>0) {
+      ctx.fillStyle = 'rgba(255,100,0,0.2)';
+      ctx.fillRect(0, 0, W, H);
+      for(let i=0;i<5;i++) {
+        ctx.fillStyle = `rgba(255,200,0,0.2)`;
+        ctx.fillRect(10+ i*50, H-40, 30, 12);
+      }
+    }
+    
+    // screen flash on collect/crash
+    if(screenFlash > 0) {
+      ctx.fillStyle = `rgba(255,255,200,${0.3})`;
+      ctx.fillRect(0, 0, W, H);
+    }
+    
+    // dashboard / HUD pixel style on canvas
+    ctx.font = "bold 8px 'Press Start 2P'";
+    ctx.fillStyle = "#ffcc88";
+    ctx.shadowBlur = 0;
+    ctx.fillText(`SPD ${Math.floor(gameSpeed*10)}`, W-70, 25);
+    if(nitroActive) ctx.fillStyle = "#ff8822";
+    ctx.fillText(`NITRO ${nitro}%`, W-70, 45);
+    ctx.fillStyle = "#88aaff";
+    ctx.fillText(`SCORE ${Math.floor(score)}`, 12, 25);
+    ctx.fillStyle = "#ccccaa";
+    ctx.fillText(`DIST ${Math.floor(distance/10)}m`, 12, 45);
+  }
+  
+  function gameLoop() {
+    if(!gameRunning && animFrame) {
+      // if not running but overlay showing, keep static draw
+      draw();
+      animFrame = requestAnimationFrame(gameLoop);
+      return;
+    }
+    if(!gameRunning) return;
+    updateGame();
+    draw();
+    frame++;
+    animFrame = requestAnimationFrame(gameLoop);
+  }
+  
+  function startGame(selectedColor) {
+    // reset everything
+    gameRunning = true;
+    score = 0;
+    distance = 0;
+    nitro = 25;
+    obstacles = [];
+    powerups = [];
+    obstacleCooldown = 0;
+    powerupCooldown = 0;
+    gameSpeed = 4.2;
+    baseSpeed = 4.2;
+    speedMultiplier = 1.0;
+    nitroActive = false;
+    nitroFrames = 0;
+    screenFlash = 0;
+    frame = 0;
+    playerCar.color = selectedColor;
+    currentColor = CAR_COLORS[selectedColor];
+    playerCar.lane = 1;
+    playerCar.x = LANE_POS[1];
+    playerCar.y = H - 68;
+    updateUI();
+    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('menuPanel').classList.add('hidden');
+    document.getElementById('gameoverPanel').classList.add('hidden');
+    if(animFrame) cancelAnimationFrame(animFrame);
+    gameLoop();
+  }
+  
+  function showMenu() {
+    if(gameRunning) gameRunning = false;
+    if(animFrame) cancelAnimationFrame(animFrame);
+    document.getElementById('overlay').classList.remove('hidden');
+    document.getElementById('menuPanel').classList.remove('hidden');
+    document.getElementById('gameoverPanel').classList.add('hidden');
+    drawPreviewCars();
+    draw();
+  }
+  
+  function drawPreviewCars() {
+    const redCanvas = document.getElementById('previewRed');
+    const blueCanvas = document.getElementById('previewBlue');
+    const yellowCanvas = document.getElementById('previewYellow');
+    if(redCanvas) {
+      const rctx = redCanvas.getContext('2d');
+      rctx.clearRect(0,0,48,48);
+      drawPixelCar(rctx, 8, 8, 'red', 0.7);
+    }
+    if(blueCanvas) {
+      const bctx = blueCanvas.getContext('2d');
+      bctx.clearRect(0,0,48,48);
+      drawPixelCar(bctx, 8, 8, 'blue', 0.7);
+    }
+    if(yellowCanvas) {
+      const yctx = yellowCanvas.getContext('2d');
+      yctx.clearRect(0,0,48,48);
+      drawPixelCar(yctx, 8, 8, 'yellow', 0.7);
     }
   }
-
-  // ---- NASTAVOVAC ----
-  if(!nastavovacActive && !predakActive && gframe>300 && gframe%850===0){
-    nastavovacActive=true; nastavovacTimer=200;
-    nastavovac.x=-60; nastavovac.stopped=false;
-    nastavovacStopX=Math.floor(GW*0.4);
-    document.getElementById('bNast').style.display='block';
-    nastavovac.bubble=180;
-    updateHUD();
+  
+  function drawWreckPreview() {
+    const wreckCanvas = document.getElementById('wreckPreview');
+    if(!wreckCanvas) return;
+    const wctx = wreckCanvas.getContext('2d');
+    wctx.fillStyle = '#2a1a1a';
+    wctx.fillRect(0,0,64,64);
+    wctx.fillStyle = '#aa4444';
+    wctx.fillRect(20,20,28,32);
+    wctx.fillStyle = '#663333';
+    wctx.fillRect(24,28,20,12);
+    wctx.fillStyle = '#ffaa33';
+    wctx.fillRect(28,35,8,6);
   }
-  if(nastavovacActive){
-    nastavovac.frame++;
-    nastavovac.bubble>0&&nastavovac.bubble--;
-    if(!nastavovac.stopped){
-      nastavovac.x+=1.3;
-      if(nastavovac.x>=nastavovacStopX) nastavovac.stopped=true;
-    }
-    nastavovacTimer--;
-    if(nastavovacTimer<=0){
-      nastavovacActive=false;
-      document.getElementById('bNast').style.display='none';
-      nastavovac.stopped=false;
-      updateHUD();
-    }
-  } else if(nastavovac.x>-60 && nastavovac.x<GW+40){
-    // Walk off
-    nastavovac.x+=1.5; nastavovac.frame++;
-  }
-
-  // ---- SKLADNIK ----
-  skladnik.timer--;
-  if(skladnik.timer<=0 && !skladnik.active){
-    skladnik.active=true; skladnik.x=GW+100; skladnik.frame=0;
-    skladnik.timer=700+Math.floor(Math.random()*500);
-  }
-  if(skladnik.active){
-    skladnik.x-=1.4; skladnik.frame++;
-    if(skladnik.x<-150) skladnik.active=false;
-  }
-
-  if(flashT>0) flashT--;
-}
-
-function doFlash(col){flashT=10;flashCol=col;}
-function gameOver(){ running=false; hideBanners(); showGameOver(); }
-
-// ============================================================
-// DRAW
-// ============================================================
-function draw(){
-  const c=ctx;
-
-  // Background
-  drawBg();
-
-  // ---- FLOOR / FACTORY INTERIOR ----
-  // Factory floor (below machines)
-  px(c,0,FLOOR_Y,GW,GH-FLOOR_Y,'#141420');
-  // Floor tiles
-  for(let fx=0;fx<GW;fx+=24){
-    px(c,fx,FLOOR_Y,22,GH-FLOOR_Y-1,'#181828');
-    px(c,fx,FLOOR_Y,22,2,'#222233');
-  }
-  // Floor highlight line
-  px(c,0,FLOOR_Y,GW,2,'#33334a');
-
-  // ---- MACHINES ----
-  for(let i=0;i<numLanes;i++){
-    const mx=LANE_XS[i];
-    const isPlayerLane=(i===player.lane);
-    drawMachine(c, mx, MACHINE_Y, MACHINE_W, MACHINE_H,
-      isPlayerLane, gframe);
-    // Conveyor
-    drawConveyor(c, mx, CONV_Y, MACHINE_W, beltAnim);
-  }
-
-  // ---- PARTS ON CONVEYORS ----
-  for(const p of parts){
-    if(p.caught)continue;
-    drawPart(c, p.x, p.y, p.bad);
-  }
-
-  // ---- SKLADNIK ----
-  if(skladnik.active){
-    const sy = FLOOR_Y + 2;
-    pixCart(c, skladnik.x+32, sy-8*PSCALE);
-    pixSkladnik(c, skladnik.x, sy-14*PSCALE, skladnik.frame);
-  }
-
-  // ---- PLAYER ----
-  {
-    const py2 = player.y - PLAYER_H + 4;
-    pixChar(c, player.x, py2, selectedChar, player.frame);
-    // Catch flash
-    if(player.catchAnim>0 && player.catchAnim%3<2){
-      c.globalAlpha=0.4;
-      px(c,player.x-2,py2-2,PLAYER_W+4,PLAYER_H+4,'#00ffff');
-      c.globalAlpha=1;
-    }
-    // Glowing feet (standing on active conveyor)
-    if(Math.floor(gframe/6)%2===0){
-      px(c,player.x,player.y,PLAYER_W,3,P.neonG+'44');
+  
+  // Car selection
+  let selectedCarColor = 'red';
+  document.getElementById('carRed')?.addEventListener('click', () => {
+    selectedCarColor = 'red';
+    document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('carRed').classList.add('selected');
+  });
+  document.getElementById('carBlue')?.addEventListener('click', () => {
+    selectedCarColor = 'blue';
+    document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('carBlue').classList.add('selected');
+  });
+  document.getElementById('carYellow')?.addEventListener('click', () => {
+    selectedCarColor = 'yellow';
+    document.querySelectorAll('.car-card').forEach(c=>c.classList.remove('selected'));
+    document.getElementById('carYellow').classList.add('selected');
+  });
+  
+  document.getElementById('startBtn')?.addEventListener('click', () => {
+    startGame(selectedCarColor);
+  });
+  document.getElementById('restartBtn')?.addEventListener('click', () => {
+    startGame(selectedCarColor);
+  });
+  document.getElementById('menuBtn')?.addEventListener('click', () => {
+    showMenu();
+  });
+  
+  // Controls movement
+  function moveLeft() {
+    if(!gameRunning) return;
+    if(playerCar.lane > 0) {
+      playerCar.lane--;
+      playerCar.x = LANE_POS[playerCar.lane];
     }
   }
-
-  // ---- PREDAK ----
-  if(predakActive){
-    const py2=predak.y-14*PSCALE;
-    pixPredak(c, predak.x-PLAYER_W/2, py2, predak.frame, predak.dir);
-    if(predak.bubble>0){
-      pixBubble(c, predak.x, py2, 'VEZMI AJ DRUHY LIS!', '#ff8800','rgba(0,0,0,0.9)', predak.dir);
+  function moveRight() {
+    if(!gameRunning) return;
+    if(playerCar.lane < 2) {
+      playerCar.lane++;
+      playerCar.x = LANE_POS[playerCar.lane];
     }
   }
-
-  // ---- NASTAVOVAC ----
-  if(nastavovacActive || (nastavovac.x>-60&&nastavovac.x<GW+40)){
-    const py2=nastavovac.y-14*PSCALE;
-    pixNastavovac(c, nastavovac.x-PLAYER_W/2, py2, nastavovac.frame);
-    if(nastavovac.bubble>0 && nastavovacActive){
-      pixBubble(c, nastavovac.x+20, py2, 'PORUCHA FORMY!', '#ffff00','rgba(0,0,0,0.9)', 1);
+  document.getElementById('leftBtn').addEventListener('click', moveLeft);
+  document.getElementById('rightBtn').addEventListener('click', moveRight);
+  document.addEventListener('keydown', (e) => {
+    if(e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
+    if(e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
+    if(e.key === ' ' || e.key === 'n') {
+      if(gameRunning && nitro >= 25 && !nitroActive) {
+        nitroActive = true;
+        nitroFrames = 45;
+        nitro -= 25;
+        updateUI();
+      }
     }
-  }
-
-  // ---- FLASH ----
-  if(flashT>0){
-    c.fillStyle=flashCol; c.fillRect(0,0,GW,GH);
-  }
-
-  // ---- SCANLINE EFFECT (pixel aesthetic) ----
-  for(let sy=0;sy<GH;sy+=4){
-    c.fillStyle='rgba(0,0,0,0.12)';
-    c.fillRect(0,sy,GW,2);
-  }
-
-  // ---- SCORE POPUP ----
-  if(player.catchAnim>6){
-    pxText(c,'+'+10*level,
-      player.x+PLAYER_W,
-      player.y-PLAYER_H-8,
-      '#00ff88',8);
-  }
-}
-
-// Parts (horizontal conveyor)
-function drawPart(c, x, y, bad){
-  const s=PSCALE-1; // slightly smaller pixel scale
-  // Part shape: plastic mirror housing
-  c.fillStyle = bad?'#aa1818':'#3a6a99';
-  c.fillRect(Math.round(x),Math.round(y),14,8);
-  // Inner detail
-  c.fillStyle = bad?'#ff5555':'#6699cc';
-  c.fillRect(Math.round(x+2),Math.round(y+2),4,4);
-  c.fillRect(Math.round(x+8),Math.round(y+2),4,4);
-  // Nub
-  c.fillStyle = bad?'#881111':'#2255aa';
-  c.fillRect(Math.round(x+4),Math.round(y+8),6,3);
-  if(bad){
-    c.fillStyle='#ffee00';
-    c.fillRect(Math.round(x+1),Math.round(y+1),3,3);
-    c.fillRect(Math.round(x+10),Math.round(y+4),3,3);
-  }
-}
-
-// ============================================================
-// CONTROLS
-// ============================================================
-let lHeld=false, rHeld=false, mvInt=null;
-
-function movL(){
-  if(player&&player.lane>0) player.lane--;
-}
-function movR(){
-  if(player&&player.lane<numLanes-1) player.lane++;
-}
-
-function sl(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movL(); clearInterval(mvInt); mvInt=setInterval(()=>{if(lHeld)movL();},130); lHeld=true; document.getElementById('bL').classList.add('held'); }
-function el(){ lHeld=false; clearInterval(mvInt); document.getElementById('bL').classList.remove('held'); }
-function sr(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movR(); clearInterval(mvInt); mvInt=setInterval(()=>{if(rHeld)movR();},130); rHeld=true; document.getElementById('bR').classList.add('held'); }
-function er(){ rHeld=false; clearInterval(mvInt); document.getElementById('bR').classList.remove('held'); }
-
-document.addEventListener('keydown',e=>{
-  if(!running)return;
-  if(e.key==='ArrowLeft'){e.preventDefault();movL();}
-  if(e.key==='ArrowRight'){e.preventDefault();movR();}
-});
-
-// Canvas tap
-let tapX=null;
-gc.addEventListener('touchstart',e=>{tapX=e.touches[0].clientX;},{passive:true});
-gc.addEventListener('touchend',e=>{
-  if(tapX===null)return;
-  const dx=e.changedTouches[0].clientX-tapX;
-  if(Math.abs(dx)>35){dx<0?movL():movR();}
-  else{const r=gc.getBoundingClientRect();e.changedTouches[0].clientX-r.left<r.width/2?movL():movR();}
-  tapX=null;
-},{passive:true});
-
-// ============================================================
-// INIT
-// ============================================================
-window.addEventListener('load',()=>{
-  computeLayout();
-  drawPreviews();
-  drawMajsterPrev();
-  showOverlay();
-  drawBg();
-});
+  });
+  
+  // Touch for canvas swipe
+  let touchStartX = null;
+  canvas.addEventListener('touchstart', (e) => {
+    touchStartX = e.touches[0].clientX;
+  });
+  canvas.addEventListener('touchend', (e) => {
+    if(touchStartX === null) return;
+    const endX = e.changedTouches[0].clientX;
+    if(endX - touchStartX > 30) moveRight();
+    else if(touchStartX - endX > 30) moveLeft();
+    touchStartX = null;
+  });
+  
+  drawPreviewCars();
+  draw();
+  showMenu();
+})();
 </script>
 </body>
 </html>
+```
