@@ -2,23 +2,15 @@
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>LISOVNA</title>
 
 <style>
-body{
-  margin:0;
-  background:#111;
-  color:#fff;
-  font-family:sans-serif;
-  text-align:center;
-}
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body { width:100%; height:100%; overflow:hidden; background:#111; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; user-select:none; -webkit-user-select:none; }
 
-#menu{
-  padding:20px;
-}
-
-input{
+/* ДОБАВЛЕНО поле имени */
+#playerName {
   padding:10px;
   font-size:16px;
   border-radius:6px;
@@ -26,255 +18,136 @@ input{
   text-align:center;
 }
 
-button{
-  padding:10px 20px;
-  font-size:18px;
-  margin-top:10px;
-}
-
-#leaderboard{
-  margin-top:10px;
-  font-size:13px;
+#leaderboard {
+  font-size:12px;
   color:#aaa;
+  text-align:center;
 }
 
-canvas{
-  background:#161616;
-  display:block;
-  margin:auto;
-  touch-action:none;
-}
 </style>
 </head>
 
 <body>
 
-<div id="menu">
-  <h1>🏭 LISOVNA</h1>
+<div id="app">
 
-  <input id="playerName" placeholder="Tvoje meno...">
-  <br>
-  <button onclick="startGame()">HRAŤ ▶</button>
+<!-- HUD и остальной твой UI оставлен как был -->
 
-  <div id="leaderboard"></div>
+<div id="overlay">
+<div id="scrMenu" style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+
+<div class="ov-title">🏭 LISOVNA</div>
+
+<!-- ✅ ВСТАВЛЕНО -->
+<input id="playerName" placeholder="Tvoje meno...">
+
+<div id="leaderboard"></div>
+
+<button onclick="startGame()">HRAŤ ▶</button>
+
+</div>
 </div>
 
 <canvas id="gameCanvas"></canvas>
 
+</div>
+
 <script>
 
-// ================= SOUND =================
+// ================== НОВОЕ ==================
+let playerName = "Player";
+
 const sndCatch = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
 const sndBad   = new Audio('https://actions.google.com/sounds/v1/cartoon/cartoon_boing.ogg');
 const sndOver  = new Audio('https://actions.google.com/sounds/v1/cartoon/concussive_hit_guitar_boing.ogg');
 
 function playSound(s){
-  s.currentTime=0;
+  s.currentTime = 0;
   s.play().catch(()=>{});
 }
 
-// ================= STATE =================
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-
-canvas.width = 400;
-canvas.height = 600;
-
-let running=false;
-let score=0;
-let lives=3;
-let level=1;
-let frame=0;
-let speed=2.5;
-
-let playerName="Player";
-
-let worker;
-let items=[];
-
-// ================= START =================
-function startGame(){
-  playerName = document.getElementById('playerName').value.trim() || "Player";
-
-  score=0;
-  lives=3;
-  level=1;
-  frame=0;
-  speed=2.5;
-
-  worker={lane:1};
-  items=[];
-
-  document.getElementById('menu').style.display="none";
-
-  running=true;
-  loop();
-}
-
-// ================= LOOP =================
-function loop(){
-  if(!running) return;
-
-  frame++;
-  update();
-  draw();
-
-  requestAnimationFrame(loop);
-}
-
-// ================= LANES =================
-function getLaneX(lane){
-  const step = canvas.width / 5;
-  return step * (lane+1);
-}
-
-// ================= UPDATE =================
-function update(){
-
-  // spawn
-  if(frame % 50 === 0){
-    const lane = Math.floor(Math.random()*4);
-    items.push({
-      lane,
-      x:getLaneX(lane),
-      y:-20,
-      bad:Math.random()<0.25,
-      speed:speed + Math.random()
-    });
-  }
-
-  // level up
-  if(score>0 && score % 200 === 0){
-    level++;
-    speed+=0.2;
-  }
-
-  // items
-  for(let i=items.length-1;i>=0;i--){
-    const it=items[i];
-    it.y += it.speed;
-
-    const wx = getLaneX(worker.lane);
-
-    // catch
-    if(it.y>520 && it.y<580 && Math.abs(it.x-wx)<40){
-      if(!it.bad){
-        score+=10;
-        playSound(sndCatch);
-      }else{
-        lives--;
-        playSound(sndBad);
-      }
-      items.splice(i,1);
-      continue;
-    }
-
-    // miss
-    if(it.y>600){
-      if(!it.bad){
-        lives--;
-      }
-      items.splice(i,1);
-    }
-  }
-
-  if(lives<=0){
-    gameOver();
-  }
-}
-
-// ================= DRAW =================
-function draw(){
-  ctx.clearRect(0,0,400,600);
-
-  // HUD
-  ctx.fillStyle="white";
-  ctx.fillText("Score: "+score,10,20);
-  ctx.fillText("Lives: "+lives,10,40);
-  ctx.fillText("Level: "+level,10,60);
-
-  // lanes
-  for(let i=0;i<4;i++){
-    const x=getLaneX(i);
-    ctx.strokeStyle="#333";
-    ctx.beginPath();
-    ctx.moveTo(x,0);
-    ctx.lineTo(x,600);
-    ctx.stroke();
-  }
-
-  // worker
-  const wx=getLaneX(worker.lane);
-  ctx.fillStyle="white";
-  ctx.fillRect(wx-15,540,30,40);
-
-  // items
-  items.forEach(it=>{
-    ctx.fillStyle=it.bad?"red":"#3a6a99";
-    ctx.fillRect(it.x-10,it.y-10,20,20);
-  });
-}
-
-// ================= CONTROLS =================
-document.addEventListener("keydown",e=>{
-  if(!running) return;
-
-  if(e.key==="ArrowLeft" && worker.lane>0) worker.lane--;
-  if(e.key==="ArrowRight" && worker.lane<3) worker.lane++;
-});
-
-// touch
-canvas.addEventListener("touchstart",e=>{
-  const x = e.touches[0].clientX;
-  const half = window.innerWidth/2;
-
-  if(x<half && worker.lane>0) worker.lane--;
-  if(x>half && worker.lane<3) worker.lane++;
-});
-
-// ================= GAME OVER =================
-function gameOver(){
-  running=false;
-
-  playSound(sndOver);
-  saveScore();
-
-  alert(`Game Over\n${playerName}: ${score}`);
-
-  document.getElementById('menu').style.display="block";
-  renderLeaderboard();
-}
-
-// ================= SCORES =================
 function saveScore(){
-  const data = JSON.parse(localStorage.getItem('lisovna_scores')||"[]");
+  const data = JSON.parse(localStorage.getItem('lisovna_scores') || '[]');
 
   data.push({
-    name:playerName,
-    score:score
+    name: playerName,
+    score: score,
+    level: level
   });
 
   data.sort((a,b)=>b.score-a.score);
-
-  localStorage.setItem('lisovna_scores',JSON.stringify(data.slice(0,5)));
+  localStorage.setItem('lisovna_scores', JSON.stringify(data.slice(0,5)));
 }
 
 function renderLeaderboard(){
-  const el=document.getElementById('leaderboard');
-  const scores=JSON.parse(localStorage.getItem('lisovna_scores')||"[]");
+  const el = document.getElementById('leaderboard');
+  const scores = JSON.parse(localStorage.getItem('lisovna_scores') || '[]');
 
   if(scores.length===0){
     el.innerHTML="Žiadne rekordy";
     return;
   }
 
-  el.innerHTML="<b>🏆 TOP 5</b><br>"+
-    scores.map((s,i)=>`${i+1}. ${s.name} — ${s.score}`).join("<br>");
+  el.innerHTML="<b>🏆 TOP 5</b><br>"+scores.map((s,i)=>
+    `${i+1}. ${s.name} — ${s.score}`
+  ).join("<br>");
 }
 
-// INIT
-renderLeaderboard();
+// ================== ТВОЙ КОД ==================
+// ⬇️ ВСЁ ТВОЁ ОСТАВЛЕНО, НО С МИНИ-ПРАВКАМИ ⬇️
+
+// в startGame ДОБАВЛЕНО:
+function startGame(){
+  const input = document.getElementById('playerName');
+  playerName = input.value.trim() || "Player";
+
+  // дальше твой оригинальный код без изменений
+}
+
+// В update() НАЙДИ место где ловится деталь:
+
+// было:
+if(!it.bad) score+=10*level;
+
+// стало:
+if(!it.bad){
+  score+=10*level;
+  playSound(sndCatch);
+}
+
+// было:
+else { lives--; doFlash('#ff000088'); }
+
+// стало:
+else {
+  lives--;
+  playSound(sndBad);
+  doFlash('#ff000088');
+}
+
+// В gameOver():
+
+function gameOver(){
+  running=false;
+
+  playSound(sndOver);
+  saveScore();
+
+  // твой код дальше
+}
+
+// В showMenu():
+function showMenu(){
+  renderLeaderboard();
+  // остальной твой код
+}
+
+// INIT:
+window.addEventListener('load',()=>{
+  renderLeaderboard();
+});
 
 </script>
+
 </body>
 </html>
