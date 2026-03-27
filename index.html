@@ -116,6 +116,27 @@ table tr.row-alt td { background:#f5f5f5; }
   .titlebar-btns { display:none; }
   .toolbar { gap:3px; }
 }
+
+/* ZMETKY NUMPAD BUTTONS */
+.znp-btn { border:0;border-right:1px solid #ddd;border-bottom:1px solid #ddd;background:#fff;font-size:clamp(16px,4vw,22px);font-family:inherit;cursor:pointer;display:flex;align-items:center;justify-content:center;touch-action:manipulation;min-height:48px; }
+.znp-btn:hover,.znp-btn:active { background:#e8e8e8; }
+.znp-btn.znp-del { background:#c8cb72;font-size:clamp(12px,3vw,15px);font-weight:bold; }
+.znp-btn.znp-clr { background:#e05030;color:#fff;font-size:clamp(12px,3vw,15px);font-weight:bold; }
+.znp-btn.znp-ok  { background:#3ab830;color:#fff;font-size:clamp(16px,4vw,20px);font-weight:bold;grid-row:span 2; }
+.znp-btn.znp-span2 { grid-column:span 2; }
+
+/* ANDON RUN BUTTON */
+.andon-run-btn {
+  background:#c8c8c8; border:2px solid #888; border-radius:6px;
+  font-size:clamp(16px,4vw,22px); font-weight:bold;
+  padding:10px 0; width:100%; cursor:pointer;
+  font-family:inherit; touch-action:manipulation;
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.6), inset 0 -2px 4px rgba(0,0,0,0.2);
+}
+.andon-run-btn:hover { background:#b8b8b8; }
+.andon-run-btn:active { background:#a8a8a8; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.3); }
+.andon-run-btn.active { background:#ff6600; color:#fff; border-color:#cc4400; animation:runblink 0.8s step-start infinite; }
+@keyframes runblink { 50% { background:#ff9900; } }
 </style>
 </head>
 <body>
@@ -167,7 +188,7 @@ table tr.row-alt td { background:#f5f5f5; }
     <button class="btn btn-warn abl hide-mobile" onclick="shutdownPC()">! Vypnut pocitac !</button>
     <button class="btn abl" onclick="aktualizovat()">Aktualizovat</button>
     <div class="btn-right-group">
-      <button class="btn btn-red abl" onclick="toggleAndon()">ANDON</button>
+      <button class="btn btn-red abl" onclick="openAndonScreen()">ANDON</button>
       <button class="btn abl" onclick="openModal('status')">Zmenit stav</button>
       <button class="btn abl hide-mobile" onclick="openModal('prikaz')">Otvorit prikaz</button>
       <button class="btn abl hide-mobile" onclick="alert('Balenie / Obaly')">Obaly</button>
@@ -237,10 +258,89 @@ table tr.row-alt td { background:#f5f5f5; }
 
 </div>
 
+
 <div class="statusbar">
-  <span>T23</span>
+  <span id="gameSecretBtn" onclick="openGame()" style="cursor:pointer;user-select:none;" title="">T23</span>
   <span id="statusbarMsg"></span>
   <span id="clockBottom">18:00:00</span>
+</div>
+
+<!-- ===== FACTORY GAME SCREEN ===== -->
+<div class="fs-screen" id="gameScreen">
+  <div class="titlebar" style="background:#222;color:#eee;">
+    <span class="titlebar-title" style="color:#eee;">🏭 Továreň — Chytaj Diely!</span>
+    <div class="titlebar-btns">
+      <button onclick="closeGame()" style="background:#444;color:#eee;border-color:#666;">✕</button>
+    </div>
+  </div>
+  <div style="background:#1a1a1a;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px;gap:6px;overflow:hidden;">
+    <!-- Score row -->
+    <div style="display:flex;gap:20px;font-family:monospace;font-size:16px;font-weight:bold;color:#0f0;background:#111;border:1px solid #333;padding:4px 16px;border-radius:4px;width:100%;max-width:500px;justify-content:space-between;">
+      <span>SKÓRE: <span id="gScore">0</span></span>
+      <span>ŽIVOTY: <span id="gLives">❤️❤️❤️</span></span>
+      <span>LVL: <span id="gLevel">1</span></span>
+    </div>
+
+    <!-- Game canvas -->
+    <canvas id="gameCanvas" style="border:2px solid #444;background:#2a2a2a;touch-action:none;max-width:100%;"></canvas>
+
+    <!-- Controls hint -->
+    <div style="color:#888;font-size:11px;font-family:monospace;">
+      ← → klávesy alebo tlačidlá nižšie | Chytaj diely, vyhýbaj sa chybám!
+    </div>
+    <div style="display:flex;gap:12px;">
+      <button id="gBtnLeft" style="background:#333;color:#fff;border:2px solid #555;padding:10px 28px;font-size:22px;cursor:pointer;border-radius:4px;touch-action:manipulation;" onmousedown="gMoveLeft()" ontouchstart="gMoveLeft()">◀</button>
+      <button id="gBtnRight" style="background:#333;color:#fff;border:2px solid #555;padding:10px 28px;font-size:22px;cursor:pointer;border-radius:4px;touch-action:manipulation;" onmousedown="gMoveRight()" ontouchstart="gMoveRight()">▶</button>
+    </div>
+    <div id="gOverlay" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);color:#fff;padding:24px 32px;text-align:center;border:2px solid #555;border-radius:8px;z-index:10;">
+      <div id="gOverlayText" style="font-size:20px;font-weight:bold;margin-bottom:12px;"></div>
+      <button onclick="startGame()" style="background:#0a8a0a;color:#fff;border:none;padding:10px 28px;font-size:16px;cursor:pointer;border-radius:4px;">HRAŤ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ANDON — CALL FOR HELP SCREEN ===== -->
+<div class="fs-screen" id="andonScreen">
+  <div class="titlebar">
+    <span class="titlebar-title">MirrorsBatchProd</span>
+    <div class="titlebar-btns"><button>_</button><button>□</button><button onclick="closeAndonScreen()">✕</button></div>
+  </div>
+  <div class="menubar"><span>Settings</span><span>Help</span></div>
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;padding:10px 14px 0;">
+    <div style="font-size:clamp(16px,4vw,22px);font-weight:bold;">T - Production</div>
+    <div class="magna-logo"><span class="magna-m">M</span><span class="dot-red"></span><strong>MAGNA</strong></div>
+  </div>
+  <div style="padding:12px 14px 6px;font-size:clamp(13px,3vw,16px);font-weight:bold;border-bottom:1px solid #ccc;">Call for help</div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:20px 14px;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;width:100%;max-width:800px;">
+
+      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
+        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Udrzba</div>
+        <button class="andon-run-btn" onclick="callForHelp('Udrzba')">RUN</button>
+      </div>
+
+      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
+        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Majster</div>
+        <button class="andon-run-btn" onclick="callForHelp('Majster')">RUN</button>
+      </div>
+
+      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
+        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Kvalita</div>
+        <button class="andon-run-btn" onclick="callForHelp('Kvalita')">RUN</button>
+      </div>
+
+      <div style="border:2px solid #999;background:#e8e8e8;padding:16px;display:flex;flex-direction:column;align-items:center;gap:12px;min-height:130px;">
+        <div style="font-size:clamp(14px,3vw,18px);font-weight:bold;">Nastavovac</div>
+        <button class="andon-run-btn" onclick="callForHelp('Nastavovac')">RUN</button>
+      </div>
+
+    </div>
+  </div>
+  <div id="andonCallStatus" style="text-align:center;padding:8px;font-size:14px;font-weight:bold;min-height:32px;"></div>
+  <div style="position:absolute;bottom:36px;right:14px;">
+    <button class="btn" onclick="closeAndonScreen()">Back</button>
+  </div>
+  <div class="statusbar"><span>Workplace: T23</span><span>User: worker</span></div>
 </div>
 
 <!-- ===== LOGIN SCREEN ===== -->
@@ -265,11 +365,6 @@ table tr.row-alt td { background:#f5f5f5; }
       <button class="btn btn-green abl" onclick="doLogin()" style="padding:6px 20px;font-size:14px;">Login</button>
     </div>
     <div id="loginLookupResult" style="font-size:13px;min-height:20px;margin-bottom:14px;"></div>
-    <div style="font-size:12px;color:#888;margin-bottom:8px;">Rýchly výber:</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;">
-      <button class="btn abl" style="font-size:14px;padding:8px 16px;" onclick="quickLogin('10001981')">10001981</button>
-      <button class="btn abl" style="font-size:14px;padding:8px 16px;" onclick="quickLogin('10002590')">10002590</button>
-    </div>
   </div>
   <div style="position:absolute;bottom:36px;right:14px;">
     <button class="btn" onclick="closeLoginScreen()">Back</button>
@@ -384,13 +479,46 @@ table tr.row-alt td { background:#f5f5f5; }
       <div style="font-size:12px;color:#555;margin-bottom:6px;">Vyberte dôvod šrotu:</div>
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:4px;" id="zmetkyGrid"></div>
     </div>
-    <div id="zmetkyStep3" style="display:none;padding:14px;">
-      <div style="font-size:13px;font-weight:bold;margin-bottom:12px;">Dôvod: <span id="zmetkyChosenReason" style="color:#cc4400;"></span></div>
-      <label style="font-size:13px;">Počet kusov šrotu:</label>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
-        <button class="btn abl" style="font-size:20px;padding:6px 18px;" onclick="adjustZmetkyCount(-1)">−</button>
-        <input type="number" id="zmetkyCount" min="1" value="1" style="width:90px;text-align:center;font-size:20px;padding:6px;border:1px solid #888;">
-        <button class="btn abl" style="font-size:20px;padding:6px 18px;" onclick="adjustZmetkyCount(1)">+</button>
+    <div id="zmetkyStep3" style="display:none;padding:0;display:none;">
+      <!-- Two-column: left = chosen reason info, right = numpad -->
+      <div style="display:flex;min-height:300px;">
+        <!-- LEFT: list/context -->
+        <div style="width:200px;min-width:140px;border-right:1px solid #ccc;background:#f5f5f5;padding:8px;overflow-y:auto;flex-shrink:0;">
+          <div style="font-size:11px;color:#888;margin-bottom:6px;">Nahlásiť množstvo šrotu</div>
+          <div id="zmetkyLeftList" style="display:flex;flex-direction:column;gap:4px;"></div>
+        </div>
+        <!-- RIGHT: numpad -->
+        <div style="flex:1;display:flex;flex-direction:column;">
+          <div style="background:#e8e8e8;padding:8px 12px;font-size:13px;border-bottom:1px solid #ccc;display:flex;justify-content:space-between;align-items:center;">
+            <span id="zmetkyNumpadTitle" style="font-weight:bold;">Zadajte množstvo</span>
+            <span style="cursor:pointer;font-size:16px;color:#555;" onclick="closeModal('zmetky');zmetkyReset()">✕</span>
+          </div>
+          <div style="background:#fff;padding:8px 12px;border-bottom:1px solid #ddd;">
+            <div id="zmetkyNumpadDisplay" style="font-size:22px;font-weight:bold;background:#cce8ff;padding:4px 8px;min-height:36px;border:1px solid #aaa;">0</div>
+          </div>
+          <div style="flex:1;display:grid;grid-template-columns:repeat(4,1fr);">
+            <button class="znp-btn" onclick="znpDigit('1')">1</button>
+            <button class="znp-btn" onclick="znpDigit('2')">2</button>
+            <button class="znp-btn" onclick="znpDigit('3')">3</button>
+            <button class="znp-btn znp-del" onclick="znpDel()">DEL</button>
+
+            <button class="znp-btn" onclick="znpDigit('4')">4</button>
+            <button class="znp-btn" onclick="znpDigit('5')">5</button>
+            <button class="znp-btn" onclick="znpDigit('6')">6</button>
+            <button class="znp-btn znp-clr" onclick="znpClr()">CLR</button>
+
+            <button class="znp-btn" onclick="znpDigit('7')">7</button>
+            <button class="znp-btn" onclick="znpDigit('8')">8</button>
+            <button class="znp-btn" onclick="znpDigit('9')">9</button>
+            <button class="znp-btn znp-ok" onclick="doZmetky()">OK</button>
+
+            <button class="znp-btn znp-span2" onclick="znpDigit('0')">0</button>
+            <button class="znp-btn" onclick="znpDigit(','">,</button>
+          </div>
+          <div style="border-top:1px solid #ddd;padding:6px;display:flex;justify-content:flex-end;">
+            <button class="btn" onclick="closeModal('zmetky');zmetkyReset()">Zrušenie</button>
+          </div>
+        </div>
       </div>
     </div>
     <div class="modal-footer" style="justify-content:space-between;">
@@ -470,12 +598,35 @@ let orderData=[
   {prikaz:'000007468827',mat:'9301-002L-02',popis:'160B Salka- interne lis. P',ciel:5000,vyr:3360,zm:8,open:182,forma:'WMSW-878-160BCT'},
   {prikaz:'000007468828',mat:'9302-002L-02',popis:'160B Salka - inter. lis. L',ciel:5000,vyr:3360,zm:4,open:186,forma:'WMSW-878-160BCT'}
 ];
-let selectedOrder=0, andonActive=false;
+let selectedOrder=0;
 
 function setMsg(msg,color){ const el=document.getElementById('statusbarMsg'); el.textContent=msg; el.style.color=color||'#990000'; setTimeout(()=>{el.textContent='';},4000); }
 
-// ANDON
-function toggleAndon(){ andonActive=!andonActive; document.getElementById('andonBar').classList.toggle('active',andonActive); setMsg(andonActive?'⚠ ANDON aktivovaný':'ANDON deaktivovaný',andonActive?'#cc0000':'#007700'); }
+// ANDON SCREEN
+function openAndonScreen() {
+  document.getElementById('andonScreen').classList.add('active');
+  document.getElementById('andonCallStatus').textContent='';
+  document.querySelectorAll('.andon-run-btn').forEach(b=>b.classList.remove('active'));
+  // also activate the blinking bar
+  andonActive=true;
+  document.getElementById('andonBar').classList.add('active');
+}
+function closeAndonScreen() {
+  document.getElementById('andonScreen').classList.remove('active');
+}
+function callForHelp(role) {
+  document.querySelectorAll('.andon-run-btn').forEach(b=>b.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  const statusEl=document.getElementById('andonCallStatus');
+  statusEl.style.color='#cc8800';
+  statusEl.textContent='📡 Volám: '+role+'...';
+  setTimeout(()=>{
+    statusEl.style.color='#007700';
+    statusEl.textContent='✔ '+role+' bol upozornený!';
+  },1500);
+  setMsg('ANDON: Zavolaný '+role,'#cc0000');
+}
+let andonActive=false;
 function aktualizovat(){ setMsg('Dáta aktualizované.','#007700'); updateProgress(); }
 
 // ORDERS
@@ -512,20 +663,96 @@ const zmetkyReasons=[
 let zmetkyOrderIdx=0,zmetkyReasonCode='',zmetkyReasonDescr='';
 function buildZmetkyGrid(){ const grid=document.getElementById('zmetkyGrid'); grid.innerHTML=''; zmetkyReasons.forEach(r=>{ const btn=document.createElement('button'); btn.style.cssText='border:1px solid #999;background:#fff;padding:8px 4px;cursor:pointer;text-align:center;font-family:inherit;min-height:52px;width:100%;'; btn.innerHTML=`<div style="font-weight:bold;color:#333;font-size:clamp(10px,2.5vw,13px);">${r.code}</div><div style="color:#555;margin-top:3px;font-size:clamp(9px,2vw,11px);">${r.descr}</div>`; if(r.descr){ btn.onclick=()=>zmetkySelectReason(r.code,r.descr); btn.onmouseover=()=>btn.style.background='#d9e8f5'; btn.onmouseout=()=>btn.style.background='#fff'; } else{ btn.style.background='#f0f0f0'; btn.style.cursor='default'; } grid.appendChild(btn); }); }
 function zmetkySelectOrder(idx,label){ zmetkyOrderIdx=idx; document.getElementById('zmetkyActivePrikaz').textContent=label; document.getElementById('zmetkyStep1').style.display='none'; buildZmetkyGrid(); document.getElementById('zmetkyStep2').style.display='block'; document.getElementById('zmetkyBackBtn').style.display='inline-block'; }
-function zmetkySelectReason(code,descr){ zmetkyReasonCode=code; zmetkyReasonDescr=descr; document.getElementById('zmetkyChosenReason').textContent=code+' — '+descr; document.getElementById('zmetkyStep2').style.display='none'; document.getElementById('zmetkyStep3').style.display='block'; document.getElementById('zmetkyCount').value=1; document.getElementById('zmetkyConfirmBtn').style.display='inline-block'; }
+function zmetkySelectReason(code,descr){
+  zmetkyReasonCode=code; zmetkyReasonDescr=descr;
+  document.getElementById('zmetkyChosenReason').textContent=code+' — '+descr;
+  document.getElementById('zmetkyNumpadTitle').textContent='Zadajte množstvo ('+descr+')';
+  document.getElementById('zmetkyNumpadDisplay').textContent='0';
+  znpValue='';
+  // Populate left list with context reasons
+  const list=document.getElementById('zmetkyLeftList');
+  list.innerHTML='';
+  const nearby=zmetkyReasons.filter(r=>r.descr);
+  nearby.forEach(r=>{
+    const d=document.createElement('div');
+    d.style.cssText='border:1px solid #bbb;background:'+(r.code===code?'#c5d9f1':'#fff')+';padding:5px 6px;cursor:pointer;font-size:clamp(9px,2vw,11px);';
+    d.innerHTML='<div style="font-weight:bold;">'+r.code+'</div><div>'+r.descr+'</div>';
+    d.onclick=()=>zmetkySelectReason(r.code,r.descr);
+    list.appendChild(d);
+  });
+  document.getElementById('zmetkyStep2').style.display='none';
+  document.getElementById('zmetkyStep3').style.display='block';
+  document.getElementById('zmetkyStep3').style.removeProperty('display');
+  // manually show
+  const s3=document.getElementById('zmetkyStep3');
+  s3.style.display='block';
+  document.getElementById('zmetkyConfirmBtn').style.display='inline-block';
+}
+
+// Zmetky numpad
+let znpValue='';
+function znpDigit(d){ if(znpValue.length>=5)return; if(d===','&&znpValue.includes(','))return; znpValue+=d; document.getElementById('zmetkyNumpadDisplay').textContent=znpValue||'0'; }
+function znpDel(){ znpValue=znpValue.slice(0,-1); document.getElementById('zmetkyNumpadDisplay').textContent=znpValue||'0'; }
+function znpClr(){ znpValue=''; document.getElementById('zmetkyNumpadDisplay').textContent='0'; }
 function zmetkyBack(){ if(document.getElementById('zmetkyStep3').style.display!=='none'){ document.getElementById('zmetkyStep3').style.display='none'; document.getElementById('zmetkyConfirmBtn').style.display='none'; document.getElementById('zmetkyStep2').style.display='block'; } else{ document.getElementById('zmetkyStep2').style.display='none'; document.getElementById('zmetkyStep1').style.display='block'; document.getElementById('zmetkyBackBtn').style.display='none'; } }
 function zmetkyReset(){ document.getElementById('zmetkyStep1').style.display='block'; ['zmetkyStep2','zmetkyStep3'].forEach(id=>document.getElementById(id).style.display='none'); document.getElementById('zmetkyBackBtn').style.display='none'; document.getElementById('zmetkyConfirmBtn').style.display='none'; document.getElementById('zmetkyActivePrikaz').textContent='—'; }
 function adjustZmetkyCount(d){ const inp=document.getElementById('zmetkyCount'); inp.value=Math.max(1,(parseInt(inp.value)||1)+d); }
-function doZmetky(){ const cnt=parseInt(document.getElementById('zmetkyCount').value)||0; if(cnt<=0){alert('Zadajte platný počet!');return;} orderData[zmetkyOrderIdx].zm+=cnt; orderData[zmetkyOrderIdx].vyr=Math.max(0,orderData[zmetkyOrderIdx].vyr-cnt); orderData[zmetkyOrderIdx].open=orderData[zmetkyOrderIdx].ciel-orderData[zmetkyOrderIdx].vyr; refreshOrders(); closeModal('zmetky'); zmetkyReset(); setMsg('Šrot zadaný: '+cnt+' ks — '+zmetkyReasonCode+' '+zmetkyReasonDescr,'#cc4400'); }
+function doZmetky(){ const cnt=parseInt(znpValue)||0; if(cnt<=0){znpClr();document.getElementById('zmetkyNumpadDisplay').textContent='!';setTimeout(()=>{document.getElementById('zmetkyNumpadDisplay').textContent='0';},500);return;} orderData[zmetkyOrderIdx].zm+=cnt; orderData[zmetkyOrderIdx].vyr=Math.max(0,orderData[zmetkyOrderIdx].vyr-cnt); orderData[zmetkyOrderIdx].open=orderData[zmetkyOrderIdx].ciel-orderData[zmetkyOrderIdx].vyr; refreshOrders(); closeModal('zmetky'); zmetkyReset(); setMsg('Šrot zadaný: '+cnt+' ks — '+zmetkyReasonCode+' '+zmetkyReasonDescr,'#cc4400'); }
 
-// LOGIN
+// LOGIN + localStorage persistence
 const knownWorkers={'10001981':'Volodymyr Koval','10002590':'Serhii Kapuza'};
+
+function saveWorkers() {
+  const rows=document.querySelector('#workerTable tbody').querySelectorAll('tr');
+  const data=Array.from(rows).map(r=>({id:r.cells[0].textContent,name:r.cells[1].textContent,time:r.cells[2].textContent}));
+  try{localStorage.setItem('jit_workers',JSON.stringify(data));}catch(e){}
+}
+function loadWorkers() {
+  try{
+    const data=JSON.parse(localStorage.getItem('jit_workers')||'[]');
+    const tbody=document.querySelector('#workerTable tbody');
+    data.forEach(w=>{
+      const row=document.createElement('tr');
+      row.innerHTML=`<td>${w.id}</td><td>${w.name}</td><td>${w.time}</td>`;
+      tbody.appendChild(row);
+    });
+  }catch(e){}
+}
+loadWorkers();
+
 function openLoginScreen(){ document.getElementById('loginScreen').classList.add('active'); document.getElementById('loginId').value=''; document.getElementById('loginLookupResult').textContent=''; setTimeout(()=>document.getElementById('loginId').focus(),50); }
 function closeLoginScreen(){ document.getElementById('loginScreen').classList.remove('active'); }
 function loginLookup(val){ const el=document.getElementById('loginLookupResult'); const name=knownWorkers[val.trim()]; if(name){el.textContent='✔ '+name;el.style.color='#007700';} else if(val.length>=4){el.textContent='Pracovník nenájdený';el.style.color='#cc0000';} else{el.textContent='';} }
 function quickLogin(id){ document.getElementById('loginId').value=id; loginLookup(id); doLogin(); }
-function doLogin(){ const id=document.getElementById('loginId').value.trim(); if(!id)return; const name=knownWorkers[id]||('Worker '+id); const tbody=document.querySelector('#workerTable tbody'); if(Array.from(tbody.querySelectorAll('tr')).find(r=>r.cells[0].textContent===id)){ document.getElementById('loginLookupResult').textContent='Už prihlásený!'; document.getElementById('loginLookupResult').style.color='#cc7700'; return; } const now=new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit',second:'2-digit'}); const row=document.createElement('tr'); row.innerHTML=`<td>${id}</td><td>${name}</td><td>${now}</td>`; tbody.appendChild(row); closeLoginScreen(); setMsg('Pracovník prihlásený: '+name,'#007700'); }
-function odhlasenie(){ const tbody=document.querySelector('#workerTable tbody'); const rows=tbody.querySelectorAll('tr'); if(!rows.length){setMsg('Žiadny pracovník prihlásený.');return;} const last=rows[rows.length-1]; const name=last.cells[1].textContent; if(confirm('Odhlásiť pracovníka: '+name+'?')){tbody.removeChild(last);setMsg('Odhlásený: '+name,'#555');} }
+function doLogin(){
+  const id=document.getElementById('loginId').value.trim();
+  if(!id)return;
+  const name=knownWorkers[id]||('Worker '+id);
+  const tbody=document.querySelector('#workerTable tbody');
+  if(Array.from(tbody.querySelectorAll('tr')).find(r=>r.cells[0].textContent===id)){
+    document.getElementById('loginLookupResult').textContent='Už prihlásený!';
+    document.getElementById('loginLookupResult').style.color='#cc7700'; return;
+  }
+  const now=new Date().toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const row=document.createElement('tr');
+  row.innerHTML=`<td>${id}</td><td>${name}</td><td>${now}</td>`;
+  tbody.appendChild(row);
+  saveWorkers();
+  closeLoginScreen();
+  setMsg('Pracovník prihlásený: '+name,'#007700');
+}
+function odhlasenie(){
+  const tbody=document.querySelector('#workerTable tbody');
+  const rows=tbody.querySelectorAll('tr');
+  if(!rows.length){setMsg('Žiadny pracovník prihlásený.');return;}
+  const last=rows[rows.length-1];
+  const name=last.cells[1].textContent;
+  if(confirm('Odhlásiť pracovníka: '+name+'?')){
+    tbody.removeChild(last);
+    saveWorkers();
+    setMsg('Odhlásený: '+name,'#555');
+  }
+}
 
 // BOXOVÉ ETIKETY NUMPAD
 let numpadValue='';
@@ -555,10 +782,202 @@ function doSpotreba(){ const mat=document.getElementById('spotrebaMat').value.tr
 function shutdownPC(){ if(confirm('Naozaj chcete vypnúť počítač?'))setMsg('Počítač sa vypína...','#cc0000'); }
 function showTab(tab){ const m={kusovnik:'Kusovník — zoznam materiálov',uctovanie:'Účtovanie výroby — zadávanie kusov'}; setMsg(m[tab]||tab,'#0055aa'); }
 
+updateProgress();
+
 // Auto-simulation
 setInterval(()=>{ orderData.forEach((d,i)=>{ if(d.vyr<d.ciel&&document.querySelector('.status-vyroba')){ d.vyr+=Math.floor(Math.random()*2); if(d.vyr>d.ciel)d.vyr=d.ciel; d.open=d.ciel-d.vyr; } }); refreshOrders(); },8000);
 
-updateProgress();
+// ===== FACTORY GAME =====
+function openGame(){
+  document.getElementById('gameScreen').classList.add('active');
+  initGame();
+}
+function closeGame(){
+  document.getElementById('gameScreen').classList.remove('active');
+  cancelAnimationFrame(gRAF);
+  gRunning=false;
+}
+
+const GW=400, GH=360;
+let gCanvas,gCtx,gRAF,gRunning=false;
+let gScore,gLives,gLevel,gWorker,gItems,gFrame,gSpeed,gSpawnRate;
+
+function initGame(){
+  gCanvas=document.getElementById('gameCanvas');
+  gCanvas.width=GW; gCanvas.height=GH;
+  gCtx=gCanvas.getContext('2d');
+  const ov=document.getElementById('gOverlay');
+  ov.style.position='absolute'; ov.style.top='50%'; ov.style.left='50%'; ov.style.transform='translate(-50%,-50%)';
+  showOverlay('🏭 TOVÁREŇ\nChytaj plastové diely!\nVyhýbaj sa chybným (červeným)!');
+}
+function showOverlay(text){ document.getElementById('gOverlayText').innerHTML=text.replace(/\n/g,'<br>'); document.getElementById('gOverlay').style.display='block'; }
+function hideOverlay(){ document.getElementById('gOverlay').style.display='none'; }
+
+function startGame(){
+  hideOverlay();
+  gScore=0; gLives=3; gLevel=1;
+  const LANES=[GW*0.2,GW*0.4,GW*0.6,GW*0.8];
+  gWorker={lane:1,x:LANES[1],y:GH-55,armAngle:0,armDir:1,lanes:LANES};
+  gItems=[]; gFrame=0; gSpeed=2.2; gSpawnRate=60; gRunning=true;
+  updateGameHUD(); cancelAnimationFrame(gRAF); gameLoop();
+}
+
+function updateGameHUD(){
+  document.getElementById('gScore').textContent=gScore;
+  document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,gLives));
+  document.getElementById('gLevel').textContent=gLevel;
+}
+
+let gFlash=0,gFlashColor='';
+function flashScreen(col){gFlash=8;gFlashColor=col;}
+
+function gameLoop(){
+  if(!gRunning)return;
+  gFrame++;
+  // Move worker smoothly
+  const tx=gWorker.lanes[gWorker.lane];
+  gWorker.x+=(tx-gWorker.x)*0.18;
+  gWorker.armAngle+=0.12*gWorker.armDir;
+  if(gWorker.armAngle>0.5||gWorker.armAngle<-0.5)gWorker.armDir*=-1;
+  // Spawn
+  if(gFrame%gSpawnRate===0){
+    const lane=Math.floor(Math.random()*4);
+    const bad=Math.random()<(0.22+gLevel*0.04);
+    gItems.push({lane,x:gWorker.lanes[lane],y:-20,bad,speed:gSpeed+Math.random()*0.8});
+  }
+  // Update items
+  for(let i=gItems.length-1;i>=0;i--){
+    const it=gItems[i]; it.y+=it.speed;
+    if(it.y>GH-80&&it.y<GH-38&&Math.abs(it.x-gWorker.x)<30){
+      if(!it.bad){gScore+=10*gLevel; if(gScore>0&&gScore%(200*gLevel)===0){gLevel++;gSpeed=Math.min(gSpeed+0.3,7);gSpawnRate=Math.max(28,gSpawnRate-5);}}
+      else{gLives--;flashScreen('#ff000066');}
+      gItems.splice(i,1); updateGameHUD(); if(gLives<=0){gameOver();return;} continue;
+    }
+    if(it.y>GH+20){
+      if(!it.bad){gLives--;flashScreen('#ff660044');updateGameHUD();if(gLives<=0){gameOver();return;}}
+      gItems.splice(i,1);
+    }
+  }
+  // Draw
+  const c=gCtx;
+  c.fillStyle='#1e1e1e'; c.fillRect(0,0,GW,GH);
+  // Conveyor belt
+  c.fillStyle='#2a2a2a'; c.fillRect(0,0,GW,22);
+  c.fillStyle='#444';
+  for(let x=(gFrame*1.8)%50;x<GW;x+=50){c.fillRect(x,3,36,16);}
+  c.strokeStyle='#555'; c.lineWidth=2;
+  c.strokeRect(0,0,GW,22);
+  // Lane guides
+  gWorker.lanes.forEach((lx,i)=>{
+    c.fillStyle=i===gWorker.lane?'rgba(0,255,0,0.06)':'rgba(255,255,255,0.02)';
+    c.fillRect(lx-26,0,52,GH);
+    c.strokeStyle='#333'; c.lineWidth=1;
+    c.beginPath();c.setLineDash([4,8]);c.moveTo(lx,22);c.lineTo(lx,GH-55);c.stroke();c.setLineDash([]);
+  });
+  // Floor
+  c.fillStyle='#252525'; c.fillRect(0,GH-50,GW,50);
+  c.fillStyle='#2f2f2f';
+  for(let x=0;x<GW;x+=44){c.fillRect(x,GH-48,40,2);}
+  // Items
+  gItems.forEach(it=>drawPart(c,it.x,it.y,it.bad));
+  // Worker
+  drawWorker(c,gWorker.x,gWorker.y,gWorker.armAngle);
+  // Flash
+  if(gFlash>0){c.fillStyle=gFlashColor;c.fillRect(0,0,GW,GH);gFlash--;}
+  gRAF=requestAnimationFrame(gameLoop);
+}
+
+function gameOver(){ gRunning=false; showOverlay('💀 KONIEC HRY\nSkóre: '+gScore+'\nÚroveň: '+gLevel); }
+
+function drawPart(c,x,y,bad){
+  c.save(); c.translate(x,y);
+  // Part body
+  c.fillStyle=bad?'#b82020':'#4477aa';
+  c.strokeStyle=bad?'#ff5555':'#77aadd';
+  c.lineWidth=1.5;
+  c.beginPath(); c.roundRect(-15,-9,30,18,5); c.fill(); c.stroke();
+  // Inner detail
+  c.fillStyle=bad?'#ff8888':'#99ccee';
+  c.fillRect(-9,-4,7,8); c.fillRect(2,-4,7,8);
+  // Connector nub
+  c.fillStyle=bad?'#cc3333':'#3366aa';
+  c.beginPath(); c.roundRect(-4,9,8,5,2); c.fill();
+  if(bad){
+    // X mark
+    c.strokeStyle='#ffff00'; c.lineWidth=2;
+    c.beginPath();c.moveTo(-6,-6);c.lineTo(6,6);c.stroke();
+    c.beginPath();c.moveTo(6,-6);c.lineTo(-6,6);c.stroke();
+  }
+  c.restore();
+}
+
+function drawWorker(c,x,y,arm){
+  c.save(); c.translate(x,y);
+  // Shadow
+  c.fillStyle='rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(0,40,16,4,0,0,Math.PI*2); c.fill();
+  // Legs
+  c.fillStyle='#334'; c.fillRect(-10,20,8,22); c.fillRect(2,20,8,22);
+  // Shoes
+  c.fillStyle='#111'; c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
+  c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
+  // Body — dark gray t-shirt
+  c.fillStyle='#3a3a3a';
+  c.beginPath(); c.roundRect(-13,0,26,22,4); c.fill();
+  // Logo on shirt (small Magna-like dot)
+  c.fillStyle='#cc0000'; c.beginPath(); c.arc(0,10,3,0,Math.PI*2); c.fill();
+  // Left arm
+  c.save(); c.translate(-13,5); c.rotate(-arm-0.4);
+  c.fillStyle='#b07050'; c.fillRect(-3,-2,6,16);
+  c.fillStyle='#e8c89a'; c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
+  c.restore();
+  // Right arm
+  c.save(); c.translate(13,5); c.rotate(arm+0.4);
+  c.fillStyle='#b07050'; c.fillRect(-3,-2,6,16);
+  c.fillStyle='#e8c89a'; c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
+  c.restore();
+  // Neck
+  c.fillStyle='#c8956a'; c.fillRect(-4,-5,8,8);
+  // Head
+  c.fillStyle='#c8956a'; c.beginPath(); c.arc(0,-15,11,0,Math.PI*2); c.fill();
+  // Hair
+  c.fillStyle='#2a1a0a'; c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill(); c.fillRect(-11,-20,22,6);
+  // Hard hat
+  c.fillStyle='#e8d000';
+  c.beginPath(); c.ellipse(0,-23,13,7,0,Math.PI,0); c.fill();
+  c.fillRect(-13,-25,26,4);
+  c.fillStyle='#ccbb00'; c.fillRect(-15,-23,4,6); c.fillRect(11,-23,4,6);
+  // Eyes
+  c.fillStyle='#111'; c.beginPath();c.arc(-4,-15,1.8,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(4,-15,1.8,0,Math.PI*2);c.fill();
+  // Mouth
+  c.strokeStyle='#8b5a3a'; c.lineWidth=1.5;
+  c.beginPath();c.arc(0,-11,3.5,0.2,Math.PI-0.2);c.stroke();
+  c.restore();
+}
+
+function gMoveLeft(){ if(gWorker&&gWorker.lane>0)gWorker.lane--; }
+function gMoveRight(){ if(gWorker&&gWorker.lane<3)gWorker.lane++; }
+
+document.addEventListener('keydown',e=>{
+  if(!gRunning)return;
+  if(e.key==='ArrowLeft'){e.preventDefault();gMoveLeft();}
+  if(e.key==='ArrowRight'){e.preventDefault();gMoveRight();}
+});
+
+// Touch swipe on canvas
+let gTX=null;
+document.addEventListener('DOMContentLoaded',()=>{
+  const cv=document.getElementById('gameCanvas');
+  if(!cv)return;
+  cv.addEventListener('touchstart',e=>{gTX=e.touches[0].clientX;},{passive:true});
+  cv.addEventListener('touchend',e=>{
+    if(gTX===null)return;
+    const dx=e.changedTouches[0].clientX-gTX;
+    if(dx<-30)gMoveLeft(); else if(dx>30)gMoveRight();
+    gTX=null;
+  },{passive:true});
+});
+
 </script>
 </body>
 </html>
