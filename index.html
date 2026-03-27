@@ -137,6 +137,7 @@ table tr.row-alt td { background:#f5f5f5; }
 .andon-run-btn:active { background:#a8a8a8; box-shadow:inset 1px 1px 3px rgba(0,0,0,0.3); }
 .andon-run-btn.active { background:#ff6600; color:#fff; border-color:#cc4400; animation:runblink 0.8s step-start infinite; }
 @keyframes runblink { 50% { background:#ff9900; } }
+@keyframes slideDown { from{transform:translateY(-40px);opacity:0;} to{transform:translateY(0);opacity:1;} }
 </style>
 </head>
 <body>
@@ -273,7 +274,7 @@ table tr.row-alt td { background:#f5f5f5; }
       <button onclick="closeGame()" style="background:#444;color:#eee;border-color:#666;">✕</button>
     </div>
   </div>
-  <div style="background:#1a1a1a;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px;gap:6px;overflow:hidden;">
+  <div style="background:#1a1a1a;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:8px;gap:6px;overflow:hidden;position:relative;">
     <!-- Score row -->
     <div style="display:flex;gap:20px;font-family:monospace;font-size:16px;font-weight:bold;color:#0f0;background:#111;border:1px solid #333;padding:4px 16px;border-radius:4px;width:100%;max-width:500px;justify-content:space-between;">
       <span>SKÓRE: <span id="gScore">0</span></span>
@@ -292,10 +293,46 @@ table tr.row-alt td { background:#f5f5f5; }
       <button id="gBtnLeft" style="background:#333;color:#fff;border:2px solid #555;padding:12px 36px;font-size:26px;cursor:pointer;border-radius:6px;touch-action:manipulation;">◀</button>
       <button id="gBtnRight" style="background:#333;color:#fff;border:2px solid #555;padding:12px 36px;font-size:26px;cursor:pointer;border-radius:6px;touch-action:manipulation;">▶</button>
     </div>
-    <div id="gOverlay" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);color:#fff;padding:24px 32px;text-align:center;border:2px solid #555;border-radius:8px;z-index:10;">
-      <div id="gOverlayText" style="font-size:20px;font-weight:bold;margin-bottom:12px;"></div>
-      <button onclick="startGame()" style="background:#0a8a0a;color:#fff;border:none;padding:10px 28px;font-size:16px;cursor:pointer;border-radius:4px;">HRAŤ</button>
+
+    <!-- Main overlay (start / game over / char select) -->
+    <div id="gOverlay" style="display:none;position:absolute;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.88);color:#fff;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:10;padding:20px;">
+
+      <!-- Start screen -->
+      <div id="gScreenStart" style="display:flex;flex-direction:column;align-items:center;gap:14px;text-align:center;">
+        <div style="font-size:24px;font-weight:bold;">🏭 LISOVNA</div>
+        <div style="font-size:13px;color:#aaa;">Chytaj plastové diely!<br>Červené = chybné → stráca životy!</div>
+        <div style="font-size:15px;font-weight:bold;color:#ff0;">Vyber si postavu:</div>
+        <div style="display:flex;gap:20px;justify-content:center;">
+          <div onclick="selectChar('male')" id="gCharM" style="cursor:pointer;border:3px solid #555;border-radius:8px;padding:12px 18px;background:#222;transition:border-color 0.2s;text-align:center;">
+            <canvas id="gPreviewM" width="60" height="90"></canvas>
+            <div style="margin-top:6px;font-size:13px;">👨 Muž</div>
+          </div>
+          <div onclick="selectChar('female')" id="gCharF" style="cursor:pointer;border:3px solid #555;border-radius:8px;padding:12px 18px;background:#222;transition:border-color 0.2s;text-align:center;">
+            <canvas id="gPreviewF" width="60" height="90"></canvas>
+            <div style="margin-top:6px;font-size:13px;">👩 Žena</div>
+          </div>
+        </div>
+        <button onclick="startGame()" style="background:#0a8a0a;color:#fff;border:none;padding:11px 32px;font-size:16px;cursor:pointer;border-radius:6px;font-weight:bold;">HRAŤ ▶</button>
+      </div>
+
+      <!-- Game over screen -->
+      <div id="gScreenOver" style="display:none;flex-direction:column;align-items:center;gap:14px;text-align:center;">
+        <canvas id="gMajsterCanvas" width="80" height="120"></canvas>
+        <div id="gOverlayText" style="font-size:18px;font-weight:bold;"></div>
+        <div id="gMajsterQuote" style="font-size:13px;color:#ffaaaa;font-style:italic;max-width:260px;"></div>
+        <div style="display:flex;gap:10px;">
+          <button onclick="showStart()" style="background:#333;color:#fff;border:1px solid #666;padding:9px 20px;font-size:14px;cursor:pointer;border-radius:5px;">← Späť</button>
+          <button onclick="startGame()" style="background:#0a8a0a;color:#fff;border:none;padding:9px 24px;font-size:14px;cursor:pointer;border-radius:5px;font-weight:bold;">ZNOVA ▶</button>
+        </div>
+      </div>
+
     </div>
+
+    <!-- Predak notification banner -->
+    <div id="gPredakBanner" style="display:none;position:absolute;top:28px;left:0;right:0;background:rgba(255,140,0,0.92);color:#fff;font-weight:bold;font-size:14px;text-align:center;padding:6px;z-index:9;animation:slideDown 0.3s ease;">
+      ⚠️ PREDÁK PRICHÁDZA! Rýchlejšie! ⚠️
+    </div>
+
   </div>
 </div>
 
@@ -787,252 +824,491 @@ updateProgress();
 // Auto-simulation
 setInterval(()=>{ orderData.forEach((d,i)=>{ if(d.vyr<d.ciel&&document.querySelector('.status-vyroba')){ d.vyr+=Math.floor(Math.random()*2); if(d.vyr>d.ciel)d.vyr=d.ciel; d.open=d.ciel-d.vyr; } }); refreshOrders(); },8000);
 
-// ===== FACTORY GAME =====
-function openGame(){
-  document.getElementById('gameScreen').classList.add('active');
-  initGame();
+
+// ===== LISOVNA GAME =====
+let gSelectedChar='male';
+function openGame(){ document.getElementById('gameScreen').classList.add('active'); initGame(); }
+function closeGame(){ document.getElementById('gameScreen').classList.remove('active'); cancelAnimationFrame(gRAF); gRunning=false; }
+
+function showStart(){
+  document.getElementById('gOverlay').style.display='flex';
+  document.getElementById('gScreenStart').style.display='flex';
+  document.getElementById('gScreenOver').style.display='none';
+  drawCharPreviews();
 }
-function closeGame(){
-  document.getElementById('gameScreen').classList.remove('active');
-  cancelAnimationFrame(gRAF);
-  gRunning=false;
+function showGameOver(text,quote){
+  document.getElementById('gOverlay').style.display='flex';
+  document.getElementById('gScreenStart').style.display='none';
+  const over=document.getElementById('gScreenOver');
+  over.style.display='flex';
+  document.getElementById('gOverlayText').innerHTML=text;
+  document.getElementById('gMajsterQuote').textContent=quote||'';
+  drawMajsterPreview();
+}
+function hideOverlay(){ document.getElementById('gOverlay').style.display='none'; }
+
+function selectChar(ch){
+  gSelectedChar=ch;
+  document.getElementById('gCharM').style.borderColor=ch==='male'?'#0f0':'#555';
+  document.getElementById('gCharF').style.borderColor=ch==='female'?'#0f0':'#555';
+  drawCharPreviews();
+}
+function drawCharPreviews(){
+  ['male','female'].forEach(g=>{
+    const id=g==='male'?'gPreviewM':'gPreviewF';
+    const el=document.getElementById(id); if(!el)return;
+    const c=el.getContext('2d'); c.clearRect(0,0,60,90);
+    c.save(); c.translate(30,72); c.scale(0.75,0.75); drawWorkerFigure(c,g,0); c.restore();
+  });
+  document.getElementById('gCharM').style.borderColor=gSelectedChar==='male'?'#0f0':'#555';
+  document.getElementById('gCharF').style.borderColor=gSelectedChar==='female'?'#0f0':'#555';
+}
+function drawMajsterPreview(){
+  const el=document.getElementById('gMajsterCanvas'); if(!el)return;
+  const c=el.getContext('2d'); c.clearRect(0,0,80,120);
+  c.save(); c.translate(40,92); c.scale(0.85,0.85); drawMajster(c,0); c.restore();
 }
 
-const GW=400, GH=360;
+const GW=400,GH=360;
 let gCanvas,gCtx,gRAF,gRunning=false;
 let gScore,gLives,gLevel,gWorker,gItems,gFrame,gSpeed,gSpawnRate;
+let gPredakActive=false,gPredakTimer=0,gPredakX=0,gPredakDir=-1;
+let gSkladnikX=-200,gSkladnikActive=false,gSkladnikTimer=600;
+let gFlash=0,gFlashColor='';
+
+const MAJSTER_QUOTES=[
+  'Čo to robíš?! Moja babička by to urobila rýchlejšie!',
+  'To nie je možné! Pozri koľko dielov si pustil!',
+  'Takto sa to nerobí! Zajtra máme audit!',
+  'Nie som spokojný! Zavolaj vedúceho!',
+  'Reklamácia!! Toto je katastrofa!',
+  'Kto ťa naučil takto pracovať?!',
+];
 
 function initGame(){
   gCanvas=document.getElementById('gameCanvas');
   gCanvas.width=GW; gCanvas.height=GH;
   gCtx=gCanvas.getContext('2d');
-  const ov=document.getElementById('gOverlay');
-  ov.style.position='absolute'; ov.style.top='50%'; ov.style.left='50%'; ov.style.transform='translate(-50%,-50%)';
-  showOverlay('🏭 LISOVNA\nChytaj plastové diely!\nVyhýbaj sa chybným (červeným)!');
+  showStart();
 }
-function showOverlay(text){ document.getElementById('gOverlayText').innerHTML=text.replace(/\n/g,'<br>'); document.getElementById('gOverlay').style.display='block'; }
-function hideOverlay(){ document.getElementById('gOverlay').style.display='none'; }
 
 function startGame(){
   hideOverlay();
   gScore=0; gLives=3; gLevel=1;
   const LANES=[GW*0.2,GW*0.4,GW*0.6,GW*0.8];
   gWorker={lane:1,x:LANES[1],y:GH-55,armAngle:0,armDir:1,lanes:LANES};
-  gItems=[]; gFrame=0; gSpeed=2.2; gSpawnRate=60; gRunning=true;
+  gItems=[]; gFrame=0; gSpeed=2.2; gSpawnRate=60;
+  gPredakActive=false; gPredakTimer=0; gPredakX=GW+60; gPredakDir=-1;
+  gSkladnikX=GW+100; gSkladnikActive=false; gSkladnikTimer=500+Math.floor(Math.random()*300);
+  gRunning=true;
+  document.getElementById('gPredakBanner').style.display='none';
   updateGameHUD(); cancelAnimationFrame(gRAF); gameLoop();
 }
 
 function updateGameHUD(){
   document.getElementById('gScore').textContent=gScore;
   document.getElementById('gLives').textContent='❤️'.repeat(Math.max(0,gLives));
-  document.getElementById('gLevel').textContent=gLevel;
+  document.getElementById('gLevel').textContent=gLevel+(gPredakActive?' 🔥':'');
 }
-
-let gFlash=0,gFlashColor='';
-function flashScreen(col){gFlash=8;gFlashColor=col;}
+function flashScreen(col){gFlash=10;gFlashColor=col;}
 
 function gameLoop(){
   if(!gRunning)return;
   gFrame++;
-  // Move worker smoothly
-  const tx=gWorker.lanes[gWorker.lane];
-  gWorker.x+=(tx-gWorker.x)*0.18;
+  const LANES=gWorker.lanes;
+
+  // Worker movement
+  gWorker.x+=(LANES[gWorker.lane]-gWorker.x)*0.18;
   gWorker.armAngle+=0.12*gWorker.armDir;
-  if(gWorker.armAngle>0.5||gWorker.armAngle<-0.5)gWorker.armDir*=-1;
-  // Spawn
+  if(gWorker.armAngle>0.55||gWorker.armAngle<-0.55)gWorker.armDir*=-1;
+
+  // Predak — appears every ~700 frames
+  if(!gPredakActive&&gFrame>200&&gFrame%700===0){
+    gPredakActive=true; gPredakTimer=260;
+    gPredakX=GW+60; gPredakDir=-1;
+    document.getElementById('gPredakBanner').style.display='block';
+    gSpeed=Math.min(gSpeed+1.4,10); gSpawnRate=Math.max(20,gSpawnRate-14);
+    updateGameHUD();
+  }
+  if(gPredakActive){
+    gPredakX+=gPredakDir*1.6;
+    gPredakTimer--;
+    if(gPredakX<40&&gPredakDir<0)gPredakDir=1;
+    if(gPredakX>GW-30&&gPredakDir>0)gPredakDir=-1;
+    if(gPredakTimer<=0){
+      gPredakActive=false;
+      document.getElementById('gPredakBanner').style.display='none';
+      gSpeed=Math.max(gSpeed-0.9,2.2+gLevel*0.22);
+      gSpawnRate=Math.min(gSpawnRate+10,62-gLevel*4);
+      updateGameHUD();
+    }
+  }
+
+  // Skladnik walks across
+  gSkladnikTimer--;
+  if(gSkladnikTimer<=0&&!gSkladnikActive){
+    gSkladnikActive=true; gSkladnikX=GW+120;
+    gSkladnikTimer=600+Math.floor(Math.random()*500);
+  }
+  if(gSkladnikActive){
+    gSkladnikX-=1.4;
+    if(gSkladnikX<-200)gSkladnikActive=false;
+  }
+
+  // Level up
+  if(gScore>0&&gScore%(300*gLevel)===0&&!gPredakActive){
+    gLevel++; gSpeed=Math.min(gSpeed+0.2,7);
+    gSpawnRate=Math.max(32,gSpawnRate-4);
+    updateGameHUD();
+  }
+
+  // Spawn items
   if(gFrame%gSpawnRate===0){
     const lane=Math.floor(Math.random()*4);
-    const bad=Math.random()<(0.22+gLevel*0.04);
-    gItems.push({lane,x:gWorker.lanes[lane],y:-20,bad,speed:gSpeed+Math.random()*0.8});
+    const bad=Math.random()<(0.22+gLevel*0.04+(gPredakActive?0.12:0));
+    gItems.push({lane,x:LANES[lane],y:-20,bad,speed:gSpeed+Math.random()*0.9});
   }
-  // Update items
+
+  // Update + catch
   for(let i=gItems.length-1;i>=0;i--){
     const it=gItems[i]; it.y+=it.speed;
-    if(it.y>GH-80&&it.y<GH-38&&Math.abs(it.x-gWorker.x)<30){
-      if(!it.bad){gScore+=10*gLevel; if(gScore>0&&gScore%(200*gLevel)===0){gLevel++;gSpeed=Math.min(gSpeed+0.3,7);gSpawnRate=Math.max(28,gSpawnRate-5);}}
-      else{gLives--;flashScreen('#ff000066');}
-      gItems.splice(i,1); updateGameHUD(); if(gLives<=0){gameOver();return;} continue;
+    if(it.y>GH-82&&it.y<GH-36&&Math.abs(it.x-gWorker.x)<32){
+      if(!it.bad)gScore+=10*gLevel;
+      else{gLives--;flashScreen('#ff000088');}
+      gItems.splice(i,1); updateGameHUD();
+      if(gLives<=0){gameOver();return;} continue;
     }
     if(it.y>GH+20){
-      if(!it.bad){gLives--;flashScreen('#ff660044');updateGameHUD();if(gLives<=0){gameOver();return;}}
+      if(!it.bad){gLives--;flashScreen('#ff550055');updateGameHUD();if(gLives<=0){gameOver();return;}}
       gItems.splice(i,1);
     }
   }
-  // Draw
-  const c=gCtx;
-  c.fillStyle='#1e1e1e'; c.fillRect(0,0,GW,GH);
-  // Conveyor belt
-  c.fillStyle='#2a2a2a'; c.fillRect(0,0,GW,22);
-  c.fillStyle='#444';
-  for(let x=(gFrame*1.8)%50;x<GW;x+=50){c.fillRect(x,3,36,16);}
-  c.strokeStyle='#555'; c.lineWidth=2;
-  c.strokeRect(0,0,GW,22);
-  // Lane guides
-  gWorker.lanes.forEach((lx,i)=>{
-    c.fillStyle=i===gWorker.lane?'rgba(0,255,0,0.06)':'rgba(255,255,255,0.02)';
-    c.fillRect(lx-26,0,52,GH);
-    c.strokeStyle='#333'; c.lineWidth=1;
-    c.beginPath();c.setLineDash([4,8]);c.moveTo(lx,22);c.lineTo(lx,GH-55);c.stroke();c.setLineDash([]);
-  });
-  // Floor
-  c.fillStyle='#252525'; c.fillRect(0,GH-50,GW,50);
-  c.fillStyle='#2f2f2f';
-  for(let x=0;x<GW;x+=44){c.fillRect(x,GH-48,40,2);}
-  // Items
-  gItems.forEach(it=>drawPart(c,it.x,it.y,it.bad));
-  // Worker
-  drawWorker(c,gWorker.x,gWorker.y,gWorker.armAngle);
-  // Flash
-  if(gFlash>0){c.fillStyle=gFlashColor;c.fillRect(0,0,GW,GH);gFlash--;}
+  draw();
   gRAF=requestAnimationFrame(gameLoop);
 }
 
-function gameOver(){ gRunning=false; showOverlay('💀 KONIEC HRY\nSkóre: '+gScore+'\nÚroveň: '+gLevel); }
+function gameOver(){
+  gRunning=false;
+  const q=MAJSTER_QUOTES[Math.floor(Math.random()*MAJSTER_QUOTES.length)];
+  showGameOver('💀 KONIEC HRY<br><span style="font-size:14px;color:#bbb;">Skóre: '+gScore+' | Úroveň: '+gLevel+'</span>',q);
+}
 
+function draw(){
+  const c=gCtx;
+  c.fillStyle='#1e1e1e'; c.fillRect(0,0,GW,GH);
+
+  // Conveyor belt
+  c.fillStyle='#252525'; c.fillRect(0,0,GW,26);
+  const bx=(gFrame*2.2)%64;
+  for(let x=bx-64;x<GW;x+=64){
+    c.fillStyle='#3c3c3c'; c.fillRect(x,2,48,22);
+    c.fillStyle='#2a2a2a'; c.fillRect(x+48,2,16,22);
+  }
+  c.strokeStyle='#666';c.lineWidth=2;c.strokeRect(0,0,GW,26);
+  // Rollers at ends
+  c.fillStyle='#555';
+  c.beginPath();c.arc(0,13,13,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(GW,13,13,0,Math.PI*2);c.fill();
+  c.fillStyle='#777';
+  c.beginPath();c.arc(0,13,6,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(GW,13,6,0,Math.PI*2);c.fill();
+
+  // Lane guides
+  gWorker.lanes.forEach((lx,i)=>{
+    c.fillStyle=i===gWorker.lane?'rgba(0,255,0,0.05)':'rgba(255,255,255,0.015)';
+    c.fillRect(lx-26,0,52,GH);
+    c.strokeStyle='#2c2c2c';c.lineWidth=1;
+    c.beginPath();c.setLineDash([4,12]);c.moveTo(lx,26);c.lineTo(lx,GH-54);c.stroke();c.setLineDash([]);
+  });
+
+  // Floor
+  c.fillStyle='#181818'; c.fillRect(0,GH-50,GW,50);
+  for(let x=0;x<GW;x+=50){
+    c.fillStyle='#222';c.fillRect(x,GH-48,48,8);
+    c.fillStyle='#1c1c1c';c.fillRect(x,GH-40,48,3);
+  }
+
+  // Skladnik
+  if(gSkladnikActive) drawSkladnik(c,gSkladnikX,GH-50);
+
+  // Items
+  gItems.forEach(it=>drawPart(c,it.x,it.y,it.bad));
+
+  // Worker
+  drawWorkerFigure(c,gSelectedChar,gWorker.armAngle,gWorker.x,gWorker.y);
+
+  // Predak
+  if(gPredakActive) drawPredak(c,gPredakX,GH-50,gPredakDir);
+
+  // Flash
+  if(gFlash>0){c.fillStyle=gFlashColor;c.fillRect(0,0,GW,GH);gFlash--;}
+}
+
+// ===== DRAW PART =====
 function drawPart(c,x,y,bad){
-  c.save(); c.translate(x,y);
-  // Part body
-  c.fillStyle=bad?'#b82020':'#4477aa';
-  c.strokeStyle=bad?'#ff5555':'#77aadd';
+  c.save();c.translate(x,y);
+  c.fillStyle=bad?'#aa1818':'#3a6a99';
+  c.strokeStyle=bad?'#ff5555':'#6699cc';
   c.lineWidth=1.5;
-  c.beginPath(); c.roundRect(-15,-9,30,18,5); c.fill(); c.stroke();
-  // Inner detail
-  c.fillStyle=bad?'#ff8888':'#99ccee';
-  c.fillRect(-9,-4,7,8); c.fillRect(2,-4,7,8);
-  // Connector nub
-  c.fillStyle=bad?'#cc3333':'#3366aa';
-  c.beginPath(); c.roundRect(-4,9,8,5,2); c.fill();
+  c.beginPath();c.roundRect(-16,-10,32,20,5);c.fill();c.stroke();
+  c.fillStyle=bad?'#ff7777':'#88bbdd';
+  c.fillRect(-10,-5,8,10);c.fillRect(2,-5,8,10);
+  c.fillStyle=bad?'#881111':'#2255aa';
+  c.beginPath();c.roundRect(-5,10,10,6,2);c.fill();
   if(bad){
-    // X mark
-    c.strokeStyle='#ffff00'; c.lineWidth=2;
-    c.beginPath();c.moveTo(-6,-6);c.lineTo(6,6);c.stroke();
-    c.beginPath();c.moveTo(6,-6);c.lineTo(-6,6);c.stroke();
+    c.strokeStyle='#ffee00';c.lineWidth=2;
+    c.beginPath();c.moveTo(-7,-7);c.lineTo(7,7);c.stroke();
+    c.beginPath();c.moveTo(7,-7);c.lineTo(-7,7);c.stroke();
   }
   c.restore();
 }
 
-function drawWorker(c,x,y,arm){
-  c.save(); c.translate(x,y);
+// ===== DRAW WORKER =====
+function drawWorkerFigure(c,gender,arm,wx,wy){
+  c.save();
+  if(wx!==undefined)c.translate(wx,wy);
+  const fem=gender==='female';
+  const skin=fem?'#d4956a':'#c8845a';
+  const hair=fem?'#7a3a10':'#1e1208';
+
   // Shadow
-  c.fillStyle='rgba(0,0,0,0.25)'; c.beginPath(); c.ellipse(0,40,16,4,0,0,Math.PI*2); c.fill();
+  c.fillStyle='rgba(0,0,0,0.2)';c.beginPath();c.ellipse(0,40,15,4,0,0,Math.PI*2);c.fill();
   // Legs
-  c.fillStyle='#334'; c.fillRect(-10,20,8,22); c.fillRect(2,20,8,22);
+  if(fem){
+    c.fillStyle='#225588';
+    c.beginPath();c.moveTo(-11,20);c.lineTo(11,20);c.lineTo(9,42);c.lineTo(-9,42);c.closePath();c.fill();
+  } else {
+    c.fillStyle='#334455';c.fillRect(-10,20,8,22);c.fillRect(2,20,8,22);
+  }
   // Shoes
-  c.fillStyle='#111'; c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
+  c.fillStyle='#111';
+  c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
   c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
-  // Body — dark gray t-shirt
+  // Body
   c.fillStyle='#3a3a3a';
-  c.beginPath(); c.roundRect(-13,0,26,22,4); c.fill();
-  // Shirt collar V-neck detail
-  c.fillStyle='#2a2a2a';
-  c.beginPath();c.moveTo(-5,-1);c.lineTo(0,5);c.lineTo(5,-1);c.closePath();c.fill();
-  // Logo on shirt
-  c.fillStyle='#cc0000'; c.beginPath(); c.arc(0,12,2.5,0,Math.PI*2); c.fill();
-  // Left arm
-  c.save(); c.translate(-13,5); c.rotate(-arm-0.4);
-  c.fillStyle='#b07050'; c.fillRect(-3,-2,6,16);
-  c.fillStyle='#e8c89a'; c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
+  c.beginPath();c.roundRect(-13,0,26,fem?24:22,4);c.fill();
+  c.fillStyle='#2a2a2a';c.beginPath();c.moveTo(-4,0);c.lineTo(0,6);c.lineTo(4,0);c.closePath();c.fill();
+  c.fillStyle='#cc0000';c.beginPath();c.arc(0,13,2.5,0,Math.PI*2);c.fill();
+  // Arms
+  c.save();c.translate(-13,5);c.rotate(-arm-0.4);
+  c.fillStyle=skin;c.fillRect(-3,-2,6,16);
+  c.fillStyle=fem?'#e8c0a0':'#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
   c.restore();
-  // Right arm
-  c.save(); c.translate(13,5); c.rotate(arm+0.4);
-  c.fillStyle='#b07050'; c.fillRect(-3,-2,6,16);
-  c.fillStyle='#e8c89a'; c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
+  c.save();c.translate(13,5);c.rotate(arm+0.4);
+  c.fillStyle=skin;c.fillRect(-3,-2,6,16);
+  c.fillStyle=fem?'#e8c0a0':'#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
   c.restore();
-  // Neck
-  c.fillStyle='#c8956a'; c.fillRect(-4,-5,8,8);
-  // Head
-  c.fillStyle='#c8956a'; c.beginPath(); c.arc(0,-15,11,0,Math.PI*2); c.fill();
-  // Short dark hair (no helmet)
-  c.fillStyle='#1e1208';
-  c.beginPath(); c.arc(0,-19,11,Math.PI,0); c.fill();
-  c.fillRect(-11,-21,22,5);
-  // Sideburns
-  c.fillRect(-11,-21,4,8);
-  c.fillRect(7,-21,4,8);
+  // Neck + Head
+  c.fillStyle=skin;c.fillRect(-4,-5,8,8);
+  c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
+  // Hair
+  c.fillStyle=hair;
+  c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();
+  c.fillRect(-11,-20,22,5);
+  if(fem){
+    c.beginPath();c.ellipse(-11,-13,4,9,0.25,0,Math.PI*2);c.fill();
+    c.beginPath();c.ellipse(11,-13,4,9,-0.25,0,Math.PI*2);c.fill();
+  } else {
+    c.fillRect(-11,-21,4,8);c.fillRect(7,-21,4,8);
+  }
   // Eyes
-  c.fillStyle='#111'; c.beginPath();c.arc(-4,-15,1.8,0,Math.PI*2);c.fill();
+  c.fillStyle='#111';
+  c.beginPath();c.arc(-4,-15,1.8,0,Math.PI*2);c.fill();
   c.beginPath();c.arc(4,-15,1.8,0,Math.PI*2);c.fill();
-  // Eyebrows
-  c.strokeStyle='#1e1208'; c.lineWidth=1.5;
+  if(fem){c.strokeStyle='#111';c.lineWidth=1;c.beginPath();c.moveTo(-6,-17);c.lineTo(-4,-15);c.stroke();c.beginPath();c.moveTo(6,-17);c.lineTo(4,-15);c.stroke();}
+  c.strokeStyle=hair;c.lineWidth=1.5;
   c.beginPath();c.moveTo(-7,-19);c.lineTo(-1,-17);c.stroke();
   c.beginPath();c.moveTo(7,-19);c.lineTo(1,-17);c.stroke();
-  // Mouth
-  c.strokeStyle='#8b5a3a'; c.lineWidth=1.5;
+  c.strokeStyle='#8b5a3a';c.lineWidth=1.5;
   c.beginPath();c.arc(0,-11,3.5,0.2,Math.PI-0.2);c.stroke();
   c.restore();
 }
 
-// ===== IMPROVED CONTROLS =====
+// ===== PREDAK — woman, orange shirt, auburn bob =====
+function drawPredak(c,x,y,dir){
+  c.save();c.translate(x,y);
+  if(dir>0){c.scale(-1,1);}
 
-// Hold-to-repeat: pressing and holding moves continuously
-let gLeftHeld=false, gRightHeld=false, gMoveInterval=null;
+  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,14,3,0,0,Math.PI*2);c.fill();
+  // Legs
+  c.fillStyle='#1a1a2e';c.fillRect(-9,-2,7,20);c.fillRect(2,-2,7,20);
+  c.fillStyle='#111';
+  c.beginPath();c.roundRect(-11,16,11,6,2);c.fill();
+  c.beginPath();c.roundRect(0,16,11,6,2);c.fill();
+  // Orange shirt
+  c.fillStyle='#e86820';
+  c.beginPath();c.roundRect(-12,-22,24,22,4);c.fill();
+  c.fillStyle='#c05010';c.fillRect(-12,-9,24,4);
+  // Clipboard
+  c.fillStyle='#888';c.fillRect(13,-20,13,16);
+  c.fillStyle='#bbb';c.fillRect(14,-19,11,11);
+  c.fillStyle='#444';c.fillRect(15,-17,9,2);c.fillRect(15,-14,9,2);c.fillRect(15,-11,7,2);
+  // Arms
+  c.fillStyle='#d4845a';c.fillRect(-16,-18,5,14);c.fillRect(11,-18,5,14);
+  // Neck + head
+  c.fillStyle='#d4845a';c.fillRect(-3,-25,6,6);
+  c.beginPath();c.arc(0,-34,10,0,Math.PI*2);c.fill();
+  // Auburn bob
+  c.fillStyle='#aa2800';
+  c.beginPath();c.arc(0,-37,10,Math.PI,0);c.fill();
+  c.fillRect(-10,-39,20,5);
+  c.beginPath();c.ellipse(-10,-30,4,9,0.2,0,Math.PI*2);c.fill();
+  c.beginPath();c.ellipse(10,-30,4,9,-0.2,0,Math.PI*2);c.fill();
+  // Eyes
+  c.fillStyle='#111';
+  c.beginPath();c.arc(-3.5,-34,1.5,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(3.5,-34,1.5,0,Math.PI*2);c.fill();
+  c.strokeStyle='#7a2010';c.lineWidth=1.5;c.beginPath();c.moveTo(-4,-30);c.lineTo(4,-30);c.stroke();
+  // Speech bubble (flip back for text)
+  c.save();if(dir>0)c.scale(-1,1);
+  c.fillStyle='rgba(255,255,255,0.93)';
+  c.beginPath();c.roundRect(-56,-62,56,20,4);c.fill();
+  c.strokeStyle='#ccc';c.lineWidth=1;c.stroke();
+  // bubble tail
+  c.fillStyle='rgba(255,255,255,0.93)';
+  c.beginPath();c.moveTo(-4,-42);c.lineTo(0,-36);c.lineTo(4,-42);c.closePath();c.fill();
+  c.fillStyle='#c00';c.font='bold 9px sans-serif';c.textAlign='center';
+  c.fillText('Rýchlejšie!!',-28,-48);
+  c.restore();
+  c.restore();
+}
 
-function gStartLeft(){
-  if(!gRunning)return;
-  gMoveLeft();
-  clearInterval(gMoveInterval);
-  gMoveInterval=setInterval(()=>{ if(gLeftHeld)gMoveLeft(); },140);
-  gLeftHeld=true;
+// ===== SKLADNIK — red shirt + white stripe, roller cart with bins =====
+function drawSkladnik(c,x,y){
+  c.save();c.translate(x,y);
+  // Roller cart (moves left so person is on left = pushing)
+  const cW=90,cH=28;
+  c.fillStyle='#4a4a4a';c.fillRect(0,-cH,cW,cH);
+  c.strokeStyle='#666';c.lineWidth=1;c.strokeRect(0,-cH,cW,cH);
+  // Bins (bedničky)
+  const bcols=['#cc2222','#2255bb','#229922','#cc8811'];
+  for(let b=0;b<4;b++){
+    const bx=2+b*22;
+    c.fillStyle=bcols[b];c.fillRect(bx,-cH+2,20,cH-4);
+    c.strokeStyle='rgba(0,0,0,0.25)';c.lineWidth=0.5;c.strokeRect(bx,-cH+2,20,cH-4);
+    // Bin shine
+    c.fillStyle='rgba(255,255,255,0.15)';c.fillRect(bx+1,-cH+3,18,5);
+    // Bin label
+    c.fillStyle='rgba(255,255,255,0.6)';c.fillRect(bx+3,-cH+10,14,6);
+  }
+  // Rollers
+  for(let r=0;r<5;r++){
+    const rx=8+r*18;
+    c.fillStyle='#777';c.beginPath();c.arc(rx,0,7,0,Math.PI*2);c.fill();
+    c.fillStyle='#999';c.beginPath();c.arc(rx,0,4,0,Math.PI*2);c.fill();
+    // Spin illusion
+    c.strokeStyle='#666';c.lineWidth=1;
+    c.beginPath();c.moveTo(rx-4,0);c.lineTo(rx+4,0);c.stroke();
+    c.beginPath();c.moveTo(rx,4);c.lineTo(rx,-4);c.stroke();
+  }
+  // Handle
+  c.fillStyle='#555';c.fillRect(-7,-cH-16,6,cH+16);
+  c.fillStyle='#777';c.beginPath();c.roundRect(-10,-cH-16,12,5,3);c.fill();
+
+  // Person (skladnik) pushing
+  c.save();c.translate(-24,-2);
+  c.fillStyle='rgba(0,0,0,0.15)';c.beginPath();c.ellipse(0,1,13,3,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#222233';c.fillRect(-8,-2,7,20);c.fillRect(1,-2,7,20);
+  c.fillStyle='#111';
+  c.beginPath();c.roundRect(-10,16,10,6,2);c.fill();
+  c.beginPath();c.roundRect(0,16,10,6,2);c.fill();
+  // Red shirt with white stripe
+  c.fillStyle='#cc1111';c.beginPath();c.roundRect(-11,-20,22,20,3);c.fill();
+  c.fillStyle='#ffffff';c.fillRect(-11,-8,22,5);
+  // Arms pushing forward
+  c.fillStyle='#c07050';
+  c.save();c.translate(-11,-15);c.rotate(0.5);c.fillRect(-3,0,6,16);c.restore();
+  c.save();c.translate(11,-15);c.rotate(-0.5);c.fillRect(-3,0,6,16);c.restore();
+  // Head
+  c.fillStyle='#c07050';c.fillRect(-3,-23,6,6);
+  c.beginPath();c.arc(0,-30,9,0,Math.PI*2);c.fill();
+  c.fillStyle='#3a2010';
+  c.beginPath();c.arc(0,-33,9,Math.PI,0);c.fill();c.fillRect(-9,-35,18,5);
+  c.fillStyle='#111';
+  c.beginPath();c.arc(-3,-30,1.5,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(3,-30,1.5,0,Math.PI*2);c.fill();
+  c.strokeStyle='#7a4020';c.lineWidth=1;
+  c.beginPath();c.arc(0,-26,3,0.2,Math.PI-0.2);c.stroke();
+  c.restore();
+  c.restore();
 }
-function gStartRight(){
-  if(!gRunning)return;
-  gMoveRight();
-  clearInterval(gMoveInterval);
-  gMoveInterval=setInterval(()=>{ if(gRightHeld)gMoveRight(); },140);
-  gRightHeld=true;
+
+// ===== MAJSTER — black shirt, angry =====
+function drawMajster(c,arm){
+  c.save();
+  c.fillStyle='rgba(0,0,0,0.18)';c.beginPath();c.ellipse(0,40,16,4,0,0,Math.PI*2);c.fill();
+  c.fillStyle='#111';c.fillRect(-10,20,8,22);c.fillRect(2,20,8,22);
+  c.fillStyle='#080808';
+  c.beginPath();c.roundRect(-13,38,13,7,2);c.fill();
+  c.beginPath();c.roundRect(0,38,13,7,2);c.fill();
+  // Black shirt
+  c.fillStyle='#0f0f0f';c.beginPath();c.roundRect(-13,0,26,22,4);c.fill();
+  c.fillStyle='#e0e0e0';c.fillRect(-4,-1,8,5);
+  // Angry raised arms
+  c.save();c.translate(-13,5);c.rotate(-1.3);
+  c.fillStyle='#b07050';c.fillRect(-3,-2,6,16);
+  c.fillStyle='#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
+  c.restore();
+  c.save();c.translate(13,5);c.rotate(1.3);
+  c.fillStyle='#b07050';c.fillRect(-3,-2,6,16);
+  c.fillStyle='#e8c89a';c.beginPath();c.arc(0,17,5,0,Math.PI*2);c.fill();
+  c.restore();
+  c.fillStyle='#c8845a';c.fillRect(-4,-5,8,8);
+  c.fillStyle='#c8845a';c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
+  // Black hair
+  c.fillStyle='#111';c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill();c.fillRect(-11,-20,22,5);
+  // Angry eyebrows V-shape
+  c.strokeStyle='#0a0a0a';c.lineWidth=2.5;
+  c.beginPath();c.moveTo(-9,-22);c.lineTo(-1,-18);c.stroke();
+  c.beginPath();c.moveTo(9,-22);c.lineTo(1,-18);c.stroke();
+  // Eyes — narrow angry
+  c.fillStyle='#111';
+  c.beginPath();c.arc(-4,-15,2,0,Math.PI*2);c.fill();
+  c.beginPath();c.arc(4,-15,2,0,Math.PI*2);c.fill();
+  // Red flush
+  c.fillStyle='rgba(220,0,0,0.18)';c.beginPath();c.arc(0,-15,11,0,Math.PI*2);c.fill();
+  // Open shouting mouth
+  c.fillStyle='#111';c.beginPath();c.arc(0,-10,4,0,Math.PI);c.fill();
+  c.fillStyle='#cc0000';c.beginPath();c.arc(0,-10,2,0,Math.PI);c.fill();
+  c.restore();
 }
+
+// ===== CONTROLS =====
+let gLeftHeld=false,gRightHeld=false,gMoveInterval=null;
+function gStartLeft(){ if(!gRunning)return; gMoveLeft(); clearInterval(gMoveInterval); gMoveInterval=setInterval(()=>{if(gLeftHeld)gMoveLeft();},125); gLeftHeld=true; }
+function gStartRight(){ if(!gRunning)return; gMoveRight(); clearInterval(gMoveInterval); gMoveInterval=setInterval(()=>{if(gRightHeld)gMoveRight();},125); gRightHeld=true; }
 function gStopLeft(){ gLeftHeld=false; clearInterval(gMoveInterval); }
 function gStopRight(){ gRightHeld=false; clearInterval(gMoveInterval); }
-
 function gMoveLeft(){ if(gWorker&&gWorker.lane>0)gWorker.lane--; }
 function gMoveRight(){ if(gWorker&&gWorker.lane<3)gWorker.lane++; }
 
-// Wire up buttons properly (remove old inline handlers, use these)
 document.addEventListener('DOMContentLoaded',()=>{
-  const bl=document.getElementById('gBtnLeft');
-  const br=document.getElementById('gBtnRight');
+  const bl=document.getElementById('gBtnLeft'), br=document.getElementById('gBtnRight');
   if(!bl||!br)return;
-
-  // Mouse
-  bl.addEventListener('mousedown', gStartLeft);
-  bl.addEventListener('mouseup', gStopLeft);
-  bl.addEventListener('mouseleave', gStopLeft);
-  br.addEventListener('mousedown', gStartRight);
-  br.addEventListener('mouseup', gStopRight);
-  br.addEventListener('mouseleave', gStopRight);
-
-  // Touch
-  bl.addEventListener('touchstart', e=>{e.preventDefault();gStartLeft();},{passive:false});
-  bl.addEventListener('touchend',   e=>{e.preventDefault();gStopLeft();},{passive:false});
-  br.addEventListener('touchstart', e=>{e.preventDefault();gStartRight();},{passive:false});
-  br.addEventListener('touchend',   e=>{e.preventDefault();gStopRight();},{passive:false});
-
-  // Canvas tap — tap on left half = move left, right half = move right
-  const cv=document.getElementById('gameCanvas');
-  if(!cv)return;
-  cv.addEventListener('touchstart',e=>{
-    const rect=cv.getBoundingClientRect();
-    const tx=e.touches[0].clientX-rect.left;
-    if(tx < rect.width/2) gMoveLeft(); else gMoveRight();
-  },{passive:true});
-  // Swipe on canvas still works too
-  let gTX2=null;
-  cv.addEventListener('touchstart',e=>{gTX2=e.touches[0].clientX;},{passive:true});
+  bl.addEventListener('mousedown',gStartLeft);bl.addEventListener('mouseup',gStopLeft);bl.addEventListener('mouseleave',gStopLeft);
+  br.addEventListener('mousedown',gStartRight);br.addEventListener('mouseup',gStopRight);br.addEventListener('mouseleave',gStopRight);
+  bl.addEventListener('touchstart',e=>{e.preventDefault();gStartLeft();},{passive:false});
+  bl.addEventListener('touchend',e=>{e.preventDefault();gStopLeft();},{passive:false});
+  br.addEventListener('touchstart',e=>{e.preventDefault();gStartRight();},{passive:false});
+  br.addEventListener('touchend',e=>{e.preventDefault();gStopRight();},{passive:false});
+  const cv=document.getElementById('gameCanvas'); if(!cv)return;
+  let gTX=null;
+  cv.addEventListener('touchstart',e=>{gTX=e.touches[0].clientX;},{passive:true});
   cv.addEventListener('touchend',e=>{
-    if(gTX2===null)return;
-    const dx=e.changedTouches[0].clientX-gTX2;
-    if(Math.abs(dx)>40){ if(dx<0)gMoveLeft(); else gMoveRight(); }
-    gTX2=null;
+    if(gTX===null)return;
+    const dx=e.changedTouches[0].clientX-gTX;
+    if(Math.abs(dx)>35){if(dx<0)gMoveLeft();else gMoveRight();}
+    else{const r=cv.getBoundingClientRect();if(e.changedTouches[0].clientX-r.left<r.width/2)gMoveLeft();else gMoveRight();}
+    gTX=null;
   },{passive:true});
+  setTimeout(()=>{if(document.getElementById('gPreviewM'))drawCharPreviews();},150);
 });
 
-// Keyboard: hold key repeats naturally, but also handle keyup for cleanliness
 document.addEventListener('keydown',e=>{
   if(!gRunning)return;
   if(e.key==='ArrowLeft'){e.preventDefault();gMoveLeft();}
   if(e.key==='ArrowRight'){e.preventDefault();gMoveRight();}
 });
-
 
 </script>
 </body>
