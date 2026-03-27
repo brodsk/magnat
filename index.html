@@ -1,633 +1,1301 @@
-Aha, už chápem! Chceš iba samotnú hru LISOVNA prerobiť do pixelového štýlu ako Pixel Car Racer, ale zachovať celú jej funkcionalitu (predák, skladník, nastavovač, majster, životy, skóre, atď.). Tu je kompletne prerobená hra v pixel art štýle.
-
-```html
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>LISOVNA MAGNA - PIXEL EDITION</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LISOVNA</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; user-select:none; }
-html,body { width:100%; height:100%; overflow:hidden; background:#0a0f1a; font-family:'Courier New', 'VT323', monospace; }
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-#app {
-  width:100%; height:100%;
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:flex-start;
-  background:linear-gradient(135deg, #0a1f1a 0%, #1a2f1f 100%);
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0a0a0a;}
+
+#app{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;
+  background:#0a0a0a;
   position:relative;
-}
-
-#hud {
-  width:100%; max-width:550px;
-  display:flex; gap:0; font-family:monospace;
-  font-size:clamp(12px,3.5vw,16px); font-weight:bold;
-  background:#0a0a0acc; backdrop-filter:blur(4px);
-  border-bottom:3px solid #dba553;
-  flex-shrink:0;
-  padding:6px 0;
-}
-#hud span { flex:1; text-align:center; padding:4px; color:#f9efb8; text-shadow:0 1px 1px black; letter-spacing:1px; }
-#hud .hs { color:#88ff88; }
-#hud .hh { color:#ff8888; }
-#hud .hl { color:#ffaa44; }
-
-#canvasWrap {
-  position:relative; flex:1;
-  display:flex; align-items:center; justify-content:center;
-  width:100%; max-width:550px;
   overflow:hidden;
-  margin:8px 0;
-}
-#gameCanvas { 
-  display:block; 
-  touch-action:none; 
-  background:#1a2a2a;
-  border-radius:12px; 
-  box-shadow:0 8px 20px rgba(0,0,0,0.5), inset 0 0 0 2px rgba(255,200,100,0.3);
-  image-rendering:pixelated;
-  image-rendering:crisp-edges;
 }
 
-#controls {
-  width:100%; max-width:550px;
-  display:flex; gap:12px; padding:10px;
-  background:#0a0a0acc; backdrop-filter:blur(4px);
-  border-top:3px solid #dba553;
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+
+/* Pixel font everywhere */
+.pf{font-family:'Press Start 2P',monospace;}
+
+/* HUD */
+#hud{
+  width:100%;max-width:600px;
+  display:flex;gap:0;
+  background:#111;
+  border-bottom:4px solid #333;
+  flex-shrink:0;
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(8px,2vw,11px);
+}
+#hud .hcell{
+  flex:1;padding:6px 4px;
+  text-align:center;
+  border-right:2px solid #333;
+  line-height:1.6;
+}
+#hud .hcell:last-child{border-right:none;}
+.hv{font-size:clamp(10px,2.5vw,14px);font-weight:bold;}
+#hScore .hv{color:#ff0;}
+#hLives .hv{color:#f55;}
+#hLevel .hv{color:#0ff;}
+
+/* Canvas wrap */
+#gw{
+  position:relative;flex:1;
+  width:100%;max-width:600px;
+  overflow:hidden;
+}
+#gc{width:100%;height:100%;}
+
+/* Banners */
+.banner{
+  position:absolute;top:0;left:0;right:0;
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(7px,1.8vw,10px);
+  text-align:center;padding:5px 4px;
+  z-index:15;display:none;
+  animation:slideD 0.2s steps(4) forwards;
+}
+#bPredak{background:#e86820;color:#fff;}
+#bNast{background:#111;color:#ff0;border-bottom:2px solid #ff0;}
+@keyframes slideD{from{transform:translateY(-100%);}to{transform:translateY(0);}}
+
+/* Controls */
+#ctrl{
+  width:100%;max-width:600px;
+  display:flex;gap:6px;padding:6px;
+  background:#111;border-top:4px solid #333;
   flex-shrink:0;
 }
-#controls button {
-  flex:1; background:linear-gradient(145deg, #4a3e2e, #2a1e12);
-  color:#ffefb0; border:none; padding:12px 0;
-  font-size:24px; cursor:pointer; border-radius:40px;
-  touch-action:manipulation; transition:0.05s linear;
-  font-family:monospace; font-weight:bold;
-  box-shadow:0 5px 0 #3a2a1a;
-  border:1px solid #b8865a;
+#ctrl button{
+  flex:1;
+  font-family:'Press Start 2P',monospace;
+  font-size:22px;
+  background:#1a1a2e;
+  color:#0ff;
+  border:3px solid #0ff;
+  padding:10px 0;
+  cursor:pointer;
+  border-radius:0;
+  touch-action:manipulation;
+  image-rendering:pixelated;
+  transition:background 0.05s;
 }
-#controls button:active, #controls button.held { transform:translateY(2px); box-shadow:0 2px 0 #3a2a1a; }
+#ctrl button:active,#ctrl button.held{background:#002244;color:#fff;border-color:#fff;}
 
-#overlay {
-  position:absolute; top:0; left:0; right:0; bottom:0;
-  background:rgba(0,0,0,0.92);
-  backdrop-filter:blur(6px);
-  display:flex; flex-direction:column;
-  align-items:center; justify-content:center;
-  gap:14px; z-index:20; padding:20px;
+/* Overlay */
+#ov{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.0);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:20;
+  font-family:'Press Start 2P',monospace;
 }
-#overlay.hidden { display:none; }
+#ov.hidden{display:none;}
 
-.ov-title { font-size:clamp(28px,8vw,48px); font-weight:900; color:#ffaa44; letter-spacing:4px; text-shadow:3px 3px 0 #5a3a1a; font-family:monospace; }
-.ov-sub { font-size:clamp(11px,3vw,14px); color:#aaa; text-align:center; line-height:1.5; }
-.ov-btn {
-  background:linear-gradient(180deg,#dba553,#b87a2a);
-  color:#fff; border:none; padding:12px 36px;
-  font-size:clamp(16px,4vw,20px); cursor:pointer;
-  border-radius:40px; font-weight:bold;
-  box-shadow:0 5px 0 #6a4a1a;
-  transition:transform 0.1s;
-  font-family:monospace;
+/* Menu */
+#sMenu{
+  display:flex;flex-direction:column;
+  align-items:center;gap:10px;
+  background:rgba(0,0,8,0.92);
+  border:3px solid #0ff;
+  padding:16px 20px;
+  max-width:340px;width:90%;
+  image-rendering:pixelated;
 }
-.ov-btn:active { transform:translateY(2px); box-shadow:0 2px 0 #6a4a1a; }
-.ov-btn-sec { background:#222; color:#aaa; border:1px solid #444; padding:9px 22px; font-size:14px; cursor:pointer; border-radius:6px; }
-
-.name-input {
-  background:#2a2a2a; border:3px solid #dba553; padding:10px 16px;
-  font-size:18px; text-align:center; border-radius:40px;
-  color:#ffefb0; font-family:monospace; width:220px;
+.mtitle{
+  font-size:clamp(14px,4vw,22px);
+  color:#ff0;
+  text-shadow:3px 3px 0 #880,2px 2px 0 #880;
+  letter-spacing:2px;
+  text-align:center;
 }
-.name-input:focus { outline:none; border-color:#ffaa44; }
+.msub{font-size:clamp(6px,1.5vw,9px);color:#888;text-align:center;line-height:1.8;}
+.msel-label{font-size:clamp(7px,1.8vw,10px);color:#0ff;}
 
-.leaderboard {
-  background:#0a0a0aaa; border-radius:16px; padding:12px; margin-top:12px;
-  width:100%; max-width:280px; max-height:180px; overflow-y:auto;
-  border:2px solid #dba553;
+/* Char cards */
+.ccards{display:flex;gap:10px;justify-content:center;}
+.ccard{
+  border:3px solid #444;
+  background:#0a0a1a;
+  padding:8px;cursor:pointer;
+  text-align:center;
+  transition:border-color 0.1s;
+  min-width:90px;
 }
-.leaderboard h4 { color:#ffaa44; margin-bottom:8px; font-size:14px; }
-.leaderboard-item { display:flex; justify-content:space-between; padding:4px 8px; border-bottom:1px solid #333; font-size:12px; color:#ccc; }
-.leaderboard-rank { color:#ffaa44; width:30px; }
-.leaderboard-name { flex:1; text-align:left; }
-.leaderboard-score { color:#88ff88; font-weight:bold; }
+.ccard.sel{border-color:#0ff;background:#001122;}
+.ccard canvas{display:block;margin:0 auto;image-rendering:pixelated;}
+.ccard .cn{font-size:clamp(6px,1.5vw,8px);color:#aaa;margin-top:4px;}
 
-.hint { font-size:10px; color:#888; text-align:center; font-family:monospace; padding:2px 0; flex-shrink:0; }
+/* Buttons */
+.mbtn{
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(9px,2.5vw,13px);
+  background:#003300;color:#0f0;
+  border:3px solid #0f0;
+  padding:10px 24px;cursor:pointer;
+  letter-spacing:1px;
+  transition:background 0.08s;
+}
+.mbtn:hover,.mbtn:active{background:#005500;color:#fff;}
+.mbtn.sec{background:#1a1a1a;color:#888;border-color:#444;font-size:clamp(7px,2vw,10px);padding:8px 16px;}
+
+/* Game over */
+#sOver{
+  display:none;flex-direction:column;
+  align-items:center;gap:10px;
+  background:rgba(0,0,8,0.94);
+  border:3px solid #f00;
+  padding:16px 20px;
+  max-width:340px;width:90%;
+}
+.go-title{font-size:clamp(14px,4vw,20px);color:#f00;text-shadow:2px 2px 0 #800;}
+.go-score{font-size:clamp(9px,2.5vw,13px);color:#ff0;}
+.go-quote{font-size:clamp(6px,1.5vw,8px);color:#f99;text-align:center;line-height:1.8;max-width:260px;}
+.go-btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;}
+#majPrev{image-rendering:pixelated;}
 </style>
 </head>
 <body>
 <div id="app">
   <div id="hud">
-    <span class="hs">🏭 SKÓRE <span id="hScore">0</span></span>
-    <span class="hh">❤️ ŽIVOTY <span id="hLives">3</span></span>
-    <span class="hl">⚙️ LISY <span id="hPress">1</span></span>
+    <div class="hcell pf" id="hScore"><div style="color:#888;font-size:0.7em;">SCORE</div><div class="hv" id="hSv">0</div></div>
+    <div class="hcell pf" id="hLives"><div style="color:#888;font-size:0.7em;">LIVES</div><div class="hv" id="hLv">❤❤❤</div></div>
+    <div class="hcell pf" id="hLevel"><div style="color:#888;font-size:0.7em;">LEVEL</div><div class="hv" id="hLLv">1</div></div>
   </div>
 
-  <div id="canvasWrap">
-    <canvas id="gameCanvas"></canvas>
-  </div>
+  <div id="gw">
+    <canvas id="gc"></canvas>
+    <div class="banner" id="bPredak">⚠ PREDAK: VEZMI AJ DRUHY LIS! ⚠</div>
+    <div class="banner" id="bNast">▶ NASTAVOVAC: PORUCHA FORMY! ◀</div>
 
-  <div id="overlay">
-    <div id="scrMenu" style="display:flex;flex-direction:column;align-items:center;gap:12px;">
-      <div class="ov-title">🏭 LISOVNA</div>
-      <div class="ov-sub">Chytaj plastové diely!<br>Červené = chybné → strata života</div>
-      <input type="text" id="playerName" class="name-input" placeholder="TVOJE MENO" maxlength="15" autocomplete="off">
-      <div style="color:#ffaa44;font-size:13px;font-weight:bold;">Vyber si postavu:</div>
-      <div class="char-cards" style="display:flex;gap:16px;">
-        <div class="char-card selected" id="cardM" onclick="selectChar('male')" style="border:3px solid #ffaa44;border-radius:12px;padding:10px;background:#1a2a1a;cursor:pointer;">
-          <canvas id="prevM" width="56" height="84"></canvas>
-          <div style="color:#ffaa44;">👨 MUŽ</div>
+    <div id="ov">
+      <!-- MENU -->
+      <div id="sMenu">
+        <div class="mtitle">🏭 LISOVNA</div>
+        <div class="msub">Chytaj diely z konvejera!<br>Stoj pri lise a ber diely!</div>
+        <div class="msel-label">— VYBER POSTAVU —</div>
+        <div class="ccards">
+          <div class="ccard sel" id="cM" onclick="selChar('m')">
+            <canvas id="pM" width="40" height="56"></canvas>
+            <div class="cn">MUZ</div>
+          </div>
+          <div class="ccard" id="cF" onclick="selChar('f')">
+            <canvas id="pF" width="40" height="56"></canvas>
+            <div class="cn">ZENA</div>
+          </div>
         </div>
-        <div class="char-card" id="cardF" onclick="selectChar('female')" style="border:3px solid #444;border-radius:12px;padding:10px;background:#1a2a1a;cursor:pointer;">
-          <canvas id="prevF" width="56" height="84"></canvas>
-          <div style="color:#ffaa44;">👩 ŽENA</div>
-        </div>
+        <button class="mbtn" onclick="startGame()">▶ HRAT</button>
+        <div class="msub" style="font-size:0.6em;color:#444;">← → tlacidla alebo klavesy</div>
       </div>
-      <button class="ov-btn" onclick="startGame()">HRAŤ ▶</button>
-      
-      <div class="leaderboard">
-        <h4>🏆 REKORDY 🏆</h4>
-        <div id="leaderboardList"></div>
-      </div>
-      <div class="ov-sub" style="font-size:10px;">← → klávesy | tlačidlá | ťukni na plátno</div>
-    </div>
 
-    <div id="scrOver" style="display:none;flex-direction:column;align-items:center;gap:12px;">
-      <canvas id="majsterPrev" width="80" height="110"></canvas>
-      <div class="go-score" id="goScore" style="font-size:24px;color:#ffaa44;">Skóre: 0</div>
-      <div class="go-quote" id="goQuote" style="color:#ff9999;font-style:italic;text-align:center;max-width:260px;"></div>
-      <div class="go-btns" style="display:flex;gap:10px;">
-        <button class="ov-btn-sec" onclick="showMenu()">← MENU</button>
-        <button class="ov-btn" onclick="startGame()">ZNOVA ▶</button>
+      <!-- GAME OVER -->
+      <div id="sOver">
+        <div class="go-title">GAME OVER</div>
+        <canvas id="majPrev" width="60" height="90"></canvas>
+        <div class="go-score" id="goS">SCORE: 0</div>
+        <div class="go-quote" id="goQ"></div>
+        <div class="go-btns">
+          <button class="mbtn sec" onclick="showMenu()">MENU</button>
+          <button class="mbtn" onclick="startGame()">▶ ZNOVA</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <div class="hint">← → pohyb | Ťukni na plátno | tlačidlá dole</div>
-  <div id="controls">
-    <button id="btnL" ontouchstart="startL(event)" ontouchend="stopL()" onmousedown="startL()" onmouseup="stopL()" onmouseleave="stopL()">◀ ĽAVO</button>
-    <button id="btnR" ontouchstart="startR(event)" ontouchend="stopR()" onmousedown="startR()" onmouseup="stopR()" onmouseleave="stopR()">PRAVO ▶</button>
+  <div id="ctrl">
+    <button id="bL"
+      ontouchstart="sl(event)" ontouchend="el()"
+      onmousedown="sl()" onmouseup="el()" onmouseleave="el()">◀</button>
+    <button id="bR"
+      ontouchstart="sr(event)" ontouchend="er()"
+      onmousedown="sr()" onmouseup="er()" onmouseleave="er()">▶</button>
   </div>
 </div>
 
 <script>
 // ============================================================
-//  ZVUKOVÉ EFEKTY
+// LISOVNA  —  pixel factory game
 // ============================================================
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-let audioEnabled = false;
-function playBeep(freq, duration, type='square', volume=0.15) {
-  if(!audioEnabled) return;
-  try {
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    osc.type = type;
-    osc.frequency.value = freq;
-    gain.gain.value = volume;
-    osc.start();
-    gain.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + duration);
-    osc.stop(audioCtx.currentTime + duration);
-  } catch(e) {}
+
+const gc = document.getElementById('gc');
+const ctx = gc.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+let GW=400, GH=300;
+
+function resize(){
+  const wrap = document.getElementById('gw');
+  GW = wrap.clientWidth;
+  GH = wrap.clientHeight;
+  gc.width  = GW;
+  gc.height = GH;
 }
-function playCatch() { playBeep(880, 0.08, 'square', 0.12); }
-function playBad() { playBeep(180, 0.2, 'sawtooth', 0.18); }
-function playPredak() { playBeep(660, 0.25, 'square', 0.2); playBeep(880, 0.2, 'square', 0.18); }
-function playGameOver() { playBeep(140, 0.6, 'sawtooth', 0.25); playBeep(100, 0.5, 'sawtooth', 0.25); }
+window.addEventListener('resize', ()=>{ resize(); if(!running) drawBg(); });
+resize();
 
 // ============================================================
-//  TABUĽKA REKORDOV
+// PIXEL ART PALETTE  (Pixel Car Racer style — dark, neon accents)
 // ============================================================
-let leaderboard = [];
-function loadLeaderboard() {
-  try { const saved = localStorage.getItem('lisovna_pixel_leaderboard'); if(saved) leaderboard = JSON.parse(saved); else leaderboard = []; leaderboard.sort((a,b)=>b.score-a.score); leaderboard = leaderboard.slice(0,8); } catch(e){ leaderboard = []; }
-  updateLeaderboardDisplay();
-}
-function saveLeaderboard() { leaderboard.sort((a,b)=>b.score-a.score); leaderboard = leaderboard.slice(0,8); localStorage.setItem('lisovna_pixel_leaderboard', JSON.stringify(leaderboard)); updateLeaderboardDisplay(); }
-function addScore(name, score) { if(!name || name.trim() === '') name = 'PRACOVNÍK'; leaderboard.push({ name: name.trim().substring(0,15), score: score }); saveLeaderboard(); }
-function updateLeaderboardDisplay() {
-  const container = document.getElementById('leaderboardList'); if(!container) return;
-  if(leaderboard.length === 0) { container.innerHTML = '<div class="leaderboard-item">Zatiaľ žiadne rekordy</div>'; return; }
-  container.innerHTML = leaderboard.map((entry, idx) => `<div class="leaderboard-item"><span class="leaderboard-rank">${idx+1}.</span><span class="leaderboard-name">${escapeHtml(entry.name)}</span><span class="leaderboard-score">${entry.score}</span></div>`).join('');
-}
-function escapeHtml(str) { return str.replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])); }
+const P = {
+  bg:    '#0a0a12',
+  sky1:  '#0a0a18',
+  sky2:  '#12122a',
+  ground:'#1a1a1a',
+  road:  '#222233',
+  stripe:'#ffee00',
+  wall:  '#1e2230',
+  wallH: '#2a3050',
+  blue1: '#1144aa',
+  blue2: '#1166cc',
+  white: '#eeeeff',
+  glass: '#223355',
+  neon:  '#00ffff',
+  neonG: '#00ff88',
+  neonR: '#ff3344',
+  neonY: '#ffdd00',
+  engGr: '#4a9a20',  // Engel green
+  engDk: '#336610',
+  engGy: '#444455',
+  convBelt:'#333344',
+  convLine:'#555566',
+};
 
 // ============================================================
-//  HERNÉ PREMenné
+// PIXEL DRAW HELPERS
 // ============================================================
-const canvas = document.getElementById('gameCanvas');
-const ctx = canvas.getContext('2d');
-let GW = 450, GH = 520;
-let selectedChar = 'male';
-let playerName = '';
-let running = false, raf = null;
-let score, lives, pressCount, frame, baseSpeed, spawnRate;
-let worker, items;
-let predakActive=false, predakTimer=0, predakX=0, predakDir=-1;
-let skladnikActive=false, skladnikX=0, skladnikTimer=500;
-let flash=0, flashCol='';
-
-function resizeCanvas(){
-  const wrap = document.getElementById('canvasWrap');
-  const w = Math.min(wrap.clientWidth, 500);
-  const h = wrap.clientHeight;
-  if(w > 0 && h > 0) { GW = w; GH = h; canvas.width = GW; canvas.height = GH; }
-}
-window.addEventListener('resize', ()=>{ resizeCanvas(); if(!running) drawMenuBg(); });
-resizeCanvas();
-
-function computeLanes(count){
-  const lanes=[];
-  const step = GW/(count+1);
-  for(let i=1;i<=count;i++) lanes.push(Math.round(step*i));
-  return lanes;
+function px(c,x,y,w,h,col){ c.fillStyle=col; c.fillRect(Math.round(x),Math.round(y),w,h); }
+function pxText(c,txt,x,y,col,sz=8){
+  c.font=`${sz}px 'Press Start 2P'`;
+  c.fillStyle=col; c.fillText(txt,Math.round(x),Math.round(y));
 }
 
-function updateHUD(){
-  document.getElementById('hScore').textContent = score;
-  document.getElementById('hLives').textContent = lives;
-  document.getElementById('hPress').textContent = pressCount;
+// ============================================================
+// BACKGROUND  — pixel factory / Magna building
+// ============================================================
+let bgFrame = 0;
+
+function drawBg(){
+  const c = ctx;
+  // Sky gradient (pixelated bands)
+  const skyH = Math.floor(GH*0.45);
+  const bands = 8;
+  for(let i=0;i<bands;i++){
+    const t=i/bands;
+    const r=Math.round(10+t*8), g=Math.round(10+t*10), b=Math.round(18+t*28);
+    c.fillStyle=`rgb(${r},${g},${b})`;
+    c.fillRect(0,Math.floor(skyH*i/bands),GW,Math.ceil(skyH/bands)+1);
+  }
+
+  // Stars (pixel dots)
+  const stars=[[12,8],[45,15],[80,5],[130,20],[200,10],[260,18],[320,6],[370,12],[420,8],[480,16],[540,4]];
+  c.fillStyle='#ffffff';
+  stars.forEach(([sx,sy])=>{ if(sx<GW&&sy<skyH) c.fillRect(sx%GW,sy,2,2); });
+
+  // Ground
+  px(c,0,skyH,GW,GH-skyH,P.ground);
+  // Road
+  const roadY = skyH+Math.floor((GH-skyH)*0.55);
+  px(c,0,roadY,GW,8,P.road);
+  // Road stripes
+  for(let x=(bgFrame*2)%60;x<GW;x+=60){
+    px(c,x,roadY+3,30,2,P.stripe);
+  }
+
+  // === MAGNA FACTORY BUILDING (pixel art) ===
+  const bx = Math.floor(GW*0.08);
+  const bw = Math.floor(GW*0.72);
+  const bh = Math.floor(GH*0.38);
+  const by = skyH - Math.floor(bh*0.7);
+
+  // Main building body — white/light gray panels
+  px(c,bx,by,bw,bh,'#c8ccd8');
+
+  // Blue accent strips (top and sides)
+  px(c,bx,by,bw,8,P.blue1);
+  px(c,bx,by+bh-10,bw,10,P.blue2);
+  px(c,bx,by,10,bh,P.blue1);
+  px(c,bx+bw-10,by,10,bh,P.blue1);
+
+  // Building panels (horizontal lines)
+  for(let py2=by+20;py2<by+bh-10;py2+=18){
+    px(c,bx+10,py2,bw-20,2,'#aab0c0');
+  }
+
+  // Windows row 1
+  const winY1 = by+14;
+  const winY2 = by+14+30;
+  const winH = 22;
+  const winW = Math.floor((bw-20)/8);
+  for(let wi=0;wi<7;wi++){
+    const wx2=bx+14+wi*(winW+4);
+    // Window frame
+    px(c,wx2,winY1,winW,winH,P.blue1);
+    px(c,wx2+2,winY1+2,winW-4,winH-4,P.glass);
+    // Reflection
+    px(c,wx2+3,winY1+3,3,3,'#334466');
+    // Row 2
+    px(c,wx2,winY2,winW,winH,P.blue1);
+    px(c,wx2+2,winY2+2,winW-4,winH-4,P.glass);
+  }
+
+  // MAGNA logo on building (pixel letters approximation)
+  const logoX = bx + Math.floor(bw*0.1);
+  const logoY = by + Math.floor(bh*0.1);
+  // Red dot (Magna logo)
+  px(c,logoX,logoY,8,8,'#cc0000');
+  px(c,logoX+2,logoY+2,4,4,'#ff2222');
+  // "MAGNA" text
+  pxText(c,'MAGNA',logoX+12,logoY+8,'#1a2255',8);
+
+  // Right section of building
+  const bx2=bx+bw+4;
+  const bw2=Math.floor(GW*0.14);
+  const bh2=Math.floor(bh*0.72);
+  const by2=by+Math.floor(bh*0.28);
+  px(c,bx2,by2,bw2,bh2,'#bcc0cc');
+  px(c,bx2,by2,bw2,8,P.blue2);
+  px(c,bx2,by2+bh2-6,bw2,6,P.blue1);
+  for(let wi=0;wi<2;wi++){
+    const wx3=bx2+6+wi*22;
+    px(c,wx3,by2+12,16,20,P.blue1);
+    px(c,wx3+2,by2+14,12,16,P.glass);
+  }
+  // Second MAGNA logo
+  px(c,bx2+6,by2+2,6,6,'#cc0000');
+  pxText(c,'MAGNA',bx2+14,by2+8,'#1a2255',6);
+
+  // Building shadow / ground connection
+  px(c,bx-4,by+bh,bw+8,6,'#0f1020');
+
+  // Trees (pixel triangles)
+  const treePositions=[bx+bw-20, bx2+bw2+8];
+  treePositions.forEach(tx=>{
+    if(tx<GW){
+      // Trunk
+      px(c,tx+6,by+bh-14,6,14,'#553311');
+      // Foliage — pixel triangle
+      for(let row=0;row<5;row++){
+        const tw=4+row*4; const offs=(12-tw)/2;
+        px(c,tx+offs,by+bh-32+row*4,tw,4,'#224411');
+        px(c,tx+offs+1,by+bh-34+row*4,tw-2,2,'#338822');
+      }
+    }
+  });
+
+  // Cars in parking lot
+  const carColors=['#cc2222','#eeeeff','#334488','#888888'];
+  for(let ci=0;ci<4;ci++){
+    if(ci*40+bx+10<GW){
+      const cx2=bx+10+ci*44;
+      const cy2=roadY-16;
+      // Car body
+      px(c,cx2,cy2,34,10,carColors[ci]);
+      px(c,cx2+4,cy2-8,26,10,carColors[ci]);
+      // Windows
+      px(c,cx2+6,cy2-6,10,7,P.glass);
+      px(c,cx2+20,cy2-6,8,7,P.glass);
+      // Wheels
+      px(c,cx2+4,cy2+8,6,5,'#111');
+      px(c,cx2+24,cy2+8,6,5,'#111');
+    }
+  }
+
+  // Fence
+  for(let fx=bx-10;fx<bx+bw+bx2+bw2;fx+=12){
+    if(fx<GW){
+      px(c,fx,roadY-20,2,20,'#334');
+      px(c,fx,roadY-22,3,3,'#556');
+    }
+  }
+  px(c,bx-10,roadY-14,bw+60,2,'#445');
+
+  // Neon glow at bottom (pixel effect)
+  for(let gi=0;gi<3;gi++){
+    c.globalAlpha=0.08-gi*0.02;
+    px(c,0,GH-50+gi*15,GW,15,'#0088ff');
+  }
+  c.globalAlpha=1;
 }
 
-function doFlash(col){ flash=10; flashCol=col; }
+// ============================================================
+// INJECTION MOLDING MACHINES (Engel-style, pixel art)
+// ============================================================
+// Each machine occupies a "lane" — player walks between them
+// Parts come out on horizontal conveyor from each machine
+
+function drawMachine(c, x, y, w, h, active, cycleT){
+  const gh = Math.floor(h*0.85);
+  const gy = y + h - gh;
+
+  // Base/bed — dark
+  px(c,x,gy+gh-8,w,8,P.engDk);
+
+  // Main body — Engel green
+  px(c,x+2,gy,w-4,gh-8,P.engGr);
+
+  // Pixel shading — left edge darker
+  px(c,x+2,gy,4,gh-8,P.engDk);
+  // Right edge
+  px(c,x+w-6,gy,4,gh-8,P.engDk);
+
+  // Panel lines (horizontal)
+  for(let py2=gy+10;py2<gy+gh-12;py2+=16){
+    px(c,x+8,py2,w-16,2,P.engDk);
+  }
+
+  // Control panel (right side, small box)
+  const cpx=x+w-24, cpy=gy+8, cpw=18, cph=32;
+  px(c,cpx,cpy,cpw,cph,'#222233');
+  px(c,cpx+2,cpy+2,cpw-4,12,P.glass);
+  // Buttons on panel
+  px(c,cpx+3,cpy+16,4,4,'#00ff00');
+  px(c,cpx+9,cpy+16,4,4,'#ff0000');
+  px(c,cpx+3,cpy+24,14,4,'#ff8800');
+
+  // Injection unit (right side cylinder)
+  const injX=x+w-6;
+  px(c,injX,gy+Math.floor(gh*0.25),22,Math.floor(gh*0.3),P.engGy);
+  px(c,injX+2,gy+Math.floor(gh*0.25)+2,18,Math.floor(gh*0.3)-4,'#3a3a4a');
+  // Nozzle tip
+  px(c,injX+22,gy+Math.floor(gh*0.35),6,Math.floor(gh*0.1),'#888899');
+
+  // Mold area (center gap)
+  const moldX=x+Math.floor(w*0.3), moldW=Math.floor(w*0.35);
+  px(c,moldX,gy+4,moldW,gh-12,'#1a1a2a');
+  // Mold plates
+  px(c,moldX,gy+4,8,gh-12,'#334455');
+  px(c,moldX+moldW-8,gy+4,8,gh-12,'#334455');
+
+  // Cycle indicator — flashing when active
+  if(active && Math.floor(cycleT/4)%2===0){
+    px(c,x+8,gy+4,8,8,P.neonG);
+  } else {
+    px(c,x+8,gy+4,8,8,P.engDk);
+  }
+
+  // "LIS" label
+  pxText(c,'LIS',x+Math.floor(w*0.15),gy+Math.floor(gh*0.5),'#ccddcc',6);
+
+  // ENGEL logo approximation
+  pxText(c,'ENGEL',x+6,gy+10,'#88cc44',5);
+
+  // Top — safety guard
+  px(c,x,y,w,h-gh+2,'#2a3040');
+  // Glass panel
+  px(c,x+4,y+2,w-8,h-gh-4,P.glass);
+}
+
+// ============================================================
+// CONVEYOR BELT (horizontal, at mid-height per lane)
+// ============================================================
+function drawConveyor(c, x, y, w, beltFrame){
+  const bh=12;
+  // Belt body
+  px(c,x,y,w,bh,P.convBelt);
+  // Moving lines
+  const offset=(beltFrame*3)%20;
+  for(let bx2=x-offset;bx2<x+w;bx2+=20){
+    if(bx2>=x) px(c,bx2,y+4,10,4,P.convLine);
+  }
+  // Border
+  px(c,x,y,w,2,'#555566');
+  px(c,x,y+bh-2,w,2,'#555566');
+  // End rollers
+  px(c,x,y,4,bh,'#666677');
+  px(c,x+w-4,y,4,bh,'#666677');
+}
+
+// ============================================================
+// PIXEL CHARACTER SPRITES  (Pixel Car Racer aesthetic)
+// ============================================================
+// 8x16 pixel characters, drawn with rectangles
+
+// Colors
+const SP = {
+  // Male worker
+  mSkin:  '#e8b87a',
+  mHair:  '#1a0e06',
+  mShirt: '#3a3a3a',  // dark gray
+  mPants: '#223344',
+  mShoe:  '#111111',
+  // Female worker
+  fSkin:  '#ecc090',
+  fHair:  '#7a3008',
+  fShirt: '#3a3a3a',
+  fPants: '#224488',
+  fShoe:  '#111111',
+  // Predak
+  prSkin: '#e8b07a',
+  prHair: '#aa2800',
+  prShirt:'#e86820',
+  prPants:'#1a1a2a',
+  // Nastavovac
+  naSkin: '#d8a060',
+  naHair: '#111111',
+  naShirt:'#0f0f0f',
+  naPants:'#111111',
+  naBeard:'#1a1a1a',
+  // Skladnik
+  skSkin: '#e0a870',
+  skHair: '#3a2010',
+  skShirt:'#cc1111',
+  skStripe:'#ffffff',
+  skPants:'#222233',
+  // Majster
+  maShirt:'#0f0f0f',
+};
+
+// Scale factor for pixel chars
+const PSCALE = 3;
+
+function pixChar(c, x, y, gender, frame){
+  const s = PSCALE;
+  const bobY = Math.floor(Math.sin(frame*0.18)*1.5); // walking bob
+  x = Math.round(x); y = Math.round(y+bobY);
+
+  if(gender==='m'){
+    // Shoes
+    px(c,x+0*s,y+14*s,4*s,2*s,SP.mShoe);
+    px(c,x+5*s,y+14*s,4*s,2*s,SP.mShoe);
+    // Pants
+    px(c,x+1*s,y+10*s,3*s,5*s,SP.mPants);
+    px(c,x+5*s,y+10*s,3*s,5*s,SP.mPants);
+    // Shirt body
+    px(c,x+0*s,y+5*s,9*s,6*s,SP.mShirt);
+    // Red dot logo
+    px(c,x+4*s,y+7*s,2*s,2*s,'#cc0000');
+    // Arms (animated)
+    const armOff=Math.round(Math.sin(frame*0.18)*2);
+    px(c,x-1*s,y+5*s+armOff,2*s,5*s,SP.mSkin);
+    px(c,x+9*s,y+5*s-armOff,2*s,5*s,SP.mSkin);
+    // Hands
+    px(c,x-1*s,y+9*s+armOff,3*s,2*s,SP.mSkin);
+    px(c,x+8*s,y+9*s-armOff,3*s,2*s,SP.mSkin);
+    // Neck
+    px(c,x+3*s,y+3*s,3*s,3*s,SP.mSkin);
+    // Head
+    px(c,x+1*s,y+0*s,7*s,5*s,SP.mSkin);
+    // Hair
+    px(c,x+1*s,y+0*s,7*s,2*s,SP.mHair);
+    px(c,x+1*s,y+0*s,2*s,4*s,SP.mHair);
+    // Eyes
+    px(c,x+2*s,y+2*s,1*s,1*s,'#111');
+    px(c,x+5*s,y+2*s,1*s,1*s,'#111');
+    // Mouth (pixel smile)
+    px(c,x+2*s,y+4*s,1*s,1*s,'#aa6644');
+    px(c,x+5*s,y+4*s,1*s,1*s,'#aa6644');
+  } else {
+    // Female
+    px(c,x+0*s,y+14*s,4*s,2*s,SP.fShoe);
+    px(c,x+5*s,y+14*s,4*s,2*s,SP.fShoe);
+    // Pants (slightly wider/skirt)
+    px(c,x+0*s,y+10*s,9*s,5*s,SP.fPants);
+    // Shirt
+    px(c,x+0*s,y+5*s,9*s,6*s,SP.fShirt);
+    px(c,x+4*s,y+7*s,2*s,2*s,'#cc0000');
+    // Arms
+    const armOf2=Math.round(Math.sin(frame*0.18)*2);
+    px(c,x-1*s,y+5*s+armOf2,2*s,5*s,SP.fSkin);
+    px(c,x+9*s,y+5*s-armOf2,2*s,5*s,SP.fSkin);
+    px(c,x-1*s,y+9*s+armOf2,3*s,2*s,SP.fSkin);
+    px(c,x+8*s,y+9*s-armOf2,3*s,2*s,SP.fSkin);
+    // Neck
+    px(c,x+3*s,y+3*s,3*s,3*s,SP.fSkin);
+    // Head
+    px(c,x+1*s,y+0*s,7*s,5*s,SP.fSkin);
+    // Hair (auburn, longer sides)
+    px(c,x+1*s,y+0*s,7*s,2*s,SP.fHair);
+    px(c,x+1*s,y+0*s,2*s,6*s,SP.fHair);
+    px(c,x+6*s,y+0*s,2*s,6*s,SP.fHair);
+    // Eyes + lashes
+    px(c,x+2*s,y+2*s,1*s,1*s,'#111');
+    px(c,x+5*s,y+2*s,1*s,1*s,'#111');
+    px(c,x+2*s,y+1*s,1*s,1*s,SP.fHair);
+    px(c,x+5*s,y+1*s,1*s,1*s,SP.fHair);
+    px(c,x+3*s,y+4*s,1*s,1*s,'#cc7788');
+    px(c,x+5*s,y+4*s,1*s,1*s,'#cc7788');
+  }
+}
+
+function pixPredak(c, x, y, frame, facing){
+  const s=PSCALE, flip=facing<0;
+  const bobY=Math.floor(Math.sin(frame*0.2)*1.5);
+  x=Math.round(x); y=Math.round(y+bobY);
+  if(flip){ c.save(); c.translate(x+9*s,0); c.scale(-1,1); x=0; }
+  // Shoes
+  px(c,x,y+14*s,4*s,2*s,SP.prPants);
+  px(c,x+5*s,y+14*s,4*s,2*s,SP.prPants);
+  // Pants
+  px(c,x+1*s,y+10*s,3*s,5*s,SP.prPants);
+  px(c,x+5*s,y+10*s,3*s,5*s,SP.prPants);
+  // Orange shirt
+  px(c,x+0*s,y+5*s,9*s,6*s,SP.prShirt);
+  // Darker stripe
+  px(c,x+0*s,y+8*s,9*s,2*s,'#c05010');
+  // Clipboard
+  px(c,x+9*s,y+5*s,4*s,6*s,'#888');
+  px(c,x+10*s,y+6*s,2*s,4*s,'#aaa');
+  // Arms
+  const ao=Math.round(Math.sin(frame*0.2)*2);
+  px(c,x-1*s,y+5*s+ao,2*s,5*s,SP.prSkin);
+  px(c,x+9*s,y+5*s-ao,2*s,5*s,SP.prSkin);
+  // Neck+head
+  px(c,x+3*s,y+3*s,3*s,3*s,SP.prSkin);
+  px(c,x+1*s,y+0*s,7*s,5*s,SP.prSkin);
+  // Auburn bob hair
+  px(c,x+1*s,y+0*s,7*s,2*s,SP.prHair);
+  px(c,x+1*s,y+0*s,2*s,5*s,SP.prHair);
+  px(c,x+6*s,y+0*s,2*s,5*s,SP.prHair);
+  // Eyes (serious)
+  px(c,x+2*s,y+2*s,1*s,1*s,'#111');
+  px(c,x+5*s,y+2*s,1*s,1*s,'#111');
+  // Serious mouth
+  px(c,x+2*s,y+4*s,4*s,1*s,'#aa4433');
+  if(flip) c.restore();
+}
+
+function pixNastavovac(c, x, y, frame){
+  const s=PSCALE;
+  const bobY=Math.floor(Math.sin(frame*0.15)*1);
+  x=Math.round(x); y=Math.round(y+bobY);
+  // Shoes
+  px(c,x+0*s,y+14*s,4*s,2*s,'#111');
+  px(c,x+5*s,y+14*s,4*s,2*s,'#111');
+  // Pants
+  px(c,x+1*s,y+10*s,3*s,5*s,SP.naPants);
+  px(c,x+5*s,y+10*s,3*s,5*s,SP.naPants);
+  // Black shirt
+  px(c,x+0*s,y+5*s,9*s,6*s,SP.naShirt);
+  // Wrench in hand
+  const wo=Math.round(Math.sin(frame*0.1)*2);
+  px(c,x+9*s,y+6*s+wo,2*s,7*s,'#888');
+  px(c,x+9*s,y+5*s+wo,4*s,2*s,'#777');
+  px(c,x+9*s,y+12*s+wo,4*s,3*s,'#666');
+  // Arms
+  px(c,x-1*s,y+6*s,2*s,5*s,SP.naSkin);
+  px(c,x+9*s,y+6*s+wo,2*s,5*s,SP.naSkin);
+  // Neck+head
+  px(c,x+3*s,y+3*s,3*s,3*s,SP.naSkin);
+  px(c,x+1*s,y+0*s,7*s,5*s,SP.naSkin);
+  // Dark hair
+  px(c,x+1*s,y+0*s,7*s,2*s,SP.naHair);
+  px(c,x+1*s,y+0*s,2*s,3*s,SP.naHair);
+  px(c,x+6*s,y+0*s,2*s,3*s,SP.naHair);
+  // Beard (dark pixel block)
+  px(c,x+1*s,y+3*s,7*s,2*s,SP.naBeard);
+  // Moustache
+  px(c,x+2*s,y+3*s,2*s,1*s,SP.naBeard);
+  px(c,x+5*s,y+3*s,2*s,1*s,SP.naBeard);
+  // Eyes (small, serious)
+  px(c,x+2*s,y+2*s,1*s,1*s,'#111');
+  px(c,x+5*s,y+2*s,1*s,1*s,'#111');
+  // Angry brows
+  px(c,x+2*s,y+1*s,2*s,1*s,'#111');
+  px(c,x+5*s,y+1*s,2*s,1*s,'#111');
+}
+
+function pixSkladnik(c, x, y, frame){
+  const s=PSCALE;
+  const bobY=Math.floor(Math.sin(frame*0.25)*1.5);
+  x=Math.round(x); y=Math.round(y+bobY);
+  // Shoes
+  px(c,x+0*s,y+14*s,4*s,2*s,'#111');
+  px(c,x+5*s,y+14*s,4*s,2*s,'#111');
+  // Pants
+  px(c,x+1*s,y+10*s,3*s,5*s,SP.skPants);
+  px(c,x+5*s,y+10*s,3*s,5*s,SP.skPants);
+  // Red shirt
+  px(c,x+0*s,y+5*s,9*s,6*s,SP.skShirt);
+  // White stripe
+  px(c,x+0*s,y+7*s,9*s,2*s,SP.skStripe);
+  // Arms (pushing cart)
+  const ao=Math.round(Math.sin(frame*0.2)*1.5);
+  px(c,x-1*s,y+5*s+ao,2*s,6*s,SP.skSkin);
+  px(c,x+9*s,y+5*s-ao,2*s,6*s,SP.skSkin);
+  // Neck+head
+  px(c,x+3*s,y+3*s,3*s,3*s,SP.skSkin);
+  px(c,x+1*s,y+0*s,7*s,5*s,SP.skSkin);
+  // Brown hair
+  px(c,x+1*s,y+0*s,7*s,2*s,SP.skHair);
+  px(c,x+1*s,y+0*s,2*s,3*s,SP.skHair);
+  // Eyes
+  px(c,x+2*s,y+2*s,1*s,1*s,'#111');
+  px(c,x+5*s,y+2*s,1*s,1*s,'#111');
+  px(c,x+3*s,y+4*s,1*s,1*s,'#88442a');
+}
+
+function pixMajster(c, x, y, frame){
+  const s=PSCALE;
+  const bobY=Math.floor(Math.sin(frame*0.1)*1);
+  x=Math.round(x); y=Math.round(y+bobY);
+  // Shoes
+  px(c,x+0*s,y+14*s,4*s,2*s,'#111');
+  px(c,x+5*s,y+14*s,4*s,2*s,'#111');
+  // Pants black
+  px(c,x+1*s,y+10*s,3*s,5*s,'#111');
+  px(c,x+5*s,y+10*s,3*s,5*s,'#111');
+  // Black shirt
+  px(c,x+0*s,y+5*s,9*s,6*s,SP.maShirt);
+  // White collar
+  px(c,x+3*s,y+5*s,3*s,2*s,'#ddd');
+  // ANGRY raised arms
+  px(c,x-2*s,y+3*s,3*s,5*s,SP.mSkin);
+  px(c,x+9*s,y+3*s,3*s,5*s,SP.mSkin);
+  // Fists
+  px(c,x-2*s,y+3*s,3*s,2*s,SP.mSkin);
+  px(c,x+9*s,y+3*s,3*s,2*s,SP.mSkin);
+  // Neck+head
+  px(c,x+3*s,y+3*s,3*s,3*s,SP.mSkin);
+  px(c,x+1*s,y+0*s,7*s,5*s,SP.mSkin);
+  // Red angry flush
+  px(c,x+1*s,y+0*s,7*s,5*s,'rgba(200,0,0,0.2)');
+  // Dark hair
+  px(c,x+1*s,y+0*s,7*s,2*s,'#111');
+  // ANGRY V brows
+  px(c,x+2*s,y+1*s,2*s,1*s,'#111');
+  px(c,x+5*s,y+1*s,2*s,1*s,'#111');
+  // Eyes
+  px(c,x+2*s,y+2*s,2*s,2*s,'#111');
+  px(c,x+5*s,y+2*s,2*s,2*s,'#111');
+  // Shouting mouth (open)
+  px(c,x+2*s,y+3*s,5*s,2*s,'#111');
+  px(c,x+3*s,y+4*s,3*s,1*s,'#cc0000');
+}
+
+// Cart with bins (for skladnik)
+function pixCart(c, x, y){
+  const s=PSCALE;
+  const cartW=10*s, cartH=8*s;
+  // Cart bed
+  px(c,x,y,cartW,cartH,'#3a3a4a');
+  px(c,x,y,cartW,2,'#555566');
+  // Bins
+  const bCols=['#cc2222','#2244bb','#229933','#cc8811'];
+  for(let b=0;b<4;b++){
+    const bx3=x+b*9+2; if(bx3+7>x+cartW)continue;
+    px(c,bx3,y-6*s,7,6*s,bCols[b]);
+    px(c,bx3+1,y-6*s+1,5,3,'rgba(255,255,255,0.2)');
+  }
+  // Wheels / rollers
+  for(let r=0;r<3;r++){
+    const rx=x+4+r*14;
+    px(c,rx,y+cartH,6,6,'#444455');
+    px(c,rx+2,y+cartH+2,2,2,'#777788');
+  }
+  // Handle
+  px(c,x-6,y-4*s,4,cartH+4*s,'#555');
+  px(c,x-8,y-4*s,8,3,'#777');
+}
+
+// Speech bubble (pixel style)
+function pixBubble(c, x, y, text, col='#fff', bg='rgba(0,0,8,0.9)', facing=1){
+  const bw=text.length*7+10;
+  const bh=18;
+  const bx=facing>0 ? x : x-bw;
+  const by=y-bh-8;
+  // Box
+  px(c,bx,by,bw,bh,bg);
+  // Border
+  c.strokeStyle=col; c.lineWidth=2;
+  c.strokeRect(bx,by,bw,bh);
+  // Tail
+  px(c,facing>0?bx+6:bx+bw-10,by+bh,6,6,bg);
+  // Text
+  pxText(c,text,bx+5,by+13,col,6);
+}
+
+// ============================================================
+// GAME STATE
+// ============================================================
+let running=false, raf=null;
+let score, lives, level, gframe, speed;
+let selectedChar='m';
+
+// Player state
+let player;
+
+// Machines (lanes)
+let machines;
+let numLanes;
+
+// Parts on conveyor
+let parts;
+
+// NPC walkers
+let predak, nastavovac, skladnik;
+let predakActive=false, predakTimer=0;
+let nastavovacActive=false, nastavovacTimer=0;
+let nastavovacStopX=0;
+
+// Belt animation
+let beltAnim=0;
+let flashT=0, flashCol='';
+
+const MAJSTER_Q=[
+  'CO TO ROBIS?!',
+  'MOJA BABICKA\nRYCHLEJSIE!',
+  'ZAJTRA AUDIT!!',
+  'NESPOKOJNY!!',
+  'REKLAMACIA!!',
+  'KTO TA NAUCIL?!',
+];
+
+// ============================================================
+// LAYOUT CALCULATIONS
+// ============================================================
+let MACHINE_W, MACHINE_H, MACHINE_Y, CONV_Y, FLOOR_Y;
+let PLAYER_W = 9*PSCALE;
+let PLAYER_H = 16*PSCALE;
+let LANE_XS = [];
+
+function computeLayout(){
+  numLanes = Math.min(3 + Math.floor(level/3), 5);
+  MACHINE_H = Math.floor(GH*0.40);
+  MACHINE_W = Math.floor((GW - 16) / numLanes) - 4;
+  MACHINE_Y = Math.floor(GH*0.32);
+  CONV_Y     = MACHINE_Y + MACHINE_H - 14;
+  FLOOR_Y    = MACHINE_Y + MACHINE_H + 4;
+
+  LANE_XS = [];
+  for(let i=0;i<numLanes;i++){
+    LANE_XS.push(16 + i*(MACHINE_W+4));
+  }
+  PLAYER_W = 9*PSCALE;
+  PLAYER_H = 16*PSCALE;
+}
+
+// ============================================================
+// INIT / START
+// ============================================================
+function showOverlay(){ document.getElementById('ov').classList.remove('hidden'); }
+function hideOverlay(){ document.getElementById('ov').classList.add('hidden'); }
 
 function showMenu(){
-  if(running) stopGame();
-  document.getElementById('scrMenu').style.display = 'flex';
-  document.getElementById('scrOver').style.display = 'none';
-  document.getElementById('overlay').classList.remove('hidden');
+  stopGame();
+  document.getElementById('sMenu').style.display='flex';
+  document.getElementById('sOver').style.display='none';
+  showOverlay();
   drawPreviews();
-  drawMenuBg();
+  drawBg();
 }
 
 function showGameOver(){
-  playGameOver();
-  document.getElementById('scrMenu').style.display = 'none';
-  document.getElementById('scrOver').style.display = 'flex';
-  document.getElementById('goScore').textContent = 'Skóre: ' + score;
-  const quotes = ['Čo to robíš?!', 'To nie je možné!', 'Zajtra máme audit!', 'Nie som spokojný!', 'Reklamácia!!', 'Kto ťa naučil pracovať?!'];
-  document.getElementById('goQuote').textContent = quotes[Math.floor(Math.random()*quotes.length)];
-  drawMajsterPreview();
-  document.getElementById('overlay').classList.remove('hidden');
-  if(score > 0) addScore(playerName, score);
+  document.getElementById('sMenu').style.display='none';
+  const so=document.getElementById('sOver');
+  so.style.display='flex';
+  document.getElementById('goS').textContent='SCORE: '+score+'  LVL: '+level;
+  const q=MAJSTER_Q[Math.floor(Math.random()*MAJSTER_Q.length)];
+  document.getElementById('goQ').textContent=q;
+  drawMajsterPrev();
+  showOverlay();
 }
 
-function selectChar(g){
-  selectedChar = g;
-  document.getElementById('cardM').style.borderColor = g==='male' ? '#ffaa44' : '#444';
-  document.getElementById('cardF').style.borderColor = g==='female' ? '#ffaa44' : '#444';
+function drawMajsterPrev(){
+  const el=document.getElementById('majPrev'); if(!el)return;
+  const c=el.getContext('2d'); c.clearRect(0,0,60,90);
+  c.imageSmoothingEnabled=false;
+  c.save(); c.scale(0.7,0.7); pixMajster(c,4,4,0); c.restore();
+}
+
+function selChar(g){
+  selectedChar=g;
+  document.getElementById('cM').className='ccard'+(g==='m'?' sel':'');
+  document.getElementById('cF').className='ccard'+(g==='f'?' sel':'');
   drawPreviews();
 }
 
 function drawPreviews(){
-  ['male','female'].forEach(g=>{
-    const id = g==='male'?'prevM':'prevF';
-    const el = document.getElementById(id); if(!el)return;
-    const c = el.getContext('2d'); c.clearRect(0,0,56,84);
-    c.save(); c.translate(28,70); c.scale(0.7,0.7);
-    drawWorkerPixel(c, g, 0);
+  ['m','f'].forEach(g=>{
+    const el=document.getElementById(g==='m'?'pM':'pF'); if(!el)return;
+    const c=el.getContext('2d'); c.clearRect(0,0,40,56);
+    c.imageSmoothingEnabled=false;
+    c.save(); c.scale(0.42,0.42);
+    pixChar(c,4,4,g,0);
     c.restore();
   });
 }
 
-function drawMajsterPreview(){
-  const el = document.getElementById('majsterPrev'); if(!el)return;
-  const c = el.getContext('2d'); c.clearRect(0,0,80,110);
-  c.save(); c.translate(40,95); c.scale(0.75,0.75);
-  drawMajsterPixel(c);
-  c.restore();
+function stopGame(){
+  running=false; cancelAnimationFrame(raf); raf=null;
+  hideBanners();
 }
-
-function drawMenuBg(){
-  if(!ctx) return;
-  ctx.fillStyle = '#1a2a2a';
-  ctx.fillRect(0,0,GW,GH);
-  ctx.fillStyle = '#2a3a2a';
-  for(let i=0;i<GW;i+=40) ctx.fillRect(i, GH-70, 30, 8);
-  ctx.strokeStyle = '#ffaa44';
-  ctx.lineWidth = 2;
-  for(let i=1;i<3;i++){ const x = (i * GW / 3); ctx.beginPath(); ctx.setLineDash([12,20]); ctx.moveTo(x,0); ctx.lineTo(x,GH); ctx.stroke(); }
-  ctx.setLineDash([]);
+function hideBanners(){
+  document.getElementById('bPredak').style.display='none';
+  document.getElementById('bNast').style.display='none';
 }
-
-function stopGame(){ running=false; if(raf) cancelAnimationFrame(raf); raf=null; }
 
 function startGame(){
-  const nameInput = document.getElementById('playerName');
-  playerName = nameInput.value.trim();
-  if(playerName === '') playerName = 'PRACOVNÍK';
-  if(!audioEnabled) { audioCtx.resume().then(()=>{ audioEnabled=true; }); }
-  document.getElementById('overlay').classList.add('hidden');
-  score = 0; lives = 3; pressCount = 1; frame = 0;
-  baseSpeed = 1.8; spawnRate = 72;
-  predakActive=false; predakTimer=0; predakX=GW+60; predakDir=-1;
-  skladnikActive=false; skladnikX=GW+120; skladnikTimer=400;
-  const LANES = computeLanes(3);
-  worker = { lane:1, x:LANES[1], y:GH-68, armAngle:0, armDir:1, lanes:LANES };
-  items = [];
-  running = true;
+  hideOverlay();
+  score=0; lives=3; level=1; gframe=0; speed=1.8;
+  predakActive=false; predakTimer=0;
+  nastavovacActive=false; nastavovacTimer=0;
+  hideBanners();
+  computeLayout();
+
+  // Player starts at lane 0
+  player = {
+    lane:0,
+    x: LANE_XS[0] + MACHINE_W/2 - PLAYER_W/2,
+    y: FLOOR_Y,
+    frame:0,
+    catching:false,
+    catchAnim:0,
+  };
+
+  parts=[];
+  // Predak
+  predak={x:GW+40, y:FLOOR_Y, frame:0, dir:-1, bubble:0};
+  // Nastavovac
+  nastavovac={x:-60, y:FLOOR_Y, frame:0, stopped:false, bubble:0};
+  // Skladnik
+  skladnik={x:GW+80, y:FLOOR_Y, frame:0, active:false, timer:400+Math.floor(Math.random()*300)};
+
+  beltAnim=0; flashT=0;
   updateHUD();
-  if(raf) cancelAnimationFrame(raf);
-  raf = requestAnimationFrame(gameLoop);
+  running=true;
+  cancelAnimationFrame(raf);
+  loop();
 }
 
-function gameOver(){ running=false; showGameOver(); }
-
-// ========== HERNÁ LOGIKA ==========
-function gameLoop(){
-  if(!running) return;
-  frame++;
-  updateLogic();
-  drawPixel();
-  raf = requestAnimationFrame(gameLoop);
+function updateHUD(){
+  document.getElementById('hSv').textContent=score;
+  document.getElementById('hLv').textContent='❤'.repeat(Math.max(0,lives));
+  document.getElementById('hLLv').textContent=level+(predakActive?'🔥':'')+(nastavovacActive?'🔧':'');
 }
 
-function updateLogic(){
-  const LANES = worker.lanes;
-  if(!LANES.length) return;
-  worker.x += (LANES[worker.lane]-worker.x)*0.22;
-  worker.armAngle += 0.12*worker.armDir;
-  if(worker.armAngle>0.55||worker.armAngle<-0.55) worker.armDir*=-1;
-  
-  // PREDÁK
-  if(!predakActive && frame > 550 && score > 150 && pressCount < 3 && frame % 750 === 0){
-    predakActive = true; predakTimer = 340; predakX = GW+60; predakDir = -1;
-    playPredak();
-    pressCount = Math.min(3, pressCount+1);
-    const newLanes = computeLanes(3 + (pressCount-1));
-    worker.lane = Math.min(worker.lane, newLanes.length-1);
-    worker.lanes = newLanes;
-    baseSpeed = Math.min(3.4, baseSpeed + 0.5);
-    spawnRate = Math.max(48, spawnRate - 8);
+// ============================================================
+// MAIN LOOP
+// ============================================================
+function loop(){
+  if(!running)return;
+  gframe++; beltAnim++;
+  bgFrame=gframe;
+  update();
+  draw();
+  raf=requestAnimationFrame(loop);
+}
+
+// ============================================================
+// UPDATE
+// ============================================================
+function update(){
+  // Smooth player move
+  const targetX = LANE_XS[player.lane] + MACHINE_W/2 - PLAYER_W/2;
+  player.x += (targetX - player.x)*0.22;
+  player.frame++;
+
+  // Catch animation
+  if(player.catchAnim>0) player.catchAnim--;
+
+  // Belt animation speed up with predak
+  const beltSpd = predakActive ? speed*1.8 : speed;
+
+  // ---- SPAWN PARTS ----
+  // Parts come out from RIGHT side of each machine's conveyor
+  const spawnRate = nastavovacActive ? 9999 : Math.max(30, 90 - level*6 - (predakActive?15:0));
+  if(gframe % spawnRate === 0){
+    const lane = Math.floor(Math.random()*numLanes);
+    const bad = Math.random() < (0.2 + level*0.03 + (predakActive?0.1:0));
+    parts.push({
+      lane,
+      x: LANE_XS[lane] + MACHINE_W - 20, // starts near right side of machine
+      y: CONV_Y + 1,
+      bad,
+      speed: (speed + Math.random()*0.8) * (predakActive?1.4:1),
+      caught: false,
+    });
+  }
+
+  // ---- MOVE PARTS (right to left on conveyor) ----
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];
+    p.x -= p.speed; // move LEFT
+
+    // Check catch: player at same lane, part reaches player x zone
+    const convEnd = LANE_XS[player.lane]; // left end of current machine
+    const playerMidX = player.x + PLAYER_W/2;
+
+    if(!p.caught && p.lane===player.lane && p.x < playerMidX+20 && p.x > playerMidX-60){
+      if(!p.bad){
+        score += 10*level;
+        p.caught=true;
+        player.catchAnim=12;
+      } else {
+        lives--;
+        p.caught=true;
+        doFlash('#ff000088');
+        updateHUD();
+        if(lives<=0){gameOver();return;}
+      }
+    }
+
+    // Part falls off left edge (missed)
+    if(p.x < LANE_XS[p.lane] - 30){
+      if(!p.bad && !p.caught){
+        lives--;
+        doFlash('#ff550066');
+        updateHUD();
+        if(lives<=0){gameOver();return;}
+      }
+      parts.splice(i,1);
+      continue;
+    }
+    if(p.caught) parts.splice(i,1);
+  }
+
+  // ---- LEVEL UP ----
+  if(score > 0 && score % (200*level) === 0 && gframe%4===0 && !predakActive){
+    level++;
+    speed = Math.min(speed+0.15, 5.5);
+    updateHUD();
+  }
+
+  // ---- PREDAK ----
+  if(!predakActive && !nastavovacActive && gframe>200 && gframe%650===0){
+    predakActive=true; predakTimer=320;
+    predak.x=GW+40; predak.dir=-1;
+    document.getElementById('bPredak').style.display='block';
+    // Add lane
+    const newN=Math.min(numLanes+1,5);
+    if(newN!==numLanes){
+      numLanes=newN;
+      MACHINE_W=Math.floor((GW-16)/numLanes)-4;
+      LANE_XS=[];
+      for(let i=0;i<numLanes;i++) LANE_XS.push(16+i*(MACHINE_W+4));
+    }
+    speed=Math.min(speed+1.2,9);
+    predak.bubble=180;
     updateHUD();
   }
   if(predakActive){
-    predakX += predakDir * 1.5;
+    predak.x += predak.dir*1.6; predak.frame++;
     predakTimer--;
-    if(predakX<40 && predakDir<0) predakDir=1;
-    if(predakX>GW-50 && predakDir>0) predakDir=-1;
-    if(predakTimer<=0) predakActive=false;
-  }
-  
-  // SKLADNÍK
-  skladnikTimer--;
-  if(skladnikTimer<=0 && !skladnikActive){
-    skladnikActive=true; skladnikX=GW+120;
-    skladnikTimer=450+Math.floor(Math.random()*400);
-  }
-  if(skladnikActive){ skladnikX-=1.3; if(skladnikX<-200) skladnikActive=false; }
-  
-  // POSTUPNÉ ZVÝŠENIE
-  if(frame % 400 === 0 && frame > 200 && baseSpeed < 3.2) baseSpeed += 0.06;
-  
-  // SPAWN
-  if(frame % spawnRate === 0){
-    const lane = Math.floor(Math.random() * LANES.length);
-    const bad = Math.random() < (0.12 + (pressCount>1?0.05:0) + (score/3500));
-    items.push({ lane, x:LANES[lane], y:-24, bad, speed: baseSpeed + Math.random()*0.7 });
-  }
-  
-  // KOLIZE
-  for(let i=items.length-1; i>=0; i--){
-    const it = items[i];
-    it.y += it.speed;
-    if(it.y > GH-85 && it.y < GH-48 && Math.abs(it.x - worker.x) < 34){
-      if(!it.bad){ score += 10 * pressCount; playCatch(); updateHUD(); }
-      else { lives--; playBad(); doFlash('#ff6666'); updateHUD(); }
-      items.splice(i,1);
-      if(lives <= 0){ gameOver(); return; }
-      continue;
+    if(predak.x<60&&predak.dir<0) predak.dir=1;
+    if(predak.x>GW-60&&predak.dir>0) predak.dir=-1;
+    if(predak.bubble>0) predak.bubble--;
+    if(predakTimer<=0){
+      predakActive=false;
+      document.getElementById('bPredak').style.display='none';
+      speed=Math.max(speed-0.7, 1.8+level*0.15);
+      updateHUD();
     }
-    if(it.y > GH+25){
-      if(!it.bad){ lives--; playBad(); doFlash('#ff8866'); updateHUD(); if(lives<=0){ gameOver(); return; } }
-      items.splice(i,1);
+  }
+
+  // ---- NASTAVOVAC ----
+  if(!nastavovacActive && !predakActive && gframe>300 && gframe%850===0){
+    nastavovacActive=true; nastavovacTimer=200;
+    nastavovac.x=-60; nastavovac.stopped=false;
+    nastavovacStopX=Math.floor(GW*0.4);
+    document.getElementById('bNast').style.display='block';
+    nastavovac.bubble=180;
+    updateHUD();
+  }
+  if(nastavovacActive){
+    nastavovac.frame++;
+    nastavovac.bubble>0&&nastavovac.bubble--;
+    if(!nastavovac.stopped){
+      nastavovac.x+=1.3;
+      if(nastavovac.x>=nastavovacStopX) nastavovac.stopped=true;
     }
+    nastavovacTimer--;
+    if(nastavovacTimer<=0){
+      nastavovacActive=false;
+      document.getElementById('bNast').style.display='none';
+      nastavovac.stopped=false;
+      updateHUD();
+    }
+  } else if(nastavovac.x>-60 && nastavovac.x<GW+40){
+    // Walk off
+    nastavovac.x+=1.5; nastavovac.frame++;
+  }
+
+  // ---- SKLADNIK ----
+  skladnik.timer--;
+  if(skladnik.timer<=0 && !skladnik.active){
+    skladnik.active=true; skladnik.x=GW+100; skladnik.frame=0;
+    skladnik.timer=700+Math.floor(Math.random()*500);
+  }
+  if(skladnik.active){
+    skladnik.x-=1.4; skladnik.frame++;
+    if(skladnik.x<-150) skladnik.active=false;
+  }
+
+  if(flashT>0) flashT--;
+}
+
+function doFlash(col){flashT=10;flashCol=col;}
+function gameOver(){ running=false; hideBanners(); showGameOver(); }
+
+// ============================================================
+// DRAW
+// ============================================================
+function draw(){
+  const c=ctx;
+
+  // Background
+  drawBg();
+
+  // ---- FLOOR / FACTORY INTERIOR ----
+  // Factory floor (below machines)
+  px(c,0,FLOOR_Y,GW,GH-FLOOR_Y,'#141420');
+  // Floor tiles
+  for(let fx=0;fx<GW;fx+=24){
+    px(c,fx,FLOOR_Y,22,GH-FLOOR_Y-1,'#181828');
+    px(c,fx,FLOOR_Y,22,2,'#222233');
+  }
+  // Floor highlight line
+  px(c,0,FLOOR_Y,GW,2,'#33334a');
+
+  // ---- MACHINES ----
+  for(let i=0;i<numLanes;i++){
+    const mx=LANE_XS[i];
+    const isPlayerLane=(i===player.lane);
+    drawMachine(c, mx, MACHINE_Y, MACHINE_W, MACHINE_H,
+      isPlayerLane, gframe);
+    // Conveyor
+    drawConveyor(c, mx, CONV_Y, MACHINE_W, beltAnim);
+  }
+
+  // ---- PARTS ON CONVEYORS ----
+  for(const p of parts){
+    if(p.caught)continue;
+    drawPart(c, p.x, p.y, p.bad);
+  }
+
+  // ---- SKLADNIK ----
+  if(skladnik.active){
+    const sy = FLOOR_Y + 2;
+    pixCart(c, skladnik.x+32, sy-8*PSCALE);
+    pixSkladnik(c, skladnik.x, sy-14*PSCALE, skladnik.frame);
+  }
+
+  // ---- PLAYER ----
+  {
+    const py2 = player.y - PLAYER_H + 4;
+    pixChar(c, player.x, py2, selectedChar, player.frame);
+    // Catch flash
+    if(player.catchAnim>0 && player.catchAnim%3<2){
+      c.globalAlpha=0.4;
+      px(c,player.x-2,py2-2,PLAYER_W+4,PLAYER_H+4,'#00ffff');
+      c.globalAlpha=1;
+    }
+    // Glowing feet (standing on active conveyor)
+    if(Math.floor(gframe/6)%2===0){
+      px(c,player.x,player.y,PLAYER_W,3,P.neonG+'44');
+    }
+  }
+
+  // ---- PREDAK ----
+  if(predakActive){
+    const py2=predak.y-14*PSCALE;
+    pixPredak(c, predak.x-PLAYER_W/2, py2, predak.frame, predak.dir);
+    if(predak.bubble>0){
+      pixBubble(c, predak.x, py2, 'VEZMI AJ DRUHY LIS!', '#ff8800','rgba(0,0,0,0.9)', predak.dir);
+    }
+  }
+
+  // ---- NASTAVOVAC ----
+  if(nastavovacActive || (nastavovac.x>-60&&nastavovac.x<GW+40)){
+    const py2=nastavovac.y-14*PSCALE;
+    pixNastavovac(c, nastavovac.x-PLAYER_W/2, py2, nastavovac.frame);
+    if(nastavovac.bubble>0 && nastavovacActive){
+      pixBubble(c, nastavovac.x+20, py2, 'PORUCHA FORMY!', '#ffff00','rgba(0,0,0,0.9)', 1);
+    }
+  }
+
+  // ---- FLASH ----
+  if(flashT>0){
+    c.fillStyle=flashCol; c.fillRect(0,0,GW,GH);
+  }
+
+  // ---- SCANLINE EFFECT (pixel aesthetic) ----
+  for(let sy=0;sy<GH;sy+=4){
+    c.fillStyle='rgba(0,0,0,0.12)';
+    c.fillRect(0,sy,GW,2);
+  }
+
+  // ---- SCORE POPUP ----
+  if(player.catchAnim>6){
+    pxText(c,'+'+10*level,
+      player.x+PLAYER_W,
+      player.y-PLAYER_H-8,
+      '#00ff88',8);
   }
 }
 
-// ========== PIXEL KRESLENIE ==========
-function drawPixel(){
-  if(!ctx) return;
-  ctx.fillStyle = '#1a2a2a';
-  ctx.fillRect(0,0,GW,GH);
-  
-  // Pás
-  const BELT_H=28;
-  ctx.fillStyle = '#2a3a2a';
-  ctx.fillRect(0,0,GW,BELT_H);
-  for(let x=(frame*2)%70-70; x<GW; x+=70){
-    ctx.fillStyle = '#3a5a3a';
-    ctx.fillRect(x,4,50,20);
-    ctx.fillStyle = '#2a4a2a';
-    ctx.fillRect(x+50,4,20,20);
-  }
-  ctx.strokeStyle = '#ffaa44';
-  ctx.lineWidth=2;
-  ctx.strokeRect(0,0,GW,BELT_H);
-  
-  // Podlaha
-  ctx.fillStyle = '#0a1a0a';
-  ctx.fillRect(0,GH-50,GW,50);
-  for(let x=0;x<GW;x+=45){
-    ctx.fillStyle = '#1a2a1a';
-    ctx.fillRect(x,GH-46,35,8);
-  }
-  
-  // Dráhy
-  if(worker && worker.lanes){
-    worker.lanes.forEach((lx,i)=>{
-      ctx.fillStyle = i===worker.lane ? 'rgba(100,200,100,0.1)' : 'rgba(0,0,0,0.05)';
-      ctx.fillRect(lx-30,0,60,GH);
-      ctx.strokeStyle = '#ffaa44';
-      ctx.lineWidth=1.5;
-      ctx.beginPath(); ctx.setLineDash([6,14]); ctx.moveTo(lx,BELT_H); ctx.lineTo(lx,GH-52); ctx.stroke();
-      ctx.setLineDash([]);
-    });
-  }
-  
-  // Skladník
-  if(skladnikActive) drawSkladnikPixel(ctx, skladnikX, GH-50);
-  
-  // Diely
-  items.forEach(it=>drawPartPixel(ctx, it.x, it.y, it.bad));
-  
-  // Hráč
-  if(worker) drawWorkerPixel(ctx, selectedChar, worker.armAngle, worker.x, worker.y);
-  
-  // Predák
-  if(predakActive) drawPredakPixel(ctx, predakX, GH-52, predakDir);
-  
-  // Flash
-  if(flash>0){ ctx.fillStyle=flashCol; ctx.fillRect(0,0,GW,GH); flash--; }
-  
-  // INFO
-  ctx.font = 'bold 10px monospace';
-  ctx.fillStyle = '#ffaa44';
-  ctx.fillText(`⚙️ LIS:${pressCount}`, 8, 24);
-  ctx.fillStyle = '#88ff88';
-  ctx.fillText(`⚡ ${Math.round(baseSpeed*10)/10}`, GW-45, 24);
-}
-
-function drawPartPixel(c,x,y,bad){
-  c.save(); c.translate(x,y);
-  c.fillStyle = bad ? '#cc3333' : '#3a7a5a';
-  c.fillRect(-12,-8,24,16);
-  c.fillStyle = bad ? '#ff8888' : '#6aac8a';
-  c.fillRect(-6,-3,5,6);
-  c.fillRect(1,-3,5,6);
+// Parts (horizontal conveyor)
+function drawPart(c, x, y, bad){
+  const s=PSCALE-1; // slightly smaller pixel scale
+  // Part shape: plastic mirror housing
+  c.fillStyle = bad?'#aa1818':'#3a6a99';
+  c.fillRect(Math.round(x),Math.round(y),14,8);
+  // Inner detail
+  c.fillStyle = bad?'#ff5555':'#6699cc';
+  c.fillRect(Math.round(x+2),Math.round(y+2),4,4);
+  c.fillRect(Math.round(x+8),Math.round(y+2),4,4);
+  // Nub
+  c.fillStyle = bad?'#881111':'#2255aa';
+  c.fillRect(Math.round(x+4),Math.round(y+8),6,3);
   if(bad){
-    c.fillStyle = '#ffff88';
-    c.fillRect(-2,0,4,2);
-    c.fillStyle = '#ffaa44';
-    c.fillRect(-4,-4,2,2);
-    c.fillRect(2,-4,2,2);
-  } else {
-    c.fillStyle = '#ffff88';
-    c.fillRect(-2,2,4,3);
+    c.fillStyle='#ffee00';
+    c.fillRect(Math.round(x+1),Math.round(y+1),3,3);
+    c.fillRect(Math.round(x+10),Math.round(y+4),3,3);
   }
-  c.restore();
 }
 
-function drawWorkerPixel(c, gender, arm, wx, wy){
-  c.save(); c.translate(wx, wy);
-  // Tmavé tričko
-  c.fillStyle = '#3a4042';
-  c.fillRect(-11,-5,22,28);
-  c.fillStyle = '#5a6265';
-  c.fillRect(-6,3,12,6);
-  // Ruky
-  c.fillStyle = '#c08a5a';
-  c.fillRect(-14,0,5,16);
-  c.fillRect(9,0,5,16);
-  // Hlava
-  c.fillStyle = '#e0ac77';
-  c.fillRect(-8,-12,16,14);
-  c.fillStyle = gender==='female' ? '#8a5a30' : '#2d2a18';
-  c.fillRect(-6,-16,12,5);
-  if(gender==='female'){ c.fillRect(-9,-13,3,6); c.fillRect(6,-13,3,6); }
-  // Oči
-  c.fillStyle = '#111';
-  c.fillRect(-4,-9,2,2);
-  c.fillRect(2,-9,2,2);
-  c.fillStyle = '#fecc88';
-  c.fillRect(-1,-5,2,2);
-  c.restore();
+// ============================================================
+// CONTROLS
+// ============================================================
+let lHeld=false, rHeld=false, mvInt=null;
+
+function movL(){
+  if(player&&player.lane>0) player.lane--;
+}
+function movR(){
+  if(player&&player.lane<numLanes-1) player.lane++;
 }
 
-function drawPredakPixel(c, x, y, dir){
-  c.save(); c.translate(x,y);
-  if(dir>0) c.scale(-1,1);
-  // Oranžové tričko
-  c.fillStyle = '#e87c30';
-  c.fillRect(-12,-22,24,24);
-  c.fillStyle = '#c06020';
-  c.fillRect(-12,-10,24,5);
-  // Hlava
-  c.fillStyle = '#d4845a';
-  c.fillRect(-4,-28,8,7);
-  c.fillStyle = '#e0ac77';
-  c.fillRect(-8,-35,16,12);
-  // Ryšavé vlasy
-  c.fillStyle = '#aa4010';
-  c.fillRect(-9,-37,18,5);
-  c.fillRect(-7,-38,4,4);
-  c.fillRect(3,-38,4,4);
-  // Oči
-  c.fillStyle = '#111';
-  c.fillRect(-5,-32,2,2);
-  c.fillRect(3,-32,2,2);
-  // Bublina
-  c.fillStyle = '#fff8e0';
-  c.fillRect(-45,-52,40,16);
-  c.fillStyle = '#cc4422';
-  c.font = 'bold 7px monospace';
-  c.fillText('+ LIS!', -38, -44);
-  c.restore();
-}
+function sl(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movL(); clearInterval(mvInt); mvInt=setInterval(()=>{if(lHeld)movL();},130); lHeld=true; document.getElementById('bL').classList.add('held'); }
+function el(){ lHeld=false; clearInterval(mvInt); document.getElementById('bL').classList.remove('held'); }
+function sr(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; movR(); clearInterval(mvInt); mvInt=setInterval(()=>{if(rHeld)movR();},130); rHeld=true; document.getElementById('bR').classList.add('held'); }
+function er(){ rHeld=false; clearInterval(mvInt); document.getElementById('bR').classList.remove('held'); }
 
-function drawSkladnikPixel(c, x, y){
-  c.save(); c.translate(x,y);
-  // Vozík
-  c.fillStyle = '#4a4a4a';
-  c.fillRect(0,-24,80,24);
-  // Bedne
-  const cols = ['#cc3333','#3366cc','#33aa33','#cc8844'];
-  for(let b=0;b<4;b++){ c.fillStyle = cols[b]; c.fillRect(4+b*19,-21,16,18); }
-  // Kolesá
-  for(let r=0;r<5;r++){ c.fillStyle = '#666'; c.fillRect(8+r*16,0,5,5); }
-  // Skladník
-  c.fillStyle = '#cc3333';
-  c.fillRect(-20,-20,18,20);
-  c.fillStyle = '#ffffff';
-  c.fillRect(-20,-8,18,4);
-  c.fillStyle = '#c07050';
-  c.fillRect(-18,-2,4,12);
-  c.fillRect(-8,-2,4,12);
-  c.fillStyle = '#c07050';
-  c.fillRect(-12,-24,6,6);
-  c.fillRect(-8,-30,8,8);
-  c.fillStyle = '#111';
-  c.fillRect(-10,-28,2,2);
-  c.fillRect(-2,-28,2,2);
-  c.restore();
-}
-
-function drawMajsterPixel(c){
-  c.fillStyle = '#111';
-  c.fillRect(-8,12,16,20);
-  c.fillStyle = '#0f0f0f';
-  c.fillRect(-10,-4,20,20);
-  c.fillStyle = '#b07050';
-  c.fillRect(-8,-8,16,6);
-  c.fillRect(-8,-14,16,8);
-  c.fillStyle = '#111';
-  c.fillRect(-12,-18,24,6);
-  c.fillStyle = '#ff8888';
-  c.fillRect(-6,-22,2,4);
-  c.fillRect(4,-22,2,4);
-  c.fillStyle = '#fff';
-  c.fillRect(-8,-20,2,2);
-  c.fillRect(6,-20,2,2);
-  c.fillStyle = '#cc3333';
-  c.fillRect(-3,-28,6,4);
-}
-
-// ========== OVLÁDANIE ==========
-let leftHeld=false, rightHeld=false, moveInt=null;
-function moveLeft(){ if(running && worker && worker.lane>0) worker.lane--; }
-function moveRight(){ if(running && worker && worker.lane<worker.lanes.length-1) worker.lane++; }
-function startL(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; moveLeft(); clearInterval(moveInt); moveInt=setInterval(()=>{if(leftHeld)moveLeft();},120); leftHeld=true; document.getElementById('btnL').classList.add('held'); }
-function stopL(){ leftHeld=false; clearInterval(moveInt); document.getElementById('btnL').classList.remove('held'); }
-function startR(e){ if(e&&e.cancelable)e.preventDefault(); if(!running)return; moveRight(); clearInterval(moveInt); moveInt=setInterval(()=>{if(rightHeld)moveRight();},120); rightHeld=true; document.getElementById('btnR').classList.add('held'); }
-function stopR(){ rightHeld=false; clearInterval(moveInt); document.getElementById('btnR').classList.remove('held'); }
-
-document.addEventListener('keydown', e=>{
+document.addEventListener('keydown',e=>{
   if(!running)return;
-  if(e.key==='ArrowLeft'){ e.preventDefault(); moveLeft(); }
-  if(e.key==='ArrowRight'){ e.preventDefault(); moveRight(); }
+  if(e.key==='ArrowLeft'){e.preventDefault();movL();}
+  if(e.key==='ArrowRight'){e.preventDefault();movR();}
 });
 
-let touchX=null;
-canvas.addEventListener('touchstart', e=>{ touchX=e.touches[0].clientX; },{passive:true});
-canvas.addEventListener('touchend', e=>{
-  if(touchX===null)return;
-  const rect=canvas.getBoundingClientRect();
-  const tx=e.changedTouches[0].clientX-rect.left;
-  tx<rect.width/2?moveLeft():moveRight();
-  touchX=null;
+// Canvas tap
+let tapX=null;
+gc.addEventListener('touchstart',e=>{tapX=e.touches[0].clientX;},{passive:true});
+gc.addEventListener('touchend',e=>{
+  if(tapX===null)return;
+  const dx=e.changedTouches[0].clientX-tapX;
+  if(Math.abs(dx)>35){dx<0?movL():movR();}
+  else{const r=gc.getBoundingClientRect();e.changedTouches[0].clientX-r.left<r.width/2?movL():movR();}
+  tapX=null;
 },{passive:true});
 
+// ============================================================
+// INIT
+// ============================================================
 window.addEventListener('load',()=>{
-  resizeCanvas();
-  loadLeaderboard();
+  computeLayout();
   drawPreviews();
-  drawMenuBg();
-  document.getElementById('overlay').classList.remove('hidden');
-  document.getElementById('scrMenu').style.display='flex';
-  document.getElementById('scrOver').style.display='none';
-  document.getElementById('playerName').value='';
-  document.getElementById('cardM').style.borderColor='#ffaa44';
+  drawMajsterPrev();
+  showOverlay();
+  drawBg();
 });
 </script>
 </body>
 </html>
-```
