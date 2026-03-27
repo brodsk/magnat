@@ -268,7 +268,7 @@ table tr.row-alt td { background:#f5f5f5; }
 <!-- ===== FACTORY GAME SCREEN ===== -->
 <div class="fs-screen" id="gameScreen">
   <div class="titlebar" style="background:#222;color:#eee;">
-    <span class="titlebar-title" style="color:#eee;">🏭 Továreň — Chytaj Diely!</span>
+    <span class="titlebar-title" style="color:#eee;">🏭 LISOVNA — Chytaj Diely!</span>
     <div class="titlebar-btns">
       <button onclick="closeGame()" style="background:#444;color:#eee;border-color:#666;">✕</button>
     </div>
@@ -286,11 +286,11 @@ table tr.row-alt td { background:#f5f5f5; }
 
     <!-- Controls hint -->
     <div style="color:#888;font-size:11px;font-family:monospace;">
-      ← → klávesy alebo tlačidlá nižšie | Chytaj diely, vyhýbaj sa chybám!
+      ← → klávesy | Drž tlačidlo pre rýchly pohyb | Ťukni na canvas pre pohyb
     </div>
     <div style="display:flex;gap:12px;">
-      <button id="gBtnLeft" style="background:#333;color:#fff;border:2px solid #555;padding:10px 28px;font-size:22px;cursor:pointer;border-radius:4px;touch-action:manipulation;" onmousedown="gMoveLeft()" ontouchstart="gMoveLeft()">◀</button>
-      <button id="gBtnRight" style="background:#333;color:#fff;border:2px solid #555;padding:10px 28px;font-size:22px;cursor:pointer;border-radius:4px;touch-action:manipulation;" onmousedown="gMoveRight()" ontouchstart="gMoveRight()">▶</button>
+      <button id="gBtnLeft" style="background:#333;color:#fff;border:2px solid #555;padding:12px 36px;font-size:26px;cursor:pointer;border-radius:6px;touch-action:manipulation;">◀</button>
+      <button id="gBtnRight" style="background:#333;color:#fff;border:2px solid #555;padding:12px 36px;font-size:26px;cursor:pointer;border-radius:6px;touch-action:manipulation;">▶</button>
     </div>
     <div id="gOverlay" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.85);color:#fff;padding:24px 32px;text-align:center;border:2px solid #555;border-radius:8px;z-index:10;">
       <div id="gOverlayText" style="font-size:20px;font-weight:bold;margin-bottom:12px;"></div>
@@ -808,7 +808,7 @@ function initGame(){
   gCtx=gCanvas.getContext('2d');
   const ov=document.getElementById('gOverlay');
   ov.style.position='absolute'; ov.style.top='50%'; ov.style.left='50%'; ov.style.transform='translate(-50%,-50%)';
-  showOverlay('🏭 TOVÁREŇ\nChytaj plastové diely!\nVyhýbaj sa chybným (červeným)!');
+  showOverlay('🏭 LISOVNA\nChytaj plastové diely!\nVyhýbaj sa chybným (červeným)!');
 }
 function showOverlay(text){ document.getElementById('gOverlayText').innerHTML=text.replace(/\n/g,'<br>'); document.getElementById('gOverlay').style.display='block'; }
 function hideOverlay(){ document.getElementById('gOverlay').style.display='none'; }
@@ -923,8 +923,11 @@ function drawWorker(c,x,y,arm){
   // Body — dark gray t-shirt
   c.fillStyle='#3a3a3a';
   c.beginPath(); c.roundRect(-13,0,26,22,4); c.fill();
-  // Logo on shirt (small Magna-like dot)
-  c.fillStyle='#cc0000'; c.beginPath(); c.arc(0,10,3,0,Math.PI*2); c.fill();
+  // Shirt collar V-neck detail
+  c.fillStyle='#2a2a2a';
+  c.beginPath();c.moveTo(-5,-1);c.lineTo(0,5);c.lineTo(5,-1);c.closePath();c.fill();
+  // Logo on shirt
+  c.fillStyle='#cc0000'; c.beginPath(); c.arc(0,12,2.5,0,Math.PI*2); c.fill();
   // Left arm
   c.save(); c.translate(-13,5); c.rotate(-arm-0.4);
   c.fillStyle='#b07050'; c.fillRect(-3,-2,6,16);
@@ -939,44 +942,97 @@ function drawWorker(c,x,y,arm){
   c.fillStyle='#c8956a'; c.fillRect(-4,-5,8,8);
   // Head
   c.fillStyle='#c8956a'; c.beginPath(); c.arc(0,-15,11,0,Math.PI*2); c.fill();
-  // Hair
-  c.fillStyle='#2a1a0a'; c.beginPath();c.arc(0,-18,11,Math.PI,0);c.fill(); c.fillRect(-11,-20,22,6);
-  // Hard hat
-  c.fillStyle='#e8d000';
-  c.beginPath(); c.ellipse(0,-23,13,7,0,Math.PI,0); c.fill();
-  c.fillRect(-13,-25,26,4);
-  c.fillStyle='#ccbb00'; c.fillRect(-15,-23,4,6); c.fillRect(11,-23,4,6);
+  // Short dark hair (no helmet)
+  c.fillStyle='#1e1208';
+  c.beginPath(); c.arc(0,-19,11,Math.PI,0); c.fill();
+  c.fillRect(-11,-21,22,5);
+  // Sideburns
+  c.fillRect(-11,-21,4,8);
+  c.fillRect(7,-21,4,8);
   // Eyes
   c.fillStyle='#111'; c.beginPath();c.arc(-4,-15,1.8,0,Math.PI*2);c.fill();
   c.beginPath();c.arc(4,-15,1.8,0,Math.PI*2);c.fill();
+  // Eyebrows
+  c.strokeStyle='#1e1208'; c.lineWidth=1.5;
+  c.beginPath();c.moveTo(-7,-19);c.lineTo(-1,-17);c.stroke();
+  c.beginPath();c.moveTo(7,-19);c.lineTo(1,-17);c.stroke();
   // Mouth
   c.strokeStyle='#8b5a3a'; c.lineWidth=1.5;
   c.beginPath();c.arc(0,-11,3.5,0.2,Math.PI-0.2);c.stroke();
   c.restore();
 }
 
+// ===== IMPROVED CONTROLS =====
+
+// Hold-to-repeat: pressing and holding moves continuously
+let gLeftHeld=false, gRightHeld=false, gMoveInterval=null;
+
+function gStartLeft(){
+  if(!gRunning)return;
+  gMoveLeft();
+  clearInterval(gMoveInterval);
+  gMoveInterval=setInterval(()=>{ if(gLeftHeld)gMoveLeft(); },140);
+  gLeftHeld=true;
+}
+function gStartRight(){
+  if(!gRunning)return;
+  gMoveRight();
+  clearInterval(gMoveInterval);
+  gMoveInterval=setInterval(()=>{ if(gRightHeld)gMoveRight(); },140);
+  gRightHeld=true;
+}
+function gStopLeft(){ gLeftHeld=false; clearInterval(gMoveInterval); }
+function gStopRight(){ gRightHeld=false; clearInterval(gMoveInterval); }
+
 function gMoveLeft(){ if(gWorker&&gWorker.lane>0)gWorker.lane--; }
 function gMoveRight(){ if(gWorker&&gWorker.lane<3)gWorker.lane++; }
 
+// Wire up buttons properly (remove old inline handlers, use these)
+document.addEventListener('DOMContentLoaded',()=>{
+  const bl=document.getElementById('gBtnLeft');
+  const br=document.getElementById('gBtnRight');
+  if(!bl||!br)return;
+
+  // Mouse
+  bl.addEventListener('mousedown', gStartLeft);
+  bl.addEventListener('mouseup', gStopLeft);
+  bl.addEventListener('mouseleave', gStopLeft);
+  br.addEventListener('mousedown', gStartRight);
+  br.addEventListener('mouseup', gStopRight);
+  br.addEventListener('mouseleave', gStopRight);
+
+  // Touch
+  bl.addEventListener('touchstart', e=>{e.preventDefault();gStartLeft();},{passive:false});
+  bl.addEventListener('touchend',   e=>{e.preventDefault();gStopLeft();},{passive:false});
+  br.addEventListener('touchstart', e=>{e.preventDefault();gStartRight();},{passive:false});
+  br.addEventListener('touchend',   e=>{e.preventDefault();gStopRight();},{passive:false});
+
+  // Canvas tap — tap on left half = move left, right half = move right
+  const cv=document.getElementById('gameCanvas');
+  if(!cv)return;
+  cv.addEventListener('touchstart',e=>{
+    const rect=cv.getBoundingClientRect();
+    const tx=e.touches[0].clientX-rect.left;
+    if(tx < rect.width/2) gMoveLeft(); else gMoveRight();
+  },{passive:true});
+  // Swipe on canvas still works too
+  let gTX2=null;
+  cv.addEventListener('touchstart',e=>{gTX2=e.touches[0].clientX;},{passive:true});
+  cv.addEventListener('touchend',e=>{
+    if(gTX2===null)return;
+    const dx=e.changedTouches[0].clientX-gTX2;
+    if(Math.abs(dx)>40){ if(dx<0)gMoveLeft(); else gMoveRight(); }
+    gTX2=null;
+  },{passive:true});
+});
+
+// Keyboard: hold key repeats naturally, but also handle keyup for cleanliness
 document.addEventListener('keydown',e=>{
   if(!gRunning)return;
   if(e.key==='ArrowLeft'){e.preventDefault();gMoveLeft();}
   if(e.key==='ArrowRight'){e.preventDefault();gMoveRight();}
 });
 
-// Touch swipe on canvas
-let gTX=null;
-document.addEventListener('DOMContentLoaded',()=>{
-  const cv=document.getElementById('gameCanvas');
-  if(!cv)return;
-  cv.addEventListener('touchstart',e=>{gTX=e.touches[0].clientX;},{passive:true});
-  cv.addEventListener('touchend',e=>{
-    if(gTX===null)return;
-    const dx=e.changedTouches[0].clientX-gTX;
-    if(dx<-30)gMoveLeft(); else if(dx>30)gMoveRight();
-    gTX=null;
-  },{passive:true});
-});
 
 </script>
 </body>
