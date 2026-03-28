@@ -1,832 +1,425 @@
-Понял! Нужно сделать игру про ЛИСОВНЮ (пресс/штамповку) с графикой в стиле Pixel Car Racer. Сохраняем заводскую тематику, но визуал делаем как в той игре — насыщенные неоновые цвета, пиксельная графика, динамичная камера, HUD как в аркаде.
-
-Вот полностью переработанная версия:
-
-```html
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>LISOVNA — PIXEL PRESS RACER</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>LISOVNA - PIXEL EDITION</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  -webkit-tap-highlight-color: transparent;
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{width:100%;height:100%;overflow:hidden;background:#05050a;}
+
+#app{
+  width:100%;height:100%;
+  display:flex;flex-direction:column;
+  align-items:center;
+  background:#05050a;
+  position:relative;
+  overflow:hidden;
 }
 
-body {
-  background: #050510;
-  min-height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-family: 'Press Start 2P', monospace;
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+
+.pf{font-family:'Press Start 2P',monospace;}
+
+#hud{
+  width:100%;max-width:600px;
+  display:flex;gap:0;
+  background:#0a0a0f;
+  border-bottom:4px solid #1a1a2e;
+  flex-shrink:0;
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(8px,2vw,11px);
+}
+#hud .hcell{
+  flex:1;padding:8px 4px;
+  text-align:center;
+  border-right:2px solid #1a1a2e;
+}
+#hud .hcell:last-child{border-right:none;}
+.hv{font-size:clamp(10px,2.5vw,14px);font-weight:bold;margin-top:4px;}
+#hScore .hv{color:#0ff; text-shadow: 0 0 8px #00ffffaa;}
+#hLives .hv{color:#f35; text-shadow: 0 0 8px #ff3355aa;}
+#hLevel .hv{color:#f0f; text-shadow: 0 0 8px #ff00ffaa;}
+
+#gw{
+  position:relative;flex:1;
+  width:100%;max-width:600px;
+  overflow:hidden;
+  border-left: 2px solid #111;
+  border-right: 2px solid #111;
+}
+#gc{width:100%;height:100%;}
+
+.banner{
+  position:absolute;top:0;left:0;right:0;
+  font-family:'Press Start 2P',monospace;
+  font-size:clamp(7px,1.8vw,10px);
+  text-align:center;padding:8px 4px;
+  z-index:15;display:none;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+#bPredak{background:#e86820;color:#fff;}
+#bNast{background:#111;color:#ff0;border-bottom:2px solid #ff0;}
+
+#ctrl{
+  width:100%;max-width:600px;
+  display:flex;gap:8px;padding:12px;
+  background:#0a0a0f;border-top:4px solid #1a1a2e;
+  flex-shrink:0;
+}
+#ctrl button{
+  flex:1;
+  font-family:'Press Start 2P',monospace;
+  font-size:24px;
+  background:#161625;
+  color:#0ff;
+  border:3px solid #0ff;
+  padding:15px 0;
+  cursor:pointer;
+  transition: all 0.1s;
+  box-shadow: 0 4px 0 #008888;
+}
+#ctrl button:active,#ctrl button.held{
+    background:#00ffff;
+    color:#000;
+    transform: translateY(4px);
+    box-shadow: 0 0 0 #000;
 }
 
-.game-wrapper {
-  position: relative;
-  width: 100%;
-  max-width: 520px;
-  margin: 0 auto;
-  box-shadow: 0 0 0 4px #ffcc44, 0 8px 0 0 #332200;
-  border-radius: 0;
+#ov{
+  position:absolute;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,0.4);
+  backdrop-filter: blur(2px);
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  z-index:20;
+  font-family:'Press Start 2P',monospace;
 }
+#ov.hidden{display:none;}
 
-canvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  image-rendering: crisp-edges;
-  image-rendering: pixelated;
-  cursor: pointer;
+#sMenu, #sOver{
+  display:flex;flex-direction:column;
+  align-items:center;gap:15px;
+  background:rgba(5, 5, 15, 0.95);
+  border:4px solid #0ff;
+  padding:25px;
+  max-width:360px;width:90%;
+  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
 }
+.mtitle{
+  font-size:clamp(16px,5vw,24px);
+  color:#0ff;
+  text-shadow:3px 3px 0 #006666;
+  text-align:center;
+}
+.msub{font-size:9px;color:#667;text-align:center;line-height:1.6;}
 
-.hud {
-  display: flex;
-  justify-content: space-between;
-  background: #0a0a1a;
-  padding: 10px 16px;
-  border-bottom: 3px solid #ffaa33;
-  gap: 8px;
-  flex-wrap: wrap;
+.ccards{display:flex;gap:15px;margin:10px 0;}
+.ccard{
+  border:3px solid #222;
+  background:#0a0a1a;
+  padding:10px;cursor:pointer;
+  text-align:center;
+  transition: 0.2s;
 }
+.ccard.sel{border-color:#0ff;background:#001a1a;transform: scale(1.05);}
+.ccard canvas{display:block;margin:0 auto;}
 
-.hud-card {
-  background: #111122;
-  padding: 6px 12px;
-  border-left: 3px solid #ffaa33;
-  border-right: 3px solid #ffaa33;
-  font-size: 10px;
-  color: #ccddff;
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
+.mbtn{
+  font-family:'Press Start 2P',monospace;
+  background:#00ff88;color:#000;
+  border:none;
+  padding:12px 30px;cursor:pointer;
+  font-size:12px;
+  box-shadow: 0 4px 0 #008844;
 }
-
-.hud-value {
-  color: #ffcc44;
-  font-size: 16px;
-  font-weight: bold;
-}
-
-.controls {
-  display: flex;
-  gap: 12px;
-  padding: 10px;
-  background: #0a0a1a;
-  border-top: 3px solid #ffaa33;
-  justify-content: center;
-}
-
-.press-btn {
-  font-family: 'Press Start 2P', monospace;
-  background: #1e1e2a;
-  border: 3px solid #ffaa33;
-  color: #ffaa33;
-  font-size: 24px;
-  padding: 8px 28px;
-  cursor: pointer;
-  transition: 0.03s linear;
-  touch-action: manipulation;
-  box-shadow: 0 4px 0 #553300;
-}
-
-.press-btn:active {
-  transform: translateY(3px);
-  background: #ffaa33;
-  color: #0a0a1a;
-  box-shadow: none;
-}
-
-.overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.88);
-  backdrop-filter: blur(3px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 30;
-}
-
-.panel {
-  background: #0c0c18;
-  border: 4px solid #ffaa33;
-  padding: 20px 16px;
-  text-align: center;
-  width: 280px;
-  box-shadow: 8px 8px 0 #00000088;
-}
-
-.panel-title {
-  font-size: 14px;
-  color: #ffaa33;
-  text-shadow: 2px 2px 0 #553300;
-  margin-bottom: 12px;
-  letter-spacing: 2px;
-}
-
-.panel-sub {
-  font-size: 7px;
-  color: #aaaacc;
-  margin: 8px 0;
-  line-height: 1.5;
-}
-
-.worker-select {
-  display: flex;
-  gap: 12px;
-  justify-content: center;
-  margin: 16px 0;
-}
-
-.worker-card {
-  border: 3px solid #333355;
-  background: #111122;
-  padding: 8px;
-  cursor: pointer;
-  transition: 0.1s;
-  text-align: center;
-}
-
-.worker-card.selected {
-  border-color: #ffaa33;
-  background: #222244;
-  box-shadow: 0 0 0 2px #ffaa33;
-}
-
-.worker-card canvas {
-  display: block;
-  margin: 0 auto;
-}
-
-.worker-name {
-  font-size: 7px;
-  color: #ddddff;
-  margin-top: 6px;
-}
-
-.menu-btn {
-  background: #2a2a3a;
-  border: 2px solid #88ff88;
-  color: #88ff88;
-  font-family: 'Press Start 2P', monospace;
-  font-size: 10px;
-  padding: 10px;
-  margin-top: 12px;
-  cursor: pointer;
-  width: 100%;
-}
-
-.menu-btn:active {
-  background: #88ff88;
-  color: #000;
-}
-
-.gameover-panel {
-  background: #0c0c18;
-  border: 4px solid #ff6666;
-  padding: 20px;
-  text-align: center;
-  width: 280px;
-}
-
-.gameover-title {
-  color: #ff6666;
-  font-size: 14px;
-}
-
-.hidden {
-  display: none;
-}
-
-.flash-effect {
-  position: absolute;
-  pointer-events: none;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(255, 200, 0, 0);
-  z-index: 20;
-  transition: 0.02s;
-}
+.mbtn:active{transform:translateY(4px); box-shadow: 0 0 0 #000;}
 </style>
 </head>
 <body>
-<div class="game-wrapper">
-  <div class="hud">
-    <div class="hud-card">🔩 PRESS <span class="hud-value" id="scoreValue">0</span></div>
-    <div class="hud-card">⚡ TURBO <span class="hud-value" id="turboValue">0</span></div>
-    <div class="hud-card">🏭 SHIFT <span class="hud-value" id="shiftValue">1</span></div>
-  </div>
-  <canvas id="gameCanvas" width="500" height="400"></canvas>
-  <div class="controls">
-    <button class="press-btn" id="leftBtn">◀ LIS</button>
-    <button class="press-btn" id="rightBtn">LIS ▶</button>
+<div id="app">
+  <div id="hud">
+    <div class="hcell pf" id="hScore"><div style="color:#556;font-size:0.7em;">SCORE</div><div class="hv" id="hSv">0</div></div>
+    <div class="hcell pf" id="hLives"><div style="color:#556;font-size:0.7em;">LIVES</div><div class="hv" id="hLv">❤❤❤</div></div>
+    <div class="hcell pf" id="hLevel"><div style="color:#556;font-size:0.7em;">LEVEL</div><div class="hv" id="hLLv">1</div></div>
   </div>
 
-  <div id="overlay" class="overlay">
-    <div id="menuPanel" class="panel">
-      <div class="panel-title">🏭 LISOVNA PRESS 🏭</div>
-      <div class="panel-sub">PIXEL STAMPING SIMULATOR<br>CHYTAJ DIELY · TURBO LIS</div>
-      <div class="worker-select">
-        <div class="worker-card" id="workerM">
-          <canvas id="previewM" width="48" height="56"></canvas>
-          <div class="worker-name">OPERATOR M</div>
+  <div id="gw">
+    <canvas id="gc"></canvas>
+    <div class="banner" id="bPredak">⚠ PREDAK: ZVYŠUJEME VÝKON! ⚠</div>
+    <div class="banner" id="bNast">▶ NASTAVOVAČ: SERVIS FORMY! ◀</div>
+
+    <div id="ov">
+      <div id="sMenu">
+        <div class="mtitle">🏭 LISOVŇA</div>
+        <div class="msub">MAGNA INDUSTRY SIMULATOR</div>
+        <div class="ccards">
+          <div class="ccard sel" id="cM" onclick="selChar('m')">
+            <canvas id="pM" width="40" height="56"></canvas>
+            <div class="cn" style="font-size:8px;color:#0ff;margin-top:5px;">MUŽ</div>
+          </div>
+          <div class="ccard" id="cF" onclick="selChar('f')">
+            <canvas id="pF" width="40" height="56"></canvas>
+            <div class="cn" style="font-size:8px;color:#0ff;margin-top:5px;">ŽENA</div>
+          </div>
         </div>
-        <div class="worker-card" id="workerF">
-          <canvas id="previewF" width="48" height="56"></canvas>
-          <div class="worker-name">OPERATOR F</div>
-        </div>
+        <button class="mbtn" onclick="startGame()">ŠTART SMENY</button>
       </div>
-      <button class="menu-btn" id="startBtn">⚙️ START PRESS ⚙️</button>
-      <div class="panel-sub">← →  or touch sides</div>
-    </div>
-    <div id="gameoverPanel" class="gameover-panel hidden">
-      <div class="gameover-title">💥 LIS CRASH 💥</div>
-      <canvas id="wreckPreview" width="64" height="64"></canvas>
-      <div class="panel-sub" id="finalScore">SCORE: 0</div>
-      <div class="panel-sub" id="gameoverQuote">"PRESSURE TOO HIGH!"</div>
-      <button class="menu-btn" id="restartBtn">🔄 RESTART</button>
-      <button class="menu-btn" id="menuBtn">🏠 MENU</button>
+
+      <div id="sOver" style="display:none; border-color: #f35;">
+        <div class="mtitle" style="color:#f35; text-shadow: 3px 3px 0 #600;">KONIEC SMENY</div>
+        <canvas id="majPrev" width="60" height="90"></canvas>
+        <div id="goS" style="color:#fff; font-size:12px;"></div>
+        <div id="goQ" class="msub" style="color:#f99;"></div>
+        <button class="mbtn" style="background:#f35; box-shadow: 0 4px 0 #800;" onclick="startGame()">SKÚSIŤ ZNOVA</button>
+      </div>
     </div>
   </div>
-  <div id="flashOverlay" class="flash-effect"></div>
+
+  <div id="ctrl">
+    <button id="bL" ontouchstart="sl(event)" ontouchend="el()" onmousedown="sl()" onmouseup="el()">◀</button>
+    <button id="bR" ontouchstart="sr(event)" ontouchend="er()" onmousedown="sr()" onmouseup="er()">▶</button>
+  </div>
 </div>
 
 <script>
-(function(){
-  // ========== PIXEL CANVAS ==========
-  const canvas = document.getElementById('gameCanvas');
-  const ctx = canvas.getContext('2d');
-  ctx.imageSmoothingEnabled = false;
-  let W = 500, H = 400;
-  canvas.width = W; canvas.height = H;
-  
-  // ========== GAME STATE ==========
-  let gameRunning = false;
-  let animFrame = null;
-  let frame = 0;
-  
-  // Player (worker at press machine)
-  let player = {
-    x: W/2 - 18,
-    y: H - 72,
-    width: 36,
-    height: 52,
-    lane: 1,      // 0=left press, 1=center, 2=right press
-    gender: 'm'
-  };
-  
-  // Lane positions (X for each press machine)
-  const LANE_X = [W*0.22 - 18, W/2 - 18, W*0.78 - 18];
-  
-  // Game stats
-  let score = 0;
-  let turbo = 0;        // "turbo" = press energy
-  let shift = 1;        // level / shift speed
-  let gameSpeed = 3.2;
-  let baseSpeed = 3.2;
-  let speedMult = 1.0;
-  let turboActive = false;
-  let turboFrames = 0;
-  
-  // Objects on conveyor
-  let parts = [];       // good parts
-  let defects = [];     // bad parts (scrap)
-  let boostItems = [];  // turbo cans
-  
-  // Spawn timers
-  let partTimer = 0;
-  let defectTimer = 0;
-  let boostTimer = 0;
-  
-  // Visual FX
-  let screenFlash = 0;
-  let flashColor = '';
-  let comboCount = 0;
-  let comboAnim = 0;
-  let conveyorOffset = 0;
-  
-  // Quotes
-  const QUOTES = [
-    "PRESS OVERLOAD!", "FORM SHIFT ERROR!", "TOO MUCH TONNAGE!",
-    "OPERATOR FATIGUE!", "HYDRAULIC FAIL!", "STAMP MISALIGN!",
-    "QUALITY REJECT!", "LISOVNA STOP!"
-  ];
-  
-  // ========== PIXEL ART STYLES (Pixel Car Racer aesthetic) ==========
-  const WORKER_STYLES = {
-    m: { skin: '#e8bc8c', shirt: '#2a4a6a', pants: '#1e2a3a', hair: '#2a1a0a', glove: '#cc8844', neon: '#44aaff' },
-    f: { skin: '#f0cc9c', shirt: '#6a2a4a', pants: '#2a1e3a', hair: '#7a3a1a', glove: '#dd9966', neon: '#ff66cc' }
-  };
-  
-  // Draw player worker (pixel perfect)
-  function drawWorker(ctx, x, y, gender, frameTick, catchAnim=0) {
-    const style = WORKER_STYLES[gender];
-    if(!style) return;
-    const bob = Math.sin(frameTick * 0.15) * 2;
-    const yy = y + Math.floor(bob);
-    
-    // body overalls
-    ctx.fillStyle = style.pants;
-    ctx.fillRect(x+8, yy+32, 20, 20);
-    // shirt
-    ctx.fillStyle = style.shirt;
-    ctx.fillRect(x+8, yy+20, 20, 16);
-    // arms (swinging)
-    const armSwing = Math.sin(frameTick * 0.2) * 4;
-    ctx.fillStyle = style.skin;
-    ctx.fillRect(x+2, yy+24 + armSwing*0.5, 6, 12);
-    ctx.fillRect(x+28, yy+24 - armSwing*0.5, 6, 12);
-    // head
-    ctx.fillStyle = style.skin;
-    ctx.fillRect(x+12, yy+6, 12, 16);
-    // hair
-    ctx.fillStyle = style.hair;
-    ctx.fillRect(x+12, yy+4, 12, 5);
-    // helmet / cap
-    ctx.fillStyle = '#ffaa33';
-    ctx.fillRect(x+10, yy+2, 16, 4);
-    // safety glasses
-    ctx.fillStyle = '#88ccff';
-    ctx.fillRect(x+14, yy+12, 4, 3);
-    ctx.fillRect(x+18, yy+12, 4, 3);
-    // mouth (determined)
-    ctx.fillStyle = '#aa6644';
-    ctx.fillRect(x+15, yy+18, 6, 2);
-    // catch effect (glow)
-    if(catchAnim > 0) {
-      ctx.fillStyle = `rgba(255,200,100,${catchAnim/15})`;
-      ctx.fillRect(x-4, yy-4, 44, 60);
-    }
-    // glove with part
-    if(catchAnim > 5) {
-      ctx.fillStyle = '#ffcc44';
-      ctx.fillRect(x+30, yy+28, 8, 8);
-      ctx.fillStyle = '#ff8844';
-      ctx.fillRect(x+32, yy+30, 4, 4);
-    }
+const gc = document.getElementById('gc');
+const ctx = gc.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+let GW=400, GH=300;
+const PSCALE = 3;
+
+// Цветовая палитра в стиле Pixel Car Racer
+const P = {
+  bg: '#05050a',
+  floor: '#0a0a14',
+  floorLine: '#151525',
+  reflection: 'rgba(255, 255, 255, 0.15)',
+  engGr: '#2d5a1e',
+  engHighlight: '#4a9a20',
+  neonG: '#00ff88',
+  neonB: '#00ffff'
+};
+
+function resize(){
+  const wrap = document.getElementById('gw');
+  GW = wrap.clientWidth;
+  GH = wrap.clientHeight;
+  gc.width = GW;
+  gc.height = GH;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// Вспомогательная функция для рисования пикселей
+function px(c,x,y,w,h,col){ c.fillStyle=col; c.fillRect(Math.round(x),Math.round(y),w,h); }
+
+function drawBg(){
+  // Градиентный фон цеха
+  for(let i=0; i<10; i++){
+    px(ctx, 0, (GH*0.45/10)*i, GW, GH*0.45/10 + 1, `rgb(5, 5, ${15+i*2})`);
   }
   
-  // Draw Press Machine (industrial, neon style)
-  function drawPress(x, y, w, h, activeGlow) {
-    // machine base
-    ctx.fillStyle = '#2a2a3e';
-    ctx.fillRect(x, y, w, h);
-    // hydraulic cylinder
-    ctx.fillStyle = '#5a5a7a';
-    ctx.fillRect(x+w/2-12, y-12, 24, 18);
-    ctx.fillStyle = '#8888aa';
-    ctx.fillRect(x+w/2-8, y-8, 16, 12);
-    // press stamp
-    ctx.fillStyle = '#aa8866';
-    ctx.fillRect(x+10, y+h-20, w-20, 12);
-    // neon active light
-    if(activeGlow) {
-      ctx.fillStyle = `rgba(255,100,0,${0.6+Math.sin(frame*0.2)*0.3})`;
-      ctx.fillRect(x+4, y+4, w-8, 8);
-      ctx.fillStyle = '#ffaa44';
-      ctx.fillRect(x+w-16, y+12, 8, 8);
-    }
-    // control panel
-    ctx.fillStyle = '#111122';
-    ctx.fillRect(x+8, y+8, 28, 20);
-    ctx.fillStyle = '#44ff44';
-    ctx.fillRect(x+12, y+14, 6, 6);
-    ctx.fillStyle = '#ff4444';
-    ctx.fillRect(x+22, y+14, 6, 6);
-    // ENGEL logo
-    ctx.font = "bold 6px 'Press Start 2P'";
-    ctx.fillStyle = '#77aaff';
-    ctx.fillText("ENGEL", x+12, y+h-8);
-  }
+  // Дальняя стена (панели)
+  px(ctx, 0, GH*0.2, GW, 4, '#111120');
   
-  // Draw part (good stamping)
-  function drawGoodPart(x, y) {
-    ctx.fillStyle = '#44aa66';
-    ctx.fillRect(x, y, 14, 12);
-    ctx.fillStyle = '#88ffaa';
-    ctx.fillRect(x+3, y+2, 4, 4);
-    ctx.fillRect(x+8, y+6, 4, 3);
-    ctx.fillStyle = '#226633';
-    ctx.fillRect(x+5, y+9, 4, 2);
+  // Пол с эффектом глянца
+  px(ctx, 0, GH*0.45, GW, GH*0.55, P.floor);
+  for(let i=0; i<GH*0.55; i+=10){
+    px(ctx, 0, GH*0.45 + i, GW, 1, P.floorLine);
   }
-  
-  function drawDefect(x, y) {
-    ctx.fillStyle = '#cc4444';
-    ctx.fillRect(x, y, 14, 12);
-    ctx.fillStyle = '#ff8888';
-    ctx.fillRect(x+2, y+3, 10, 6);
-    ctx.fillStyle = '#aa2222';
-    ctx.fillRect(x+5, y+5, 4, 4);
-  }
-  
-  function drawTurboBoost(x, y) {
-    ctx.fillStyle = '#ffaa33';
-    ctx.fillRect(x, y, 12, 12);
-    ctx.fillStyle = '#ffdd88';
-    ctx.fillRect(x+3, y+3, 6, 6);
-    ctx.fillStyle = '#ff6600';
-    ctx.fillRect(x+5, y+8, 2, 5);
-  }
-  
-  // ========== ROAD / CONVEYOR BELT (Pixel Car Racer style) ==========
-  function drawFactoryFloor() {
-    // asphalt texture
-    ctx.fillStyle = '#151525';
-    ctx.fillRect(0, 0, W, H);
-    // floor grid
-    for(let i=0;i<W+30;i+=40) {
-      ctx.fillStyle = '#2a2a44';
-      ctx.fillRect(i + (conveyorOffset%40), H-70, 20, 4);
-    }
-    // glowing lanes
-    ctx.fillStyle = '#3366aa';
-    ctx.globalAlpha = 0.3;
-    for(let l=0;l<3;l++) {
-      ctx.fillRect(LANE_X[l]-10, H-110, 72, 100);
-    }
-    ctx.globalAlpha = 1;
-    // conveyor belt lines (moving)
-    for(let l=0;l<3;l++) {
-      let beltX = LANE_X[l]-6;
-      ctx.fillStyle = '#2a2a3a';
-      ctx.fillRect(beltX, H-95, 60, 18);
-      ctx.fillStyle = '#ffaa33';
-      let offset = (conveyorOffset + l*20) % 36;
-      for(let o=offset; o<60; o+=24) {
-        ctx.fillRect(beltX+o, H-89, 12, 4);
-      }
-    }
-    // industrial lights
-    for(let l=0;l<3;l++) {
-      ctx.fillStyle = `rgba(255,200,100,${0.5+Math.sin(frame*0.1)*0.3})`;
-      ctx.fillRect(LANE_X[l]+10, H-110, 16, 6);
-    }
-  }
-  
-  // ========== UPDATE LOGIC ==========
-  function updateGame() {
-    if(!gameRunning) return;
+}
+
+// РИСОВАНИЕ С ОТРАЖЕНИЕМ (Главная фишка Pixel Car Racer)
+function drawWithReflection(c, x, y, w, h, drawFn) {
+    c.save();
+    // Отражение
+    c.save();
+    c.translate(0, y + h * 2 - 4); 
+    c.scale(1, -0.4); // Сплюснутое по вертикали
+    c.globalAlpha = 0.2;
+    drawFn(c, x, 0, true); 
+    c.restore();
+    // Оригинал
+    drawFn(c, x, y, false);
+    c.restore();
+}
+
+function drawMachine(c, x, y, w, h, active) {
+    const gh = Math.floor(h*0.85);
+    const gy = y + h - gh;
+
+    // Корпус станка (Engel)
+    px(c, x, gy, w, gh, '#1a3310'); // Тень
+    px(c, x+2, gy, w-4, gh-4, P.engGr); // Основной цвет
+    px(c, x+2, gy, w-4, 4, P.engHighlight); // Свет сверху
     
-    // turbo mode
-    if(turboActive && turboFrames > 0) {
-      speedMult = 2.1;
-      turboFrames--;
-      if(turboFrames <= 0) {
-        turboActive = false;
-        speedMult = 1.0;
-      }
-    } else {
-      speedMult = 1.0;
+    // Экран
+    px(c, x+w-20, gy+10, 15, 20, '#111');
+    if(active && Math.floor(gframe/10)%2==0) {
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = P.neonG;
+        px(c, x+w-18, gy+12, 11, 5, P.neonG);
+        ctx.shadowBlur = 0;
     }
-    
-    let currentSpeed = baseSpeed * (1 + shift * 0.12) * speedMult;
-    currentSpeed = Math.min(currentSpeed, 9.5);
-    gameSpeed = currentSpeed;
-    conveyorOffset = (conveyorOffset + gameSpeed) % 60;
-    
-    // move parts
-    for(let i=0;i<parts.length;i++) {
-      parts[i].y += gameSpeed;
-      if(parts[i].y > H+40) parts.splice(i,1), i--;
+
+    // Конвейер
+    const beltY = gy+gh-12;
+    px(c, x-5, beltY, w+10, 8, '#222');
+    for(let i=0; i<w; i+=15) {
+        px(c, x-5 + ((i+gframe)%w), beltY+2, 8, 2, '#333');
     }
-    for(let i=0;i<defects.length;i++) {
-      defects[i].y += gameSpeed;
-      if(defects[i].y > H+40) defects.splice(i,1), i--;
-    }
-    for(let i=0;i<boostItems.length;i++) {
-      boostItems[i].y += gameSpeed;
-      if(boostItems[i].y > H+40) boostItems.splice(i,1), i--;
-    }
+}
+
+function pixChar(c, x, y, gender, frame) {
+    const s = PSCALE;
+    const bob = Math.floor(Math.sin(frame*0.2)*2);
+    const cy = y + bob;
     
-    // collision: player catches parts
-    const playerRect = {x: player.x, y: player.y, w: 36, h: 52};
-    // good parts
-    for(let i=0;i<parts.length;i++) {
-      const p = parts[i];
-      const partRect = {x: p.x, y: p.y, w: 14, h: 12};
-      if(playerRect.x < partRect.x+partRect.w && playerRect.x+playerRect.w > partRect.x &&
-         playerRect.y < partRect.y+partRect.h && playerRect.y+playerRect.h > partRect.y) {
-        score += 10 * shift;
-        comboCount++;
-        screenFlash = 6;
-        flashColor = '#88ff88';
-        parts.splice(i,1);
-        // turbo fill on catch
-        turbo = Math.min(turbo + 4, 100);
-        updateUI();
-        break;
-      }
-    }
-    // defects (bad parts) -> damage
-    for(let i=0;i<defects.length;i++) {
-      const d = defects[i];
-      const dRect = {x: d.x, y: d.y, w: 14, h: 12};
-      if(playerRect.x < dRect.x+dRect.w && playerRect.x+playerRect.w > dRect.x &&
-         playerRect.y < dRect.y+dRect.h && playerRect.y+playerRect.h > dRect.y) {
-        shift = Math.max(1, shift-1);
-        screenFlash = 12;
-        flashColor = '#ff6666';
-        defects.splice(i,1);
-        comboCount = 0;
-        updateUI();
-        if(shift <= 0) gameOver();
-        break;
-      }
-    }
-    // boost items
-    for(let i=0;i<boostItems.length;i++) {
-      const b = boostItems[i];
-      const bRect = {x: b.x, y: b.y, w: 12, h: 12};
-      if(playerRect.x < bRect.x+bRect.w && playerRect.x+playerRect.w > bRect.x &&
-         playerRect.y < bRect.y+bRect.h && playerRect.y+playerRect.h > bRect.y) {
-        turbo = Math.min(turbo + 25, 100);
-        boostItems.splice(i,1);
-        screenFlash = 5;
-        flashColor = '#ffaa44';
-        updateUI();
-        break;
-      }
-    }
-    
-    // auto turbo activation when full
-    if(turbo >= 50 && !turboActive && Math.random()<0.02) {
-      turboActive = true;
-      turboFrames = 50;
-      turbo -= 35;
-      if(turbo<0) turbo=0;
-      updateUI();
-    }
-    
-    // spawn system
-    let spawnDelay = Math.max(18, 45 - Math.floor(score/400) - shift*2);
-    if(partTimer <= 0 && parts.length < 8) {
-      if(Math.random() < 0.45) {
-        let lane = Math.floor(Math.random()*3);
-        parts.push({x: LANE_X[lane]+9, y: -20, lane: lane});
-        partTimer = spawnDelay;
-      }
-    } else partTimer--;
-    
-    if(defectTimer <= 0 && defects.length < 5) {
-      if(Math.random() < 0.25 + shift*0.02) {
-        let lane = Math.floor(Math.random()*3);
-        defects.push({x: LANE_X[lane]+9, y: -20, lane: lane});
-        defectTimer = 35 + Math.random()*20;
-      }
-    } else defectTimer--;
-    
-    if(boostTimer <= 0 && boostItems.length < 2 && turbo < 75) {
-      if(Math.random() < 0.12) {
-        let lane = Math.floor(Math.random()*3);
-        boostItems.push({x: LANE_X[lane]+12, y: -20, lane: lane});
-        boostTimer = 90;
-      }
-    } else boostTimer--;
-    
-    // score-based shift increase
-    if(score > 0 && score % (400 + shift*50) === 0 && shift < 8 && frame%20===0) {
-      shift = Math.min(shift+1, 8);
-      updateUI();
-    }
-    
-    if(screenFlash>0) screenFlash--;
-    comboAnim = Math.max(0, comboAnim-1);
-    if(comboCount>2) comboAnim = 15;
-    
-    updateUI();
-  }
-  
-  function draw() {
-    drawFactoryFloor();
-    
-    // draw press machines
-    for(let i=0;i<3;i++) {
-      const isActive = (player.lane === i && turboActive);
-      drawPress(LANE_X[i]-12, H-112, 60, 70, isActive);
-    }
-    
-    // draw all objects
-    for(let p of parts) drawGoodPart(p.x, p.y);
-    for(let d of defects) drawDefect(d.x, d.y);
-    for(let b of boostItems) drawTurboBoost(b.x, b.y);
-    
-    // draw player worker with catch animation
-    let catchAnim = 0;
-    if(screenFlash>0 && flashColor.includes('88ff88')) catchAnim = 12 - screenFlash;
-    drawWorker(ctx, player.x, player.y, player.gender, frame, catchAnim);
-    
-    // combo effect
-    if(comboAnim>0 && comboCount>=3) {
-      ctx.font = "bold 8px 'Press Start 2P'";
-      ctx.fillStyle = '#ffaa44';
-      ctx.shadowBlur = 0;
-      ctx.fillText(`COMBO x${Math.min(comboCount,99)}`, player.x+20, player.y-12);
-    }
-    
-    // turbo gauge (Pixel Car Racer style)
-    ctx.fillStyle = '#222233';
-    ctx.fillRect(12, H-42, 120, 16);
-    ctx.fillStyle = '#ff8822';
-    let turboW = (turbo/100) * 118;
-    ctx.fillRect(13, H-41, turboW, 14);
-    ctx.fillStyle = '#ffdd88';
-    ctx.font = "6px 'Press Start 2P'";
-    ctx.fillText("TURBO", 16, H-48);
-    
-    // score & shift on canvas
-    ctx.fillStyle = '#ffdd99';
-    ctx.fillText(`SCORE ${Math.floor(score)}`, W-100, 28);
-    ctx.fillStyle = '#88aaff';
-    ctx.fillText(`SHIFT ${shift}`, W-100, 48);
-    if(turboActive) {
-      ctx.fillStyle = '#ffaa44';
-      ctx.fillText("TURBO PRESS!", W-110, 72);
-    }
-    
-    // screen flash
-    if(screenFlash > 0) {
-      ctx.fillStyle = flashColor + (screenFlash/15);
-      ctx.fillRect(0,0,W,H);
-    }
-    
-    // scanlines
-    ctx.globalAlpha = 0.1;
-    for(let i=0;i<H;i+=6) {
-      ctx.fillStyle = '#000000';
-      ctx.fillRect(0,i,W,2);
-    }
-    ctx.globalAlpha = 1;
-  }
-  
-  function gameLoop() {
-    if(!gameRunning) {
-      if(animFrame) cancelAnimationFrame(animFrame);
-      return;
-    }
-    updateGame();
-    draw();
-    frame++;
-    animFrame = requestAnimationFrame(gameLoop);
-  }
-  
-  function gameOver() {
-    gameRunning = false;
-    if(animFrame) cancelAnimationFrame(animFrame);
-    document.getElementById('finalScore').innerHTML = `SCORE: ${Math.floor(score)}  SHIFT: ${shift}`;
-    let quote = QUOTES[Math.floor(Math.random()*QUOTES.length)];
-    document.getElementById('gameoverQuote').innerHTML = quote;
-    document.getElementById('gameoverPanel').classList.remove('hidden');
-    document.getElementById('menuPanel').classList.add('hidden');
-    document.getElementById('overlay').classList.remove('hidden');
-    drawWreckPreview();
-  }
-  
-  function startGame(gender) {
-    gameRunning = true;
-    score = 0;
-    turbo = 30;
-    shift = 1;
+    const skin = gender === 'm' ? '#e8b87a' : '#ecc090';
+    const hair = gender === 'm' ? '#1a0e06' : '#7a3008';
+
+    // Ноги
+    px(c, x+s, cy+10*s, 3*s, 5*s, '#223344');
+    px(c, x+5*s, cy+10*s, 3*s, 5*s, '#223344');
+    // Туловище
+    px(c, x, cy+5*s, 9*s, 6*s, '#333');
+    // Голова
+    px(c, x+s, cy, 7*s, 5*s, skin);
+    px(c, x+s, cy, 7*s, 2*s, hair);
+    // Глаза
+    px(c, x+2*s, cy+2*s, s, s, '#000');
+    px(c, x+5*s, cy+2*s, s, s, '#000');
+}
+
+// --- ЛОГИКА ИГРЫ (Упрощенная и стабильная) ---
+let running=false, score=0, lives=3, level=1, gframe=0;
+let player = { lane: 0, x: 50, targetX: 50 };
+let selectedChar = 'm';
+let parts = [];
+let numLanes = 3;
+let laneWidth = 0;
+
+function startGame() {
+    score=0; lives=3; level=1; running=true;
     parts = [];
-    defects = [];
-    boostItems = [];
-    gameSpeed = 3.2;
-    baseSpeed = 3.2;
-    speedMult = 1.0;
-    turboActive = false;
-    turboFrames = 0;
-    screenFlash = 0;
-    comboCount = 0;
-    frame = 0;
-    player.gender = gender;
-    player.lane = 1;
-    player.x = LANE_X[1];
-    player.y = H - 72;
-    partTimer = 0;
-    defectTimer = 15;
-    boostTimer = 20;
-    updateUI();
-    document.getElementById('overlay').classList.add('hidden');
-    if(animFrame) cancelAnimationFrame(animFrame);
-    gameLoop();
-  }
-  
-  function updateUI() {
-    document.getElementById('scoreValue').innerText = Math.floor(score);
-    document.getElementById('turboValue').innerText = Math.floor(turbo);
-    document.getElementById('shiftValue').innerText = shift;
-  }
-  
-  function showMenu() {
-    if(gameRunning) gameRunning = false;
-    if(animFrame) cancelAnimationFrame(animFrame);
-    document.getElementById('overlay').classList.remove('hidden');
-    document.getElementById('menuPanel').classList.remove('hidden');
-    document.getElementById('gameoverPanel').classList.add('hidden');
-    drawPreviewWorkers();
+    document.getElementById('ov').classList.add('hidden');
+    updateHUD();
+    loop();
+}
+
+function updateHUD() {
+    document.getElementById('hSv').textContent = score;
+    document.getElementById('hLv').textContent = '❤'.repeat(lives);
+    document.getElementById('hLLv').textContent = level;
+}
+
+function loop() {
+    if(!running) return;
+    gframe++;
+    update();
     draw();
-  }
-  
-  function drawPreviewWorkers() {
-    const previewM = document.getElementById('previewM');
-    const previewF = document.getElementById('previewF');
-    if(previewM) {
-      const mctx = previewM.getContext('2d');
-      mctx.clearRect(0,0,48,56);
-      drawWorker(mctx, 8, 8, 'm', 0, 0);
+    requestAnimationFrame(loop);
+}
+
+function update() {
+    laneWidth = GW / numLanes;
+    player.targetX = player.lane * laneWidth + (laneWidth/2) - (9*PSCALE/2);
+    player.x += (player.targetX - player.x) * 0.2;
+
+    if(gframe % Math.max(20, 60 - level*5) == 0) {
+        parts.push({ 
+            lane: Math.floor(Math.random()*numLanes), 
+            y: GH*0.35, 
+            bad: Math.random() > 0.8,
+            speed: 2 + level*0.5
+        });
     }
-    if(previewF) {
-      const fctx = previewF.getContext('2d');
-      fctx.clearRect(0,0,48,56);
-      drawWorker(fctx, 8, 8, 'f', 0, 0);
+
+    for(let i=parts.length-1; i>=0; i--) {
+        parts[i].y += parts[i].speed;
+        
+        // Проверка столкновения
+        if(parts[i].y > GH*0.75 && parts[i].y < GH*0.85 && parts[i].lane === player.lane) {
+            if(parts[i].bad) { lives--; updateHUD(); }
+            else { score += 10; updateHUD(); }
+            parts.splice(i, 1);
+            if(lives <= 0) gameOver();
+        } else if(parts[i].y > GH) {
+            if(!parts[i].bad) { lives--; updateHUD(); if(lives<=0) gameOver(); }
+            parts.splice(i, 1);
+        }
     }
-  }
-  
-  function drawWreckPreview() {
-    const wreck = document.getElementById('wreckPreview');
-    if(!wreck) return;
-    const wctx = wreck.getContext('2d');
-    wctx.fillStyle = '#331111';
-    wctx.fillRect(0,0,64,64);
-    wctx.fillStyle = '#aa5533';
-    wctx.fillRect(20,22,28,28);
-    wctx.fillStyle = '#882222';
-    wctx.fillRect(26,30,12,12);
-  }
-  
-  // ========== CONTROLS ==========
-  function moveLeft() {
-    if(!gameRunning) return;
-    if(player.lane > 0) {
-      player.lane--;
-      player.x = LANE_X[player.lane];
+    
+    if(score > level*100) level++;
+}
+
+function gameOver() {
+    running = false;
+    document.getElementById('ov').classList.remove('hidden');
+    document.getElementById('sMenu').style.display = 'none';
+    document.getElementById('sOver').style.display = 'flex';
+    document.getElementById('goS').textContent = "SCORE: " + score;
+}
+
+function draw() {
+    ctx.clearRect(0,0,GW,GH);
+    drawBg();
+
+    // Станки
+    for(let i=0; i<numLanes; i++) {
+        drawMachine(ctx, i*laneWidth + 10, GH*0.2, laneWidth-20, GH*0.3, player.lane === i);
     }
-  }
-  function moveRight() {
-    if(!gameRunning) return;
-    if(player.lane < 2) {
-      player.lane++;
-      player.x = LANE_X[player.lane];
-    }
-  }
-  
-  document.getElementById('leftBtn').addEventListener('click', moveLeft);
-  document.getElementById('rightBtn').addEventListener('click', moveRight);
-  document.addEventListener('keydown', (e) => {
-    if(e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
-    if(e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
-    if(e.key === ' ' || e.key === 't') {
-      if(gameRunning && turbo >= 25 && !turboActive) {
-        turboActive = true;
-        turboFrames = 45;
-        turbo -= 25;
-        updateUI();
-      }
-    }
-  });
-  
-  // touch swipe on canvas
-  let touchX = null;
-  canvas.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; });
-  canvas.addEventListener('touchend', (e) => {
-    if(touchX === null) return;
-    let diff = e.changedTouches[0].clientX - touchX;
-    if(diff > 35) moveRight();
-    else if(diff < -35) moveLeft();
-    touchX = null;
-  });
-  
-  let selectedGender = 'm';
-  document.getElementById('workerM')?.addEventListener('click', () => {
-    selectedGender = 'm';
-    document.querySelectorAll('.worker-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('workerM').classList.add('selected');
-  });
-  document.getElementById('workerF')?.addEventListener('click', () => {
-    selectedGender = 'f';
-    document.querySelectorAll('.worker-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('workerF').classList.add('selected');
-  });
-  
-  document.getElementById('startBtn')?.addEventListener('click', () => startGame(selectedGender));
-  document.getElementById('restartBtn')?.addEventListener('click', () => startGame(selectedGender));
-  document.getElementById('menuBtn')?.addEventListener('click', showMenu);
-  
-  drawPreviewWorkers();
-  showMenu();
-})();
+
+    // Детали
+    parts.forEach(p => {
+        const px_val = p.lane * laneWidth + laneWidth/2 - 10;
+        px(ctx, px_val, p.y, 20, 15, p.bad ? '#f35' : '#0ff');
+        // Свечение деталей
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = p.bad ? '#f35' : '#0ff';
+        px(ctx, px_val+5, p.y+5, 10, 5, '#fff');
+        ctx.shadowBlur = 0;
+    });
+
+    // Игрок с отражением
+    drawWithReflection(ctx, player.x, GH*0.7, 9*PSCALE, 16*PSCALE, (c, x, y) => {
+        pixChar(c, x, y, selectedChar, gframe);
+    });
+
+    // Эффект старого монитора (Scanlines)
+    ctx.globalAlpha = 0.05;
+    for(let i=0; i<GH; i+=4) px(ctx, 0, i, GW, 2, '#fff');
+    ctx.globalAlpha = 1.0;
+}
+
+// Управление
+function selChar(g) {
+    selectedChar = g;
+    document.getElementById('cM').classList.toggle('sel', g==='m');
+    document.getElementById('cF').classList.toggle('sel', g==='f');
+}
+
+function sl(e) { if(e) e.preventDefault(); if(player.lane > 0) player.lane--; }
+function sr(e) { if(e) e.preventDefault(); if(player.lane < numLanes-1) player.lane++; }
+
+document.addEventListener('keydown', e => {
+    if(e.key === 'ArrowLeft') sl();
+    if(e.key === 'ArrowRight') sr();
+});
+
+// Превью персонажей в меню
+function drawPreviews() {
+    const pM = document.getElementById('pM').getContext('2d');
+    const pF = document.getElementById('pF').getContext('2d');
+    pixChar(pM, 5, 5, 'm', 0);
+    pixChar(pF, 5, 5, 'f', 0);
+}
+drawPreviews();
+drawBg();
 </script>
 </body>
 </html>
-```
