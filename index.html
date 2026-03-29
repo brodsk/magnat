@@ -3,423 +3,1146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LISOVNA - PIXEL EDITION</title>
+<title>LISOVNA</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{width:100%;height:100%;overflow:hidden;background:#05050a;}
-
-#app{
-  width:100%;height:100%;
-  display:flex;flex-direction:column;
-  align-items:center;
-  background:#05050a;
-  position:relative;
-  overflow:hidden;
-}
-
-canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
-
-.pf{font-family:'Press Start 2P',monospace;}
-
-#hud{
-  width:100%;max-width:600px;
-  display:flex;gap:0;
-  background:#0a0a0f;
-  border-bottom:4px solid #1a1a2e;
-  flex-shrink:0;
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(8px,2vw,11px);
-}
-#hud .hcell{
-  flex:1;padding:8px 4px;
-  text-align:center;
-  border-right:2px solid #1a1a2e;
-}
-#hud .hcell:last-child{border-right:none;}
-.hv{font-size:clamp(10px,2.5vw,14px);font-weight:bold;margin-top:4px;}
-#hScore .hv{color:#0ff; text-shadow: 0 0 8px #00ffffaa;}
-#hLives .hv{color:#f35; text-shadow: 0 0 8px #ff3355aa;}
-#hLevel .hv{color:#f0f; text-shadow: 0 0 8px #ff00ffaa;}
-
-#gw{
-  position:relative;flex:1;
-  width:100%;max-width:600px;
-  overflow:hidden;
-  border-left: 2px solid #111;
-  border-right: 2px solid #111;
-}
-#gc{width:100%;height:100%;}
-
-.banner{
-  position:absolute;top:0;left:0;right:0;
-  font-family:'Press Start 2P',monospace;
-  font-size:clamp(7px,1.8vw,10px);
-  text-align:center;padding:8px 4px;
-  z-index:15;display:none;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
-}
-#bPredak{background:#e86820;color:#fff;}
-#bNast{background:#111;color:#ff0;border-bottom:2px solid #ff0;}
-
-#ctrl{
-  width:100%;max-width:600px;
-  display:flex;gap:8px;padding:12px;
-  background:#0a0a0f;border-top:4px solid #1a1a2e;
-  flex-shrink:0;
-}
-#ctrl button{
-  flex:1;
-  font-family:'Press Start 2P',monospace;
-  font-size:24px;
-  background:#161625;
-  color:#0ff;
-  border:3px solid #0ff;
-  padding:15px 0;
-  cursor:pointer;
-  transition: all 0.1s;
-  box-shadow: 0 4px 0 #008888;
-}
-#ctrl button:active,#ctrl button.held{
-    background:#00ffff;
-    color:#000;
-    transform: translateY(4px);
-    box-shadow: 0 0 0 #000;
-}
-
-#ov{
-  position:absolute;top:0;left:0;right:0;bottom:0;
-  background:rgba(0,0,0,0.4);
-  backdrop-filter: blur(2px);
-  display:flex;flex-direction:column;
-  align-items:center;justify-content:center;
-  z-index:20;
-  font-family:'Press Start 2P',monospace;
-}
-#ov.hidden{display:none;}
-
-#sMenu, #sOver{
-  display:flex;flex-direction:column;
-  align-items:center;gap:15px;
-  background:rgba(5, 5, 15, 0.95);
-  border:4px solid #0ff;
-  padding:25px;
-  max-width:360px;width:90%;
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.2);
-}
-.mtitle{
-  font-size:clamp(16px,5vw,24px);
-  color:#0ff;
-  text-shadow:3px 3px 0 #006666;
-  text-align:center;
-}
-.msub{font-size:9px;color:#667;text-align:center;line-height:1.6;}
-
-.ccards{display:flex;gap:15px;margin:10px 0;}
-.ccard{
-  border:3px solid #222;
-  background:#0a0a1a;
-  padding:10px;cursor:pointer;
-  text-align:center;
-  transition: 0.2s;
-}
-.ccard.sel{border-color:#0ff;background:#001a1a;transform: scale(1.05);}
-.ccard canvas{display:block;margin:0 auto;}
-
-.mbtn{
-  font-family:'Press Start 2P',monospace;
-  background:#00ff88;color:#000;
-  border:none;
-  padding:12px 30px;cursor:pointer;
-  font-size:12px;
-  box-shadow: 0 4px 0 #008844;
-}
-.mbtn:active{transform:translateY(4px); box-shadow: 0 0 0 #000;}
+html,body{width:100%;height:100%;overflow:hidden;background:#000;font-family:'Press Start 2P',monospace;}
+#wrap{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;background:#000;}
+#gc{display:block;image-rendering:pixelated;image-rendering:crisp-edges;cursor:none;}
 </style>
 </head>
 <body>
-<div id="app">
-  <div id="hud">
-    <div class="hcell pf" id="hScore"><div style="color:#556;font-size:0.7em;">SCORE</div><div class="hv" id="hSv">0</div></div>
-    <div class="hcell pf" id="hLives"><div style="color:#556;font-size:0.7em;">LIVES</div><div class="hv" id="hLv">❤❤❤</div></div>
-    <div class="hcell pf" id="hLevel"><div style="color:#556;font-size:0.7em;">LEVEL</div><div class="hv" id="hLLv">1</div></div>
-  </div>
-
-  <div id="gw">
-    <canvas id="gc"></canvas>
-    <div class="banner" id="bPredak">⚠ PREDAK: ZVYŠUJEME VÝKON! ⚠</div>
-    <div class="banner" id="bNast">▶ NASTAVOVAČ: SERVIS FORMY! ◀</div>
-
-    <div id="ov">
-      <div id="sMenu">
-        <div class="mtitle">🏭 LISOVŇA</div>
-        <div class="msub">MAGNA INDUSTRY SIMULATOR</div>
-        <div class="ccards">
-          <div class="ccard sel" id="cM" onclick="selChar('m')">
-            <canvas id="pM" width="40" height="56"></canvas>
-            <div class="cn" style="font-size:8px;color:#0ff;margin-top:5px;">MUŽ</div>
-          </div>
-          <div class="ccard" id="cF" onclick="selChar('f')">
-            <canvas id="pF" width="40" height="56"></canvas>
-            <div class="cn" style="font-size:8px;color:#0ff;margin-top:5px;">ŽENA</div>
-          </div>
-        </div>
-        <button class="mbtn" onclick="startGame()">ŠTART SMENY</button>
-      </div>
-
-      <div id="sOver" style="display:none; border-color: #f35;">
-        <div class="mtitle" style="color:#f35; text-shadow: 3px 3px 0 #600;">KONIEC SMENY</div>
-        <canvas id="majPrev" width="60" height="90"></canvas>
-        <div id="goS" style="color:#fff; font-size:12px;"></div>
-        <div id="goQ" class="msub" style="color:#f99;"></div>
-        <button class="mbtn" style="background:#f35; box-shadow: 0 4px 0 #800;" onclick="startGame()">SKÚSIŤ ZNOVA</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="ctrl">
-    <button id="bL" ontouchstart="sl(event)" ontouchend="el()" onmousedown="sl()" onmouseup="el()">◀</button>
-    <button id="bR" ontouchstart="sr(event)" ontouchend="er()" onmousedown="sr()" onmouseup="er()">▶</button>
-  </div>
-</div>
-
+<div id="wrap"><canvas id="gc"></canvas></div>
 <script>
-const gc = document.getElementById('gc');
-const ctx = gc.getContext('2d');
-ctx.imageSmoothingEnabled = false;
+// ─────────────────────────────────────────────────────────────────────────────
+// LISOVNA  –  Pixel Car Racer visual style  –  factory conveyor catcher
+// ─────────────────────────────────────────────────────────────────────────────
 
-let GW=400, GH=300;
-const PSCALE = 3;
+const C = document.getElementById('gc');
+const X = C.getContext('2d');
+X.imageSmoothingEnabled = false;
 
-// Цветовая палитра в стиле Pixel Car Racer
-const P = {
-  bg: '#05050a',
-  floor: '#0a0a14',
-  floorLine: '#151525',
-  reflection: 'rgba(255, 255, 255, 0.15)',
-  engGr: '#2d5a1e',
-  engHighlight: '#4a9a20',
-  neonG: '#00ff88',
-  neonB: '#00ffff'
+// Scale factor – everything is drawn at 1x then scaled up
+const BASE_W = 192, BASE_H = 256;
+let SCALE = 1;
+
+function resize() {
+  const maxW = Math.min(window.innerWidth, 480);
+  const maxH = window.innerHeight;
+  SCALE = Math.min(Math.floor(maxW / BASE_W), Math.floor(maxH / BASE_H));
+  SCALE = Math.max(SCALE, 1);
+  C.width  = BASE_W * SCALE;
+  C.height = BASE_H * SCALE;
+  X.imageSmoothingEnabled = false;
+}
+resize();
+window.addEventListener('resize', () => { resize(); if (!G.running) drawFrame(); });
+
+// ─── OFF-SCREEN BUFFER at native res ────────────────────────────────────────
+const OC = document.createElement('canvas');
+OC.width = BASE_W; OC.height = BASE_H;
+const O = OC.getContext('2d');
+O.imageSmoothingEnabled = false;
+
+// ─── PIXEL PALETTE (PCR style) ───────────────────────────────────────────────
+const COL = {
+  // BG
+  sky:    ['#0d0221','#12062a','#180c38','#1e1248'],
+  bldW:   '#e8eaf0',  // building wall light
+  bldD:   '#9098b0',  // building wall dark
+  bldB:   '#1a2a80',  // blue accent
+  bldB2:  '#2244cc',
+  win:    '#223366',  // window
+  winL:   '#4466aa',  // lit window
+  winY:   '#aaaa22',  // yellow window
+  road:   '#1a1a28',
+  roadL:  '#2a2a40',
+  stripe: '#ffdd00',
+  // UI PCR style
+  bg:     '#110022',     // main UI dark purple-black
+  panel:  '#1a0035',
+  panelB: '#cc00ff',     // neon purple border
+  panelY: '#ffdd00',     // yellow
+  panelG: '#00ff88',     // green
+  panelR: '#ff2244',
+  panelC: '#00ccff',
+  gold:   '#ffaa00',
+  // text
+  txtW:   '#ffffff',
+  txtY:   '#ffdd00',
+  txtC:   '#00ccff',
+  txtG:   '#00ff88',
+  txtR:   '#ff2244',
+  // machines
+  mGreen: '#3d8c18',
+  mGrnD:  '#2a6010',
+  mGrnL:  '#5ab824',
+  mGray:  '#3a3a50',
+  mGrayL: '#5a5a70',
+  mGrayD: '#1e1e2e',
+  // conveyors
+  conv:   '#2a2a3a',
+  convL:  '#3a3a50',
+  convH:  '#4a4a66',
+  // floor
+  flr:    '#0e0e1a',
+  flrT:   '#1a1a2a',
+  // chars (8x14 pixel sprites)
+  skin:   '#e8b87a',
+  skin2:  '#ecc090',
+  hair1:  '#1a0e06',  // dark
+  hair2:  '#7a3008',  // auburn
+  dkGray: '#3a3a3a',
+  nvy:    '#223344',
+  orange: '#e86820',
+  blk:    '#111111',
+  red:    '#cc1111',
+  wht:    '#eeeeee',
+  // part colors
+  ptGood: '#2266cc',
+  ptBad:  '#cc1111',
+  ptGoodL:'#4488ee',
+  ptBadL: '#ff4444',
 };
 
-function resize(){
-  const wrap = document.getElementById('gw');
-  GW = wrap.clientWidth;
-  GH = wrap.clientHeight;
-  gc.width = GW;
-  gc.height = GH;
+// ─── TINY FONT (3x5 pixel, custom) ───────────────────────────────────────────
+// We'll use Press Start 2P at scale 1 for HUD and PCR at scale 1
+function txt(ctx, str, x, y, col, sz=5) {
+  ctx.font = `${sz}px 'Press Start 2P'`;
+  ctx.fillStyle = col;
+  ctx.fillText(str, x, y);
 }
-window.addEventListener('resize', resize);
-resize();
+function txtC(ctx, str, cx, y, col, sz=5) {
+  ctx.font = `${sz}px 'Press Start 2P'`;
+  const w = ctx.measureText(str).width;
+  ctx.fillStyle = col;
+  ctx.fillText(str, cx - w/2, y);
+}
+function txtR(ctx, str, rx, y, col, sz=5) {
+  ctx.font = `${sz}px 'Press Start 2P'`;
+  const w = ctx.measureText(str).width;
+  ctx.fillStyle = col;
+  ctx.fillText(str, rx - w, y);
+}
 
-// Вспомогательная функция для рисования пикселей
-function px(c,x,y,w,h,col){ c.fillStyle=col; c.fillRect(Math.round(x),Math.round(y),w,h); }
+// ─── RECTANGLE helpers ───────────────────────────────────────────────────────
+function r(ctx, x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x,y,w,h); }
+function rb(ctx, x,y,w,h,c,bc,bw=1){
+  ctx.fillStyle=c; ctx.fillRect(x,y,w,h);
+  ctx.fillStyle=bc;
+  ctx.fillRect(x,y,w,bw);
+  ctx.fillRect(x,y+h-bw,w,bw);
+  ctx.fillRect(x,y,bw,h);
+  ctx.fillRect(x+w-bw,y,bw,h);
+}
 
-function drawBg(){
-  // Градиентный фон цеха
-  for(let i=0; i<10; i++){
-    px(ctx, 0, (GH*0.45/10)*i, GW, GH*0.45/10 + 1, `rgb(5, 5, ${15+i*2})`);
+// ─── PCR-STYLE PANEL ─────────────────────────────────────────────────────────
+function panel(ctx,x,y,w,h,bc=COL.panelB){
+  r(ctx,x,y,w,h,COL.panel);
+  // thick 2px border in PCR style
+  r(ctx,x,y,w,2,bc);
+  r(ctx,x,y+h-2,w,2,bc);
+  r(ctx,x,y,2,h,bc);
+  r(ctx,x+w-2,y,2,h,bc);
+  // inner glow line
+  r(ctx,x+2,y+2,w-4,1,bc+'44');
+  r(ctx,x+2,y+2,1,h-4,bc+'44');
+}
+
+// ─── PCR-STYLE BUTTON ────────────────────────────────────────────────────────
+function btn(ctx,x,y,w,h,label,bc,tc){
+  r(ctx,x,y,w,h,COL.panel);
+  r(ctx,x,y,w,2,bc);
+  r(ctx,x,y+h-2,w,2,bc);
+  r(ctx,x,y,2,h,bc);
+  r(ctx,x+w-2,y,2,h,bc);
+  // shine line top
+  r(ctx,x+2,y+2,w-4,1,'#ffffff18');
+  txtC(ctx,label,x+w/2,y+h/2+2,tc,5);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// BACKGROUNDS
+// ─────────────────────────────────────────────────────────────────────────────
+
+let bgScroll = 0;
+
+function drawNightCity(ctx, frame) {
+  // Sky bands
+  for(let i=0;i<4;i++){
+    ctx.fillStyle=COL.sky[i];
+    ctx.fillRect(0, i*20, BASE_W, 21);
   }
-  
-  // Дальняя стена (панели)
-  px(ctx, 0, GH*0.2, GW, 4, '#111120');
-  
-  // Пол с эффектом глянца
-  px(ctx, 0, GH*0.45, GW, GH*0.55, P.floor);
-  for(let i=0; i<GH*0.55; i+=10){
-    px(ctx, 0, GH*0.45 + i, GW, 1, P.floorLine);
+
+  const scroll = Math.floor(bgScroll) % 320;
+
+  // Buildings – drawn as a repeating tile
+  drawBuildingLayer(ctx, -scroll, 22, 0.6);      // far layer
+  drawBuildingLayer(ctx, -scroll*1.5, 36, 1.0);  // near layer
+
+  // Road
+  r(ctx, 0, 76, BASE_W, 10, COL.road);
+  r(ctx, 0, 78, BASE_W, 2,  COL.roadL);
+  // Road dashes
+  for(let dx=(-scroll*2)%24; dx<BASE_W; dx+=24){
+    r(ctx, Math.floor(dx), 82, 12, 2, COL.stripe);
   }
+  // Curb
+  r(ctx, 0, 85, BASE_W, 1, '#444466');
 }
 
-// РИСОВАНИЕ С ОТРАЖЕНИЕМ (Главная фишка Pixel Car Racer)
-function drawWithReflection(c, x, y, w, h, drawFn) {
-    c.save();
-    // Отражение
-    c.save();
-    c.translate(0, y + h * 2 - 4); 
-    c.scale(1, -0.4); // Сплюснутое по вертикали
-    c.globalAlpha = 0.2;
-    drawFn(c, x, 0, true); 
-    c.restore();
-    // Оригинал
-    drawFn(c, x, y, false);
-    c.restore();
-}
-
-function drawMachine(c, x, y, w, h, active) {
-    const gh = Math.floor(h*0.85);
-    const gy = y + h - gh;
-
-    // Корпус станка (Engel)
-    px(c, x, gy, w, gh, '#1a3310'); // Тень
-    px(c, x+2, gy, w-4, gh-4, P.engGr); // Основной цвет
-    px(c, x+2, gy, w-4, 4, P.engHighlight); // Свет сверху
-    
-    // Экран
-    px(c, x+w-20, gy+10, 15, 20, '#111');
-    if(active && Math.floor(gframe/10)%2==0) {
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = P.neonG;
-        px(c, x+w-18, gy+12, 11, 5, P.neonG);
-        ctx.shadowBlur = 0;
-    }
-
-    // Конвейер
-    const beltY = gy+gh-12;
-    px(c, x-5, beltY, w+10, 8, '#222');
-    for(let i=0; i<w; i+=15) {
-        px(c, x-5 + ((i+gframe)%w), beltY+2, 8, 2, '#333');
-    }
-}
-
-function pixChar(c, x, y, gender, frame) {
-    const s = PSCALE;
-    const bob = Math.floor(Math.sin(frame*0.2)*2);
-    const cy = y + bob;
-    
-    const skin = gender === 'm' ? '#e8b87a' : '#ecc090';
-    const hair = gender === 'm' ? '#1a0e06' : '#7a3008';
-
-    // Ноги
-    px(c, x+s, cy+10*s, 3*s, 5*s, '#223344');
-    px(c, x+5*s, cy+10*s, 3*s, 5*s, '#223344');
-    // Туловище
-    px(c, x, cy+5*s, 9*s, 6*s, '#333');
-    // Голова
-    px(c, x+s, cy, 7*s, 5*s, skin);
-    px(c, x+s, cy, 7*s, 2*s, hair);
-    // Глаза
-    px(c, x+2*s, cy+2*s, s, s, '#000');
-    px(c, x+5*s, cy+2*s, s, s, '#000');
-}
-
-// --- ЛОГИКА ИГРЫ (Упрощенная и стабильная) ---
-let running=false, score=0, lives=3, level=1, gframe=0;
-let player = { lane: 0, x: 50, targetX: 50 };
-let selectedChar = 'm';
-let parts = [];
-let numLanes = 3;
-let laneWidth = 0;
-
-function startGame() {
-    score=0; lives=3; level=1; running=true;
-    parts = [];
-    document.getElementById('ov').classList.add('hidden');
-    updateHUD();
-    loop();
-}
-
-function updateHUD() {
-    document.getElementById('hSv').textContent = score;
-    document.getElementById('hLv').textContent = '❤'.repeat(lives);
-    document.getElementById('hLLv').textContent = level;
-}
-
-function loop() {
-    if(!running) return;
-    gframe++;
-    update();
-    draw();
-    requestAnimationFrame(loop);
-}
-
-function update() {
-    laneWidth = GW / numLanes;
-    player.targetX = player.lane * laneWidth + (laneWidth/2) - (9*PSCALE/2);
-    player.x += (player.targetX - player.x) * 0.2;
-
-    if(gframe % Math.max(20, 60 - level*5) == 0) {
-        parts.push({ 
-            lane: Math.floor(Math.random()*numLanes), 
-            y: GH*0.35, 
-            bad: Math.random() > 0.8,
-            speed: 2 + level*0.5
-        });
-    }
-
-    for(let i=parts.length-1; i>=0; i--) {
-        parts[i].y += parts[i].speed;
-        
-        // Проверка столкновения
-        if(parts[i].y > GH*0.75 && parts[i].y < GH*0.85 && parts[i].lane === player.lane) {
-            if(parts[i].bad) { lives--; updateHUD(); }
-            else { score += 10; updateHUD(); }
-            parts.splice(i, 1);
-            if(lives <= 0) gameOver();
-        } else if(parts[i].y > GH) {
-            if(!parts[i].bad) { lives--; updateHUD(); if(lives<=0) gameOver(); }
-            parts.splice(i, 1);
+function drawBuildingLayer(ctx, offX, baseY, alpha) {
+  ctx.globalAlpha = alpha;
+  // Pattern of buildings that repeats every 320px
+  const buildings = [
+    {x:0,   w:28, h:38, c:'#1e2240', wc:'#223066'},
+    {x:30,  w:18, h:30, c:'#252845', wc:'#2a3070'},
+    {x:50,  w:22, h:42, c:'#1a1e3a', wc:'#202260'},
+    {x:74,  w:30, h:36, c:'#222545', wc:'#283070'},
+    {x:106, w:16, h:48, c:'#1c2040', wc:'#222868'},
+    {x:124, w:24, h:32, c:'#252842', wc:'#2a3068'},
+    {x:150, w:20, h:44, c:'#1e2242', wc:'#242866'},
+    {x:172, w:32, h:38, c:'#202445', wc:'#263070'},
+    {x:206, w:18, h:50, c:'#1a1e3e', wc:'#202465'},
+    {x:226, w:26, h:34, c:'#242745', wc:'#2a2e70'},
+    {x:254, w:22, h:46, c:'#1c2040', wc:'#222668'},
+    {x:278, w:30, h:40, c:'#222545', wc:'#283070'},
+  ];
+  buildings.forEach(b => {
+    for(let rep=0; rep<2; rep++) {
+      const bx = Math.floor(b.x + offX + rep*320);
+      const by = baseY - b.h;
+      if(bx+b.w<0||bx>BASE_W) return;
+      // Body
+      ctx.fillStyle = b.c;
+      ctx.fillRect(bx, by, b.w, b.h);
+      // Roof accent
+      ctx.fillStyle = '#cc00ff44';
+      ctx.fillRect(bx, by, b.w, 2);
+      // Windows grid
+      const cols = Math.floor(b.w/6);
+      const rows = Math.floor(b.h/7);
+      for(let wr=0;wr<rows;wr++){
+        for(let wc2=0;wc2<cols;wc2++){
+          const wx=bx+2+wc2*6, wy=by+3+wr*7;
+          const lit = Math.sin(wx*3.7+wy*2.3+rep*100)>0.2;
+          const yel = Math.sin(wx*5.1+wy*4.7)>0.7;
+          if(lit) {
+            ctx.fillStyle = yel ? '#aaaa2288' : '#4466aa66';
+            ctx.fillRect(wx,wy,4,4);
+          }
         }
+      }
+      // Neon sign on some buildings
+      if(b.h>40){
+        ctx.fillStyle='#ff00ff44';
+        ctx.fillRect(bx+2,by+4,b.w-4,2);
+      }
     }
-    
-    if(score > level*100) level++;
+  });
+
+  // Magna building (always visible, center-ish of far layer)
+  if(alpha>0.8){
+    const mx = Math.floor(20 + offX*0.3) % BASE_W;
+    drawMagnaBuilding(ctx, mx, baseY);
+  }
+
+  ctx.globalAlpha = 1;
+}
+
+function drawMagnaBuilding(ctx, bx, baseY) {
+  const by = baseY - 44;
+  const bw = 60, bh = 44;
+  if(bx+bw<0||bx>BASE_W) return;
+  // Main body white/gray
+  r(ctx,bx,by,bw,bh,'#c8ccd8');
+  // Blue accent strips
+  r(ctx,bx,by,bw,4,'#1a44cc');
+  r(ctx,bx,by+bh-5,bw,5,'#1a44cc');
+  r(ctx,bx,by,4,bh,'#1a44cc');
+  r(ctx,bx+bw-4,by,4,bh,'#1a44cc');
+  // Panel lines
+  for(let py=by+8;py<by+bh-5;py+=9) r(ctx,bx+4,py,bw-8,1,'#aab0c0');
+  // Windows
+  for(let wr=0;wr<2;wr++) for(let wc2=0;wc2<6;wc2++){
+    const wx=bx+6+wc2*9, wy=by+8+wr*12;
+    r(ctx,wx,wy,7,8,'#1a44cc');
+    r(ctx,wx+1,wy+1,5,6,'#223355');
+    r(ctx,wx+1,wy+1,2,2,'#334466');
+  }
+  // Magna logo (red dot + text)
+  r(ctx,bx+6,by+4,3,3,'#cc0000');
+  r(ctx,bx+7,by+5,1,1,'#ff2222');
+  txt(ctx,'MAGNA',bx+11,by+8,'#1a2255',4);
+  // Second sign
+  txt(ctx,'MAGNA',bx+11,by+28,'#1a2255',4);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME BACKGROUND (factory interior)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawFactoryBG(ctx) {
+  // Dark factory ceiling/wall
+  r(ctx,0,0,BASE_W,BASE_H,COL.bg);
+  // Top strip – ceiling with lights
+  r(ctx,0,0,BASE_W,6,'#0a001a');
+  // Ceiling lights strip
+  for(let lx=10;lx<BASE_W;lx+=20){
+    r(ctx,lx,1,10,4,'#1a1a2a');
+    r(ctx,lx+2,2,6,2,'#ffeeaa22');
+  }
+  // Back wall
+  r(ctx,0,6,BASE_W,60,'#0f0022');
+  // Wall panels
+  for(let wx=0;wx<BASE_W;wx+=24){
+    r(ctx,wx,6,22,60,'#110028');
+    r(ctx,wx,6,22,1,'#220044');
+  }
+  // Neon light strips on wall
+  r(ctx,0,65,BASE_W,2,'#cc00ff22');
+  r(ctx,0,63,BASE_W,1,'#cc00ff44');
+
+  // Floor
+  r(ctx,0,BASE_H-26,BASE_W,26,COL.flr);
+  for(let fx=0;fx<BASE_W;fx+=16){
+    r(ctx,fx,BASE_H-26,14,24,COL.flrT);
+    r(ctx,fx,BASE_H-26,14,1,'#2a2a3e');
+  }
+  r(ctx,0,BASE_H-26,BASE_W,1,'#3a3a50');
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// ENGEL INJECTION MOLDING MACHINE  (pixel art, Engel-style green)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawMachine(ctx, x, y, w, h, active, frame) {
+  const gh = h - 4;
+  // Base rail
+  r(ctx,x,y+gh,w,4,'#111122');
+
+  // Main body – Engel green
+  r(ctx,x+2,y,w-4,gh,COL.mGreen);
+  // Left shading strip
+  r(ctx,x+2,y,3,gh,COL.mGrnD);
+  // Right shading
+  r(ctx,x+w-5,y,3,gh,COL.mGrnD);
+  // Top shine
+  r(ctx,x+2,y,w-4,2,COL.mGrnL);
+
+  // Panel lines
+  for(let py=y+6;py<y+gh-4;py+=8) r(ctx,x+6,py,w-12,1,COL.mGrnD);
+
+  // Control panel (dark box, right side)
+  const cpx=x+w-11, cpy=y+3, cpw=9, cph=Math.floor(gh*0.55);
+  r(ctx,cpx,cpy,cpw,cph,'#111122');
+  r(ctx,cpx,cpy,cpw,1,'#334466');
+  // Screen
+  r(ctx,cpx+1,cpy+2,cpw-2,8,COL.glass||'#223355');
+  r(ctx,cpx+1,cpy+3,cpw-2,2,'#224488');
+  // Buttons
+  r(ctx,cpx+1,cpy+12,3,2,'#00ff44');
+  r(ctx,cpx+5,cpy+12,3,2,'#ff0033');
+  r(ctx,cpx+1,cpy+16,7,2,'#ff8800');
+
+  // Mold gap (center)
+  const mgx=x+Math.floor(w*0.28), mgw=Math.floor(w*0.38);
+  r(ctx,mgx,y+2,mgw,gh-6,'#0a0015');
+  // Mold plates
+  r(ctx,mgx,y+2,4,gh-6,'#223344');
+  r(ctx,mgx+mgw-4,y+2,4,gh-6,'#223344');
+  // Tie bars
+  r(ctx,mgx+1,y+4,mgw-2,1,'#334455');
+  r(ctx,mgx+1,y+gh-8,mgw-2,1,'#334455');
+
+  // Injection barrel (right side cylinder)
+  const ibx=x+w-4;
+  r(ctx,ibx,y+Math.floor(gh*0.2),12,Math.floor(gh*0.28),COL.mGray);
+  r(ctx,ibx+1,y+Math.floor(gh*0.2)+1,10,Math.floor(gh*0.28)-2,'#2a2a40');
+  // Nozzle
+  r(ctx,ibx+12,y+Math.floor(gh*0.28),4,6,'#888899');
+
+  // Status LED
+  if(active && Math.floor(frame/5)%2===0){
+    r(ctx,x+3,y+3,4,4,'#00ff44');
+    r(ctx,x+4,y+4,2,2,'#aaffcc');
+  } else {
+    r(ctx,x+3,y+3,4,4,'#115522');
+  }
+
+  // ENGEL label
+  txt(ctx,'ENGEL',x+3,y+gh-4,COL.mGrnL,4);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CONVEYOR BELT  (horizontal, exits left side of machine)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawConveyor(ctx, x, y, w, frame) {
+  const bh=6;
+  r(ctx,x,y,w,bh,COL.conv);
+  // Moving slats
+  const off=frame*2%10;
+  for(let bx=x+w-(off);bx>=x;bx-=10){
+    r(ctx,bx,y+1,6,bh-2,COL.convL);
+  }
+  r(ctx,x,y,w,1,COL.convH);
+  r(ctx,x,y+bh-1,w,1,'#1a1a28');
+  // End rollers
+  r(ctx,x,y-1,3,bh+2,COL.mGray);
+  r(ctx,x+w-3,y-1,3,bh+2,COL.mGray);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PIXEL SPRITES  –  PCR-style chunky 8-wide 14-tall characters
+// Each drawn at 1px = 1 native pixel (BASE_W resolution)
+// Then SCALE blows it up to pixel-perfect blocks
+// ─────────────────────────────────────────────────────────────────────────────
+
+// s = sprite data rows, top to bottom, each row = array of [col, width] pairs
+// We'll just use fillRect at 1px
+
+function spr(ctx, x, y, rows) {
+  let cy = y;
+  rows.forEach(row => {
+    let cx = x;
+    row.forEach(([c,w]) => { if(c) r(ctx,cx,cy,w,1,c); cx+=w; });
+    cy++;
+  });
+}
+
+// Shortcuts
+const _ = null; // transparent
+
+function drawCharM(ctx, x, y, frame, flip) {
+  const bob = Math.sin(frame*0.2)>0 ? 1 : 0;
+  y += bob;
+  const arm = Math.sin(frame*0.2)>0;
+  if(flip) { ctx.save(); ctx.translate(x+8,0); ctx.scale(-1,1); x=0; }
+  // 8 wide, 14 tall
+  const S=COL.skin, H=COL.hair1, T=COL.dkGray, P=COL.nvy, Sh=COL.blk, R='#cc0000';
+  spr(ctx,x,y,[
+    [[_,1],[H,6],[_,1]],                    // hair top
+    [[_,1],[H,2],[S,3],[H,1],[_,1]],        // hair sides
+    [[_,1],[S,1],[S,1],[S,3],[S,1],[_,1]],  // face
+    [[_,1],[S,1],[_,1],[S,3],[S,1],[_,1]],  // eyes row
+    [[_,1],[S,6],[_,1]],                    // face lower
+    [[S,1],[T,6],[S,1]],                    // shirt shoulders
+    [[S,1],[T,2],[R,2],[T,2],[S,1]],        // shirt mid (red dot)
+    [[_,1],[T,6],[_,1]],                    // shirt lower
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],        // pants gap
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],        // pants
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],        // pants lower
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],      // shoes
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],      // shoes
+  ]);
+  if(flip) ctx.restore();
+}
+
+function drawCharF(ctx, x, y, frame, flip) {
+  const bob = Math.sin(frame*0.2)>0 ? 1 : 0;
+  y += bob;
+  if(flip) { ctx.save(); ctx.translate(x+8,0); ctx.scale(-1,1); x=0; }
+  const S=COL.skin2, H=COL.hair2, T=COL.dkGray, P='#224488', Sh=COL.blk, R='#cc0000';
+  spr(ctx,x,y,[
+    [[_,1],[H,6],[_,1]],
+    [[H,1],[H,1],[S,4],[H,2]],
+    [[H,1],[S,6],[_,1]],
+    [[H,1],[S,1],[_,1],[S,3],[S,1],[_,1]],
+    [[H,1],[S,5],[_,2]],
+    [[S,1],[T,6],[S,1]],
+    [[S,1],[T,2],[R,2],[T,2],[S,1]],
+    [[_,1],[T,6],[_,1]],
+    [[_,1],[P,6],[_,1]],
+    [[_,1],[P,6],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],
+  ]);
+  if(flip) ctx.restore();
+}
+
+function drawPredak(ctx, x, y, frame, dir) {
+  const bob = Math.sin(frame*0.22)>0 ? 1 : 0;
+  y += bob;
+  const flip = dir > 0;
+  if(flip) { ctx.save(); ctx.translate(x+10,0); ctx.scale(-1,1); x=0; }
+  const S=COL.skin, H=COL.hair2, T=COL.orange, P='#1a1a2a', Sh='#222';
+  spr(ctx,x,y,[
+    [[_,2],[H,6],[_,2]],
+    [[H,1],[H,1],[S,4],[H,2],[_,1]],        // auburn bob
+    [[H,1],[S,6],[H,1]],
+    [[H,1],[S,1],[_,1],[S,3],[S,1],[H,1]],  // eyes
+    [[H,1],[S,6],[_,1]],
+    [[S,1],[T,7],[S,1]],                    // orange shirt wide
+    [[S,1],[T,2],[_,1],[T,4],[S,1]],
+    [[_,1],[T,7],[_,1]],                    // clipboard in hand
+    [[_,2],[P,3],[_,2],[P,2],[_,1]],
+    [[_,2],[P,3],[_,2],[P,2],[_,1]],
+    [[_,2],[P,3],[_,2],[P,2],[_,1]],
+    [[_,2],[Sh,3],[_,2],[Sh,2],[_,1]],
+    [[_,2],[Sh,3],[_,2],[Sh,2],[_,1]],
+  ]);
+  if(flip) ctx.restore();
+}
+
+function drawNastavovac(ctx, x, y, frame) {
+  const bob = Math.sin(frame*0.18)>0 ? 1 : 0;
+  y += bob;
+  const S=COL.skin, H='#111', T='#0f0f0f', P='#111', Sh='#0a0a0a', W='#888';
+  spr(ctx,x,y,[
+    [[_,1],[H,6],[_,1]],
+    [[_,1],[H,1],[S,4],[H,2]],
+    [[_,1],[S,5],[H,2]],                    // beard hint
+    [[_,1],[S,1],[_,1],[S,2],[S,1],[H,1]],  // eyes + beard
+    [[_,1],[H,6],[_,1]],                    // full beard row
+    [[S,1],[T,6],[S,1]],                    // black shirt
+    [[S,1],[T,6],[W,2]],                    // shirt + wrench
+    [[_,1],[T,6],[W,2]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],
+  ]);
+}
+
+function drawMajster(ctx, x, y, frame) {
+  const bob = Math.sin(frame*0.1)>0 ? 0 : 1;
+  y += bob;
+  const S='#d07050', H='#111', T='#0f0f0f', P='#111', Sh='#0a0';
+  spr(ctx,x,y,[
+    [[_,1],[H,6],[_,1]],
+    [[_,1],[H,1],[S,4],[H,2]],
+    [[_,1],[S,6],[_,1]],
+    // angry eyes (bigger)
+    [[_,1],[S,1],[S,2],[S,2],[S,1],[_,1]],
+    [[_,1],[S,1],[_,4],[S,1],[_,1]],         // open mouth
+    // Arms raised
+    [[S,1],[T,6],[S,1]],
+    [[S,1],[T,6],[S,1]],
+    [[_,1],[T,6],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+  ]);
+}
+
+function drawSkladnik(ctx, x, y, frame) {
+  const bob = Math.sin(frame*0.25)>0 ? 1 : 0;
+  y += bob;
+  const S='#e0a870', H='#3a2010', T=COL.red, W='#ffffff', P='#222233', Sh='#111';
+  spr(ctx,x,y,[
+    [[_,1],[H,6],[_,1]],
+    [[_,1],[H,1],[S,4],[H,2]],
+    [[_,1],[S,6],[_,1]],
+    [[_,1],[S,1],[_,1],[S,3],[S,1],[_,1]],
+    [[_,1],[S,6],[_,1]],
+    [[S,1],[T,6],[S,1]],
+    [[S,1],[W,6],[S,1]],                    // white stripe
+    [[_,1],[T,6],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[P,3],[_,1],[P,2],[_,1]],
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],
+    [[_,1],[Sh,3],[_,1],[Sh,2],[_,1]],
+  ]);
+}
+
+// Roller cart
+function drawCart(ctx, x, y) {
+  // Cart bed
+  r(ctx,x,y,36,10,'#2a2a3a');
+  r(ctx,x,y,36,1,'#3a3a50');
+  // Bins (4 small colored bins)
+  const bc=['#cc1111','#1144cc','#119933','#cc8800'];
+  for(let b=0;b<4;b++){
+    r(ctx,x+1+b*9,y-8,8,8,bc[b]);
+    r(ctx,x+2+b*9,y-7,6,2,'#ffffff22');
+    r(ctx,x+2+b*9,y-3,6,3,'#00000033');
+  }
+  // Rollers
+  for(let rl=0;rl<4;rl++){
+    r(ctx,x+3+rl*9,y+10,5,4,'#3a3a4a');
+    r(ctx,x+4+rl*9,y+11,3,2,'#5a5a6a');
+  }
+  // Handle
+  r(ctx,x-4,y-6,3,16,'#3a3a4a');
+  r(ctx,x-6,y-6,6,2,'#5a5a6a');
+}
+
+// Plastic part (mirror housing, horizontal)
+function drawPart(ctx, x, y, bad) {
+  const bc = bad?COL.ptBad:COL.ptGood;
+  const lc = bad?COL.ptBadL:COL.ptGoodL;
+  r(ctx,x,y,12,7,bc);
+  r(ctx,x+1,y+1,4,3,lc);
+  r(ctx,x+7,y+1,4,3,lc);
+  r(ctx,x+4,y+7,4,2,bc);
+  if(bad){
+    r(ctx,x,y,3,3,'#ffee0088');
+    r(ctx,x+9,y+4,3,3,'#ffee0088');
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// PIXEL BUBBLE
+// ─────────────────────────────────────────────────────────────────────────────
+function bubble(ctx, x, y, lines, col, bc) {
+  const lh=7, pad=3;
+  const maxW=lines.reduce((m,l)=>{
+    ctx.font="4px 'Press Start 2P'";
+    return Math.max(m,ctx.measureText(l).width);
+  },0);
+  const bw=Math.ceil(maxW)+pad*2, bh=lines.length*lh+pad*2;
+  // Box
+  r(ctx,x,y-bh,bw,bh,'#000011');
+  r(ctx,x,y-bh,bw,1,bc);
+  r(ctx,x,y-1,bw,1,bc);
+  r(ctx,x,y-bh,1,bh,bc);
+  r(ctx,x+bw-1,y-bh,1,bh,bc);
+  // Tail
+  r(ctx,x+4,y,3,2,'#000011');
+  // Text
+  lines.forEach((l,i)=>txt(ctx,l,x+pad,y-bh+pad+4+i*lh,col,4));
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CHARACTER SELECT PREVIEWS
+// ─────────────────────────────────────────────────────────────────────────────
+function drawPreviewChar(id, gender) {
+  const el=document.getElementById(id); if(!el)return;
+  el.width=32; el.height=40;
+  const c=el.getContext('2d'); c.imageSmoothingEnabled=false;
+  c.clearRect(0,0,32,40);
+  c.save(); c.scale(2,2);
+  if(gender==='m') drawCharM(c,8,6,0,false);
+  else drawCharF(c,8,6,0,false);
+  c.restore();
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME STATE
+// ─────────────────────────────────────────────────────────────────────────────
+const G = {
+  screen: 'menu',   // menu | game | over
+  running: false,
+  frame: 0,
+  score: 0,
+  lives: 3,
+  level: 1,
+  char: 'm',
+  // player
+  lane: 0,
+  px: 0,
+  targetPX: 0,
+  // machines layout
+  numLanes: 3,
+  mw: 0, mh: 0, my: 0,
+  convY: 0, convH: 6,
+  floorY: 0,
+  laneXs: [],
+  // parts
+  parts: [],
+  partSpeed: 1.2,
+  spawnTimer: 0,
+  spawnRate: 55,
+  // npcs
+  predak: {x:250,y:0,dir:-1,frame:0,active:false,timer:0,bubble:0},
+  nast:   {x:-20,y:0,frame:0,active:false,timer:0,bubble:0,stopped:false},
+  skl:    {x:250,y:0,frame:0,active:false,timer:300},
+  // flash
+  flash: 0, flashCol:'#ff000066',
+  majQuote: '',
+};
+
+const QUOTES=[
+  ['CO TO ROBIS?!','MOJA BABICKA','RYCHLEJSIE!'],
+  ['NESPOKOJNY!!','REKLAMACIA!!'],
+  ['ZAJTRA AUDIT','A TY TOTO?!'],
+  ['KTO TA NAUCIL','TAKTO ROBIT?!'],
+];
+
+function computeLayout() {
+  G.numLanes = Math.min(2 + Math.floor(G.level/2), 5);
+  G.mh = 46;
+  G.mw = Math.floor((BASE_W - 4) / G.numLanes) - 2;
+  G.my = 8;
+  G.convY = G.my + G.mh - 8;
+  G.convH = 6;
+  G.floorY = BASE_H - 26;
+  G.laneXs = [];
+  for(let i=0;i<G.numLanes;i++){
+    G.laneXs.push(2 + i*(G.mw+2));
+  }
+  // Clamp player lane
+  G.lane = Math.min(G.lane, G.numLanes-1);
+  G.targetPX = G.laneXs[G.lane] + Math.floor(G.mw/2) - 4;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// START / STOP
+// ─────────────────────────────────────────────────────────────────────────────
+function startGame() {
+  G.screen='game'; G.running=true;
+  G.score=0; G.lives=3; G.level=1; G.frame=0;
+  G.partSpeed=1.2; G.spawnRate=55; G.parts=[];
+  G.lane=1; G.spawnTimer=0;
+  computeLayout();
+  G.px = G.laneXs[G.lane]+Math.floor(G.mw/2)-4;
+  // NPCs
+  G.predak.active=false; G.predak.timer=0; G.predak.x=250;
+  G.nast.active=false; G.nast.timer=0; G.nast.x=-20; G.nast.stopped=false;
+  G.skl.active=false; G.skl.timer=300; G.skl.x=250;
+  G.flash=0;
+  cancelAnimationFrame(raf);
+  raf=requestAnimationFrame(tick);
 }
 
 function gameOver() {
-    running = false;
-    document.getElementById('ov').classList.remove('hidden');
-    document.getElementById('sMenu').style.display = 'none';
-    document.getElementById('sOver').style.display = 'flex';
-    document.getElementById('goS').textContent = "SCORE: " + score;
+  G.running=false; G.screen='over';
+  G.majQuote=QUOTES[Math.floor(Math.random()*QUOTES.length)];
+  drawFrame();
 }
 
-function draw() {
-    ctx.clearRect(0,0,GW,GH);
-    drawBg();
+// ─────────────────────────────────────────────────────────────────────────────
+// UPDATE
+// ─────────────────────────────────────────────────────────────────────────────
+function update() {
+  G.frame++;
+  bgScroll += 0.4;
 
-    // Станки
-    for(let i=0; i<numLanes; i++) {
-        drawMachine(ctx, i*laneWidth + 10, GH*0.2, laneWidth-20, GH*0.3, player.lane === i);
+  // Player smooth move
+  G.targetPX = G.laneXs[G.lane]+Math.floor(G.mw/2)-4;
+  G.px += (G.targetPX - G.px)*0.28;
+
+  // Spawn parts (exit right→left on each machine's conveyor)
+  G.spawnTimer++;
+  if(!G.nast.active && G.spawnTimer>=G.spawnRate) {
+    G.spawnTimer=0;
+    const ln=Math.floor(Math.random()*G.numLanes);
+    const bad=Math.random()<(0.2+G.level*0.03+(G.predak.active?0.1:0));
+    // Part starts at right side of machine's conveyor and travels LEFT
+    G.parts.push({
+      lane:ln,
+      x: G.laneXs[ln]+G.mw-14,
+      y: G.convY+1,
+      bad,
+      speed: G.partSpeed + Math.random()*0.6,
+    });
+  }
+
+  // Move parts
+  for(let i=G.parts.length-1;i>=0;i--){
+    const p=G.parts[i];
+    p.x -= p.speed;
+
+    // Catch zone: part reaches player's position on same lane
+    if(p.lane===G.lane){
+      const playerMid=G.px+4;
+      if(p.x+6 < playerMid+10 && p.x+6 > playerMid-14){
+        if(!p.bad){ G.score+=10*G.level; }
+        else { G.lives--; G.flash=12; G.flashCol='#ff000099'; }
+        G.parts.splice(i,1);
+        updateHUD();
+        if(G.lives<=0){gameOver();return;}
+        continue;
+      }
     }
 
-    // Детали
-    parts.forEach(p => {
-        const px_val = p.lane * laneWidth + laneWidth/2 - 10;
-        px(ctx, px_val, p.y, 20, 15, p.bad ? '#f35' : '#0ff');
-        // Свечение деталей
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = p.bad ? '#f35' : '#0ff';
-        px(ctx, px_val+5, p.y+5, 10, 5, '#fff');
-        ctx.shadowBlur = 0;
-    });
+    // Off left edge
+    if(p.x < G.laneXs[p.lane]-14){
+      if(!p.bad){ G.lives--; G.flash=10; G.flashCol='#ff440066'; updateHUD(); if(G.lives<=0){gameOver();return;} }
+      G.parts.splice(i,1);
+    }
+  }
 
-    // Игрок с отражением
-    drawWithReflection(ctx, player.x, GH*0.7, 9*PSCALE, 16*PSCALE, (c, x, y) => {
-        pixChar(c, x, y, selectedChar, gframe);
-    });
+  // Level up
+  if(G.score>0 && G.score%(150*G.level)===0 && G.frame%4===0 && !G.predak.active){
+    G.level++;
+    G.partSpeed=Math.min(G.partSpeed+0.12,4);
+    G.spawnRate=Math.max(25,G.spawnRate-4);
+    computeLayout();
+    updateHUD();
+  }
 
-    // Эффект старого монитора (Scanlines)
-    ctx.globalAlpha = 0.05;
-    for(let i=0; i<GH; i+=4) px(ctx, 0, i, GW, 2, '#fff');
-    ctx.globalAlpha = 1.0;
+  // ── PREDAK ──
+  if(!G.predak.active && !G.nast.active && G.frame>180 && G.frame%600===0){
+    G.predak.active=true; G.predak.timer=280;
+    G.predak.x=BASE_W+20; G.predak.dir=-1;
+    G.predak.bubble=200;
+    G.partSpeed=Math.min(G.partSpeed+1.0,8);
+    // Extra lane
+    const newN=Math.min(G.numLanes+1,5);
+    if(newN!==G.numLanes){ G.numLanes=newN; computeLayout(); }
+    updateHUD();
+  }
+  if(G.predak.active){
+    G.predak.frame++;
+    G.predak.x+=G.predak.dir*1.4;
+    G.predak.timer--;
+    G.predak.bubble=Math.max(0,G.predak.bubble-1);
+    if(G.predak.x<16&&G.predak.dir<0) G.predak.dir=1;
+    if(G.predak.x>BASE_W-26&&G.predak.dir>0) G.predak.dir=-1;
+    if(G.predak.timer<=0){
+      G.predak.active=false;
+      G.partSpeed=Math.max(G.partSpeed-0.6,1.2+G.level*0.1);
+      updateHUD();
+    }
+  }
+
+  // ── NASTAVOVAC ──
+  if(!G.nast.active && !G.predak.active && G.frame>300 && G.frame%800===0){
+    G.nast.active=true; G.nast.timer=180;
+    G.nast.x=-20; G.nast.stopped=false;
+    G.nast.bubble=160;
+    updateHUD();
+  }
+  if(G.nast.active){
+    G.nast.frame++;
+    G.nast.bubble=Math.max(0,G.nast.bubble-1);
+    if(!G.nast.stopped){ G.nast.x+=1.2; if(G.nast.x>BASE_W*0.38) G.nast.stopped=true; }
+    G.nast.timer--;
+    if(G.nast.timer<=0){ G.nast.active=false; updateHUD(); }
+  } else { if(G.nast.x>-20&&G.nast.x<BASE_W+20){G.nast.x+=1.5;G.nast.frame++;} }
+
+  // ── SKLADNIK ──
+  G.skl.timer--;
+  if(G.skl.timer<=0&&!G.skl.active){
+    G.skl.active=true; G.skl.x=BASE_W+50; G.skl.frame=0;
+    G.skl.timer=600+Math.floor(Math.random()*400);
+  }
+  if(G.skl.active){ G.skl.x-=1.2; G.skl.frame++; if(G.skl.x<-90) G.skl.active=false; }
+
+  if(G.flash>0) G.flash--;
 }
 
-// Управление
-function selChar(g) {
-    selectedChar = g;
-    document.getElementById('cM').classList.toggle('sel', g==='m');
-    document.getElementById('cF').classList.toggle('sel', g==='f');
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAW HUD  (PCR style – yellow/orange bars)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawHUD(ctx) {
+  // Top HUD bar – dark with border like PCR
+  r(ctx,0,0,BASE_W,12,'#0a001a');
+  r(ctx,0,11,BASE_W,1,COL.panelB);
+
+  // Score
+  txt(ctx,'SCR',2,9,COL.panelB,4);
+  txt(ctx,String(G.score).padStart(6,'0'),20,9,COL.panelY,5);
+
+  // Lives hearts
+  txt(ctx,'HP',90,9,COL.panelB,4);
+  txt(ctx,'♥'.repeat(Math.max(0,G.lives)),103,9,COL.panelR,5);
+
+  // Level
+  txt(ctx,'LVL',148,9,COL.panelB,4);
+  txt(ctx,String(G.level),168,9,COL.panelG,5);
+
+  // Predak/Nast indicators
+  if(G.predak.active){
+    txt(ctx,'🔥',180,9,COL.panelR,5);
+  }
+  if(G.nast.active){
+    txt(ctx,'🔧',188,9,COL.panelY,5);
+  }
 }
 
-function sl(e) { if(e) e.preventDefault(); if(player.lane > 0) player.lane--; }
-function sr(e) { if(e) e.preventDefault(); if(player.lane < numLanes-1) player.lane++; }
+function updateHUD() { /* live-drawn, nothing to update separately */ }
 
-document.addEventListener('keydown', e => {
-    if(e.key === 'ArrowLeft') sl();
-    if(e.key === 'ArrowRight') sr();
+// ─────────────────────────────────────────────────────────────────────────────
+// DRAW FRAME
+// ─────────────────────────────────────────────────────────────────────────────
+function drawFrame() {
+  O.clearRect(0,0,BASE_W,BASE_H);
+  O.imageSmoothingEnabled=false;
+
+  if(G.screen==='menu') drawMenu();
+  else if(G.screen==='game') drawGame();
+  else if(G.screen==='over') drawOver();
+
+  // Blit scaled to main canvas
+  X.clearRect(0,0,C.width,C.height);
+  X.imageSmoothingEnabled=false;
+  X.drawImage(OC,0,0,C.width,C.height);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MENU SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+function drawMenu() {
+  const ctx=O;
+  drawNightCity(ctx, G.frame);
+
+  // Main panel (PCR style dark purple)
+  const px=8, py=20, pw=BASE_W-16, ph=BASE_H-36;
+  panel(ctx,px,py,pw,ph,COL.panelB);
+
+  // Title – big chunky yellow like PCR
+  r(ctx,px+2,py+2,pw-4,18,'#1a0035');
+  txtC(ctx,'LISOVNA',BASE_W/2,py+14,COL.panelY,9);
+  // Subtitle
+  txtC(ctx,'FACTORY GAME',BASE_W/2,py+22,COL.panelB,4);
+
+  // Character select label
+  r(ctx,px+4,py+26,pw-8,1,COL.panelB+'66');
+  txtC(ctx,'SELECT CHARACTER',BASE_W/2,py+33,COL.panelC,4);
+
+  // Char cards (PCR style boxes)
+  const cw=36, ch=52, cgap=8;
+  const totalW=2*cw+cgap;
+  const cx1=BASE_W/2-totalW/2, cx2=cx1+cw+cgap;
+  const cy=py+37;
+
+  // Male card
+  const mSel=G.char==='m';
+  panel(ctx,cx1,cy,cw,ch,mSel?COL.panelY:COL.panelB);
+  if(mSel) r(ctx,cx1+1,cy+1,cw-2,ch-2,'#1a1000');
+  // Draw male char preview
+  ctx.save(); ctx.translate(cx1+4,cy+6);
+  drawCharM(ctx,0,0,G.frame,false);
+  ctx.restore();
+  txtC(ctx,'MUZ',cx1+cw/2,cy+ch-4,mSel?COL.panelY:COL.txtW,4);
+
+  // Female card
+  const fSel=G.char==='f';
+  panel(ctx,cx2,cy,cw,ch,fSel?COL.panelY:COL.panelB);
+  if(fSel) r(ctx,cx2+1,cy+1,cw-2,ch-2,'#1a1000');
+  ctx.save(); ctx.translate(cx2+4,cy+6);
+  drawCharF(ctx,0,0,G.frame,false);
+  ctx.restore();
+  txtC(ctx,'ZENA',cx2+cw/2,cy+ch-4,fSel?COL.panelY:COL.txtW,4);
+
+  // PLAY button
+  const by2=cy+ch+6;
+  btn(ctx,px+10,by2,pw-20,14,'▶ HRAT',COL.panelG,COL.txtG);
+  // Controls hint
+  txtC(ctx,'< > POHYB    TAP=LAVY/PRAVY',BASE_W/2,by2+24,COL.panelB,3);
+
+  // Scanlines
+  drawScanlines(ctx);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME SCREEN
+// ─────────────────────────────────────────────────────────────────────────────
+function drawGame() {
+  const ctx=O;
+  drawFactoryBG(ctx);
+  drawHUD(ctx);
+
+  const startY=13;
+
+  // ── Draw machines ──
+  for(let i=0;i<G.numLanes;i++){
+    const mx=G.laneXs[i];
+    drawMachine(ctx, mx, startY, G.mw, G.mh, i===G.lane, G.frame);
+    drawConveyor(ctx, mx, G.convY, G.mw, G.frame);
+  }
+
+  // ── Parts ──
+  G.parts.forEach(p=>{
+    if(p.x>=G.laneXs[p.lane]-14&&p.x<G.laneXs[p.lane]+G.mw)
+      drawPart(ctx,Math.round(p.x),p.y,p.bad);
+  });
+
+  // ── Skladnik ──
+  if(G.skl.active){
+    const sy=G.floorY-13;
+    drawCart(ctx,Math.round(G.skl.x)+14,sy);
+    drawSkladnik(ctx,Math.round(G.skl.x),sy-13,G.skl.frame);
+  }
+
+  // ── Player ──
+  {
+    const py=G.floorY-13;
+    if(G.char==='m') drawCharM(ctx,Math.round(G.px),py,G.frame,false);
+    else             drawCharF(ctx,Math.round(G.px),py,G.frame,false);
+
+    // Catch indicator (lane highlight under player)
+    if(Math.floor(G.frame/4)%2===0){
+      r(ctx,G.laneXs[G.lane],G.floorY-1,G.mw,2,COL.panelG+'44');
+    }
+  }
+
+  // ── Predak ──
+  if(G.predak.active){
+    const nx=Math.round(G.predak.x), ny=G.floorY-13;
+    drawPredak(ctx,nx,ny,G.predak.frame,G.predak.dir);
+    if(G.predak.bubble>0){
+      bubble(ctx,nx,ny,['VEZMI AJ','DRUHY LIS!'],COL.panelR,COL.panelR);
+    }
+  }
+
+  // ── Nastavovac ──
+  if(G.nast.active || (G.nast.x>-16&&G.nast.x<BASE_W+16)){
+    const nx=Math.round(G.nast.x), ny=G.floorY-13;
+    drawNastavovac(ctx,nx,ny,G.nast.frame);
+    if(G.nast.bubble>0&&G.nast.active){
+      bubble(ctx,nx,ny,['PORUCHA','FORMY!'],COL.panelY,COL.panelY);
+    }
+  }
+
+  // Flash
+  if(G.flash>0){
+    ctx.globalAlpha=G.flash/14;
+    r(ctx,0,0,BASE_W,BASE_H,G.flashCol);
+    ctx.globalAlpha=1;
+  }
+
+  // Bottom control bar (PCR style)
+  r(ctx,0,BASE_H-11,BASE_W,11,'#0a001a');
+  r(ctx,0,BASE_H-11,BASE_W,1,COL.panelB);
+  btn(ctx,1,BASE_H-10,BASE_W/2-2,10,'◀',COL.panelC,COL.txtC);
+  btn(ctx,BASE_W/2+1,BASE_H-10,BASE_W/2-2,10,'▶',COL.panelC,COL.txtC);
+
+  drawScanlines(ctx);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// GAME OVER
+// ─────────────────────────────────────────────────────────────────────────────
+function drawOver() {
+  const ctx=O;
+  drawFactoryBG(ctx);
+
+  const px=8, py=10, pw=BASE_W-16, ph=BASE_H-20;
+  panel(ctx,px,py,pw,ph,COL.panelR);
+
+  r(ctx,px+2,py+2,pw-4,14,'#1a0008');
+  txtC(ctx,'GAME OVER',BASE_W/2,py+12,COL.panelR,8);
+
+  // Majster angry
+  ctx.save();
+  ctx.translate(BASE_W/2-4,py+30);
+  drawMajster(ctx,0,0,G.frame);
+  ctx.restore();
+
+  // Quote
+  G.majQuote.forEach((line,i)=>{
+    txtC(ctx,line,BASE_W/2,py+50+i*8,COL.panelR,4);
+  });
+
+  // Score
+  r(ctx,px+4,py+74,pw-8,1,COL.panelR+'66');
+  txtC(ctx,'SCORE',BASE_W/2,py+83,COL.panelB,4);
+  txtC(ctx,String(G.score).padStart(6,'0'),BASE_W/2,py+92,COL.panelY,6);
+  txtC(ctx,'LEVEL '+G.level,BASE_W/2,py+102,COL.panelC,4);
+
+  // Buttons
+  btn(ctx,px+8,py+110,pw/2-12,13,'MENU',COL.panelB,COL.txtC);
+  btn(ctx,px+pw/2+4,py+110,pw/2-12,13,'▶ZNOVA',COL.panelG,COL.txtG);
+
+  drawScanlines(ctx);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// SCANLINES  (PCR signature effect)
+// ─────────────────────────────────────────────────────────────────────────────
+function drawScanlines(ctx) {
+  ctx.globalAlpha=0.10;
+  for(let sy=0;sy<BASE_H;sy+=3){
+    r(ctx,0,sy,BASE_W,1,'#000000');
+  }
+  ctx.globalAlpha=1;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// MAIN LOOP
+// ─────────────────────────────────────────────────────────────────────────────
+let raf=null;
+
+function tick() {
+  if(!G.running){drawFrame();return;}
+  update();
+  drawFrame();
+  raf=requestAnimationFrame(tick);
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INPUT
+// ─────────────────────────────────────────────────────────────────────────────
+let lHeld=false, rHeld=false, mvI=null;
+
+function movL(){ if(G.screen!=='game')return; if(G.lane>0)G.lane--; }
+function movR(){ if(G.screen!=='game')return; if(G.lane<G.numLanes-1)G.lane++; }
+
+function startL(e){ if(e&&e.cancelable)e.preventDefault(); movL(); clearInterval(mvI); mvI=setInterval(()=>{if(lHeld)movL();},130); lHeld=true; }
+function stopL(){ lHeld=false; clearInterval(mvI); }
+function startR(e){ if(e&&e.cancelable)e.preventDefault(); movR(); clearInterval(mvI); mvI=setInterval(()=>{if(rHeld)movR();},130); rHeld=true; }
+function stopR(){ rHeld=false; clearInterval(mvI); }
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){e.preventDefault();movL();}
+  if(e.key==='ArrowRight'){e.preventDefault();movR();}
+  if(e.key==='Enter'||e.key===' '){
+    if(G.screen==='menu') startGame();
+    else if(G.screen==='over') startGame();
+  }
 });
 
-// Превью персонажей в меню
-function drawPreviews() {
-    const pM = document.getElementById('pM').getContext('2d');
-    const pF = document.getElementById('pF').getContext('2d');
-    pixChar(pM, 5, 5, 'm', 0);
-    pixChar(pF, 5, 5, 'f', 0);
-}
-drawPreviews();
-drawBg();
+// Touch/click on canvas
+C.addEventListener('pointerdown', e=>{
+  e.preventDefault();
+  const rect=C.getBoundingClientRect();
+  const cx=(e.clientX-rect.left)/rect.width;  // 0..1
+  const cy=(e.clientY-rect.top)/rect.height;
+
+  if(G.screen==='menu'){
+    // Click char cards
+    const cy_native=cy*BASE_H;
+    if(cy_native>37&&cy_native<89){
+      if(cx<0.5) G.char='m';
+      else G.char='f';
+    }
+    // Play button
+    if(cy_native>89&&cy_native<106) startGame();
+  } else if(G.screen==='game'){
+    // Bottom bar L/R buttons
+    if(cy>0.94){
+      if(cx<0.5){startL();setTimeout(stopL,200);}
+      else{startR();setTimeout(stopR,200);}
+      return;
+    }
+    // Canvas tap: left/right half
+    cx<0.5?movL():movR();
+  } else if(G.screen==='over'){
+    const cy_native=cy*BASE_H;
+    if(cy_native>120&&cy_native<135){
+      if(cx<0.5){G.screen='menu';G.running=false;drawFrame();}
+      else startGame();
+    }
+  }
+});
+
+// Keyboard-equivalent button holds on canvas
+C.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  const rect=C.getBoundingClientRect();
+  const cx=(e.touches[0].clientX-rect.left)/rect.width;
+  const cy_n=(e.touches[0].clientY-rect.top)/rect.height;
+  if(G.screen==='game'&&cy_n>0.94){
+    if(cx<0.5){startL(e);}
+    else{startR(e);}
+  } else if(G.screen==='game'){
+    cx<0.5?movL():movR();
+  }
+},{passive:false});
+C.addEventListener('touchend', e=>{ stopL(); stopR(); },{passive:true});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────────────────────────────────────
+window.addEventListener('load', ()=>{
+  computeLayout();
+  G.frame=0;
+  // Animate menu
+  function menuLoop(){
+    if(G.screen!=='menu'){return;}
+    G.frame++;
+    drawFrame();
+    requestAnimationFrame(menuLoop);
+  }
+  menuLoop();
+});
 </script>
 </body>
 </html>
