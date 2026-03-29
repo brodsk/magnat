@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISOVNA PCR - с анимациями и звуком</title>
+<title>LISOVNA PCR — Полный аналог Pixel Car Racer</title>
 <style>
 body{margin:0;background:#04060f;overflow:hidden}
 canvas{display:block;image-rendering:pixelated}
@@ -29,7 +29,7 @@ function resize() {
 resize();
 window.addEventListener('resize', resize);
 
-// ───────── AUDIO SYSTEM (Web Audio API — ретро 8-bit sounds)
+// ───────── AUDIO (8-bit ретро как в PCR)
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 const audioCtx = new (AudioContext || window.webkitAudioContext)();
 
@@ -45,64 +45,36 @@ function playTone(freq, duration, type = 'square', volume = 0.3, sweep = 0) {
   osc.stop(audioCtx.currentTime + duration);
 }
 
-function playCollect() { // хорошая деталь
-  playTone(800, 0.05, 'sine', 0.4);
-  setTimeout(() => playTone(1200, 0.05, 'sine', 0.4), 50);
-  setTimeout(() => playTone(1600, 0.12, 'sine', 0.35), 100);
+function playEngineRev(rpm) {
+  playTone(80 + rpm * 2, 0.08, 'sawtooth', 0.25);
 }
+function playShift() { playTone(600, 0.03, 'square', 0.4); playTone(900, 0.08, 'square', 0.3); }
+function playCollect() { playTone(800, 0.05, 'sine', 0.4); setTimeout(()=>playTone(1400,0.1,'sine',0.35),40); }
+function playCrash() { playTone(150, 0.4, 'sawtooth', 0.7, 0.2); }
+function playBurnout() { playTone(120, 0.6, 'sawtooth', 0.6); playTone(80, 0.8, 'square', 0.4); }
 
-function playBadHit() { // плохая деталь
-  playTone(180, 0.15, 'sawtooth', 0.6);
-  playTone(80, 0.25, 'square', 0.4);
-}
-
-function playCrash() { // NPC столкновение
-  playTone(120, 0.4, 'sawtooth', 0.7, 0.3);
-  playTone(60, 0.5, 'square', 0.5);
-}
-
-function playButton() {
-  playTone(600, 0.03, 'square', 0.3);
-  setTimeout(() => playTone(900, 0.05, 'square', 0.25), 30);
-}
-
-function playGameOver() {
-  playTone(600, 0.2, 'square', 0.4);
-  setTimeout(() => playTone(400, 0.2, 'square', 0.4), 200);
-  setTimeout(() => playTone(200, 0.6, 'sawtooth', 0.35), 400);
-}
-
-function playEngine() { // тихий гул конвейера
-  const noise = audioCtx.createBufferSource();
-  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
-  noise.buffer = buffer;
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 180;
-  const gain = audioCtx.createGain();
-  gain.gain.value = 0.07;
-  noise.connect(filter).connect(gain).connect(audioCtx.destination);
-  noise.loop = true;
-  noise.start();
-  return {noise, gain};
-}
-
-// ───────── SPRITES (оставлены с предыдущей версии — 4 кадра игрока и т.д.)
+// ───────── PALETTE + SPRITES (заводская тематика, но в стиле PCR пиксель-арт)
 const PAL = {
   'S':'#e8ae6e','H':'#1c0a04','T':'#2d2d2d','P':'#1e3a5f','Z':'#0d0d0d','A':'#888',
-  'E':'#ff0044','Q':'#00ff88','R':'#4488ff','D':'#ffaa00','X':'#555555'
+  'E':'#ff0044','Q':'#00ff88','R':'#4488ff','X':'#555555','B':'#ffaa00' // burnout дым
 };
 
-const PLAYER = [ /* 4 кадра анимации — как в предыдущей версии */ 
-  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
-  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PPPPPP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.X.'],
-  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PPPPPP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
-  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.XX']
+const MACHINES = [ // разные "машины" — заводские роботы-погрузчики (как разные авто в PCR)
+  { name: "FORKLIFT-X", color: '#00e5ff', frames: [ // 4-кадровая анимация как в PCR
+    ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
+    ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PPPPPP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.X.'],
+    ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PPPPPP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
+    ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.XX']
+  ]},
+  { name: "PRESS-BOT", color: '#ff0044', frames: [ // второй вариант машины
+    ['.AAAAAA....','.ASSSSA....','.SSSSSS....','.S.SS.S....','.SSSSSS....','.TTTTTT....','.TTTTTT....','.TTTTTT....','.PP.PP.....','.PPPPPP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
+    ['.AAAAAA....','.ASSSSA....','.SSSSSS....','.S.SS.S....','.SSSSSS....','.TTTTTT....','.TTTTTT....','.TTTTTT....','.PPPPPP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.X.'],
+    ['.AAAAAA....','.ASSSSA....','.SSSSSS....','.S.SS.S....','.SSSSSS....','.TTTTTT....','.TTTTTT....','.TTTTTT....','.PP.PP.....','.PPPPPP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
+    ['.AAAAAA....','.ASSSSA....','.SSSSSS....','.S.SS.S....','.SSSSSS....','.TTTTTT....','.TTTTTT....','.TTTTTT....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.XX']
+  ]}
 ];
 
-const NPC_SPR = [
+const NPC_SPR = [ // соперники — "предаки", "лисы Engel", "наставователи"
   ['.AAAAAA....','.ASSSSA....','.SSSSS.....','.S.SS.S....','.SSSSS.....','.EQQQRE....'],
   ['.AAAAAA....','.ASSSSA....','.SSSSS.....','.S.SS.S....','.SSSSS.....','.ERRRQE....']
 ];
@@ -110,231 +82,288 @@ const NPC_SPR = [
 const GOOD_PART = ['..QQQ..','.QQQQQ.','QQQQQQQ','.QQQQQ.','..QQQ..'];
 const BAD_PART  = ['..EEE..','.EEEEE.','EEEEEEE','.EEEEE.','..EEE..'];
 
-function drawSprite(frames, x, y, frame) {
+function drawSprite(frames, x, y, frame, tint = null) {
   const data = frames[frame % frames.length];
   data.forEach((row, ry) => [...row].forEach((c, rx) => {
     if (PAL[c]) {
-      ctx.fillStyle = PAL[c];
+      ctx.fillStyle = tint || PAL[c];
       ctx.fillRect((x + rx) * PX, (y + ry) * PX, PX, PX);
     }
   }));
 }
 
-function drawPart(isBad, x, y, frame) {
-  const data = isBad ? BAD_PART : GOOD_PART;
-  ctx.globalAlpha = isBad ? 1 : (0.9 + Math.sin(frame / 4) * 0.1);
-  data.forEach((row, ry) => [...row].forEach((c, rx) => {
-    if (PAL[c]) {
-      ctx.fillStyle = PAL[c];
-      ctx.fillRect((x + rx) * PX, (y + ry) * PX, PX, PX);
-    }
-  }));
-  ctx.globalAlpha = 1;
-}
-
-// ───────── GAME STATE
+// ───────── GAME STATE (как в PCR: гараж, апгрейды, гонки)
 const G = {
   sc: 'garage',
+  currentMachine: 0,
   lane: 1,
   parts: [],
-  money: 320,
+  rivals: [], // соперники как в street mode PCR
+  money: 1250,
   lives: 3,
   f: 0,
   score: 0,
-  upgrades: { speed: 1, durability: 1 },
-  npc: { x: 0, active: false, lane: 0 },
-  playerFrame: 0,
+  distance: 0,
+  speed: 0,
+  maxSpeed: 12,
+  gear: 1,
+  rpm: 0,
+  upgrades: { engine: 1, transmission: 1, nitro: 1 },
+  nitro: 100,
+  burnout: false,
   engineSound: null
 };
 
-// ───────── GARAGE
+// ───────── GARAGE (полный аналог PCR — выбор машины, dyno, апгрейды)
 function drawGarage() {
   gfx(0,0,GW,GH,'#04060f');
-  for(let i=0;i<6;i++) {
-    ctx.fillStyle = `rgb(\( {232+i*5}, \){93+i*10},3)`;
+
+  // потолок + освещение как в PCR гараже
+  for(let i=0;i<8;i++){
+    ctx.fillStyle = `rgb(240,${110+i*12},20)`;
     ctx.fillRect(0,i*PX,cv.width,PX);
   }
-  gtxt('LISOVNA',GW/2,4,'#000',3,'center');
-  gtxt('PCR + SOUND',GW/2,8,'#ff0044',2,'center');
+  gtxt('LISOVNA', GW/2, 5, '#000', 4, 'center');
+  gtxt('FACTORY RACER', GW/2, 11, '#ff0044', 2, 'center');
 
-  for(let i=0;i<3;i++){
-    let y=12+i*10;
-    gfx(5,y,20,1,'#222');
-    for(let j=0;j<4;j++) gfx(6+j*4,y-3,3,3,['#ff595e','#ffca3a','#8ac926','#1982c4'][j]);
-  }
+  // текущая машина
+  const mach = MACHINES[G.currentMachine];
+  drawSprite(mach.frames, GW/2 - 12, 18, Math.floor(G.f/6)%4, mach.color);
 
-  gfx(GW/2-12,GH/2-3,24,6,'#000');
-  gfx(GW/2-12,GH/2-3,24,1,'#00e5ff');
+  // название машины
+  gtxt(mach.name, GW/2, 32, '#ffd60a', 2, 'center');
 
-  gbtn(GW-22,10,20,6,'START','#00e5ff');
-  gbtn(GW-22,18,20,6,'UPGR','#ffd60a');
+  // кнопки PCR-стиля
+  gbtn(GW-30, 8, 26, 7, 'RACE', '#00e5ff');
+  gbtn(GW-30, 17, 26, 7, 'DYNO', '#ffaa00');
+  gbtn(GW-30, 26, 26, 7, 'UPGR', '#00ff88');
+  gbtn(4, GH-12, 22, 7, '◀ MACH', '#4488ff');
+  gbtn(GW-28, GH-12, 22, 7, 'MACH ▶', '#4488ff');
 
-  gtxt('$'+G.money,2,8,'#ffd60a');
-  gtxt('SPD:'+G.upgrades.speed,2,13,'#00e5ff');
-  gtxt('DUR:'+G.upgrades.durability,2,18,'#ff2a2a');
+  gtxt('$'+G.money, 4, 8, '#ffd60a', 2);
+  gtxt('ENG:'+G.upgrades.engine+'  TRN:'+G.upgrades.transmission+'  NIT:'+G.upgrades.nitro, 4, 13, '#fff', 1.5);
 }
 
-function gfx(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x*PX,y*PX,w*PX,h*PX); }
-function gtxt(t,x,y,c,s=2,a='left'){
-  ctx.font=(s*PX)+'px monospace';
-  ctx.fillStyle=c; ctx.textAlign=a;
-  ctx.fillText(t,x*PX,y*PX);
-  ctx.textAlign='left';
-}
-function gbtn(x,y,w,h,t,c){
-  gfx(x,y,w,h,'#12152e');
-  gfx(x,y,w,1,c); gfx(x,y,1,h,c);
-  gfx(x,y+h-1,w,1,'#000'); gfx(x+w-1,y,1,h,'#000');
-  gtxt(t,x+w/2,y+h/2+1,c,2,'center');
+// DYNO анимация (как в настоящем PCR)
+let dynoActive = false;
+function startDyno() {
+  dynoActive = true;
+  let hp = 120 + G.upgrades.engine * 45;
+  setTimeout(() => { dynoActive = false; }, 2800);
+  // звук рева
+  let t = 0;
+  const int = setInterval(() => {
+    if (!dynoActive) { clearInterval(int); return; }
+    playEngineRev(3000 + Math.random()*2000);
+    t++;
+  }, 80);
 }
 
-// ───────── GAME
+// ───────── GAME (Street / Drag режим — полный аналог PCR)
 function spawnPart() {
   const lane = Math.floor(Math.random()*3);
-  G.parts.push({x: GW+8, y:20+lane*10+1, bad: Math.random()<0.32, lane});
+  G.parts.push({x: GW + 10, y: 20 + lane*10 + 1, bad: Math.random()<0.28});
 }
 
-function spawnNPC() {
-  G.npc.active = true;
-  G.npc.lane = Math.floor(Math.random()*3);
-  G.npc.x = GW + 12;
+function spawnRival() {
+  const lane = Math.floor(Math.random()*3);
+  G.rivals.push({
+    x: GW + 20 + Math.random()*30,
+    y: 20 + lane*10 + 1,
+    speed: 4 + Math.random()*4,
+    frame: 0
+  });
 }
 
 function update() {
   G.f++;
-  G.score += 1 + Math.floor(G.upgrades.speed * 0.4);
+  G.distance += G.speed * 0.8;
 
-  if(G.f % 32 === 0) spawnPart();
-  if(G.f % 480 === 0) spawnNPC();
+  // ускорение как в PCR
+  G.speed = Math.min(G.maxSpeed, G.speed + (G.gear * 0.12) + G.upgrades.engine * 0.08);
+  if (G.nitro > 0 && G.burnout) G.speed += 3;
 
-  const speed = 1.7 + G.upgrades.speed * 0.65;
-  G.parts.forEach(p => p.x -= speed);
+  G.rpm = Math.min(8500, 2000 + G.speed * 520);
+
+  // спавн
+  if (G.f % 24 === 0) spawnPart();
+  if (G.f % 110 === 0) spawnRival();
+
+  const scrollSpeed = G.speed * 1.1;
+
+  // движение объектов
+  G.parts.forEach(p => p.x -= scrollSpeed);
   G.parts = G.parts.filter(p => p.x > -10);
 
-  if(G.npc.active){
-    G.npc.x -= 1.3 + G.upgrades.speed * 0.25;
-    if(G.npc.x < -15) G.npc.active = false;
-  }
+  G.rivals.forEach(r => {
+    r.x -= scrollSpeed * (r.speed / 8);
+    r.frame = Math.floor(G.f / 7) % 2;
+  });
+  G.rivals = G.rivals.filter(r => r.x > -20);
 
-  G.playerFrame = Math.floor(G.f / 5) % 4;
-
-  // коллизии + звуки
-  const px = 5, py = 20 + G.lane*10 + 1;
-
+  // коллизии с частями
+  const px = 6, py = 20 + G.lane * 10 + 1;
   G.parts = G.parts.filter(p => {
-    const dx = Math.abs(p.x - (px + 6));
-    const dy = Math.abs(p.y - py);
-    if(dx < 9 && dy < 8){
-      if(p.bad){
-        G.lives -= 1;
-        playBadHit();
-      } else {
-        G.money += 18 + G.upgrades.durability * 7;
-        playCollect();
-      }
+    if (Math.abs(p.x - (px + 8)) < 9 && Math.abs(p.y - py) < 8) {
+      if (p.bad) { G.lives--; playCrash(); } else { G.money += 22; playCollect(); }
       return false;
     }
     return true;
   });
 
-  if(G.npc.active){
-    const ny = 20 + G.npc.lane*10 + 1;
-    if(Math.abs(G.npc.x - (px+6)) < 13 && Math.abs(ny-py) < 9){
-      G.lives -= 2;
-      playCrash();
-      G.npc.active = false;
+  // обгон соперников (как в PCR street mode)
+  G.rivals.forEach((r, i) => {
+    if (Math.abs(r.x - (px + 8)) < 14 && Math.abs(r.y - py) < 9) {
+      if (G.speed > r.speed + 1) {
+        G.money += 35; // обгон!
+        G.rivals.splice(i,1);
+      } else {
+        G.lives--; playCrash();
+        G.rivals.splice(i,1);
+      }
     }
-  }
+  });
 
-  if(G.lives <= 0){
-    playGameOver();
+  // nitro & burnout
+  if (G.burnout && G.nitro > 0) G.nitro -= 1.8;
+  if (G.nitro <= 0) G.burnout = false;
+
+  if (G.lives <= 0) {
+    playCrash();
     G.sc = 'garage';
     G.lives = 3;
+    G.speed = 0;
+    G.rivals = [];
     G.parts = [];
-    G.npc.active = false;
-    if(G.engineSound) G.engineSound.gain.gain.value = 0;
   }
 }
 
 function drawGame() {
   gfx(0,0,GW,GH,'#04060f');
 
-  // анимированный конвейер
+  // заводской конвейер (как дорога в PCR)
   for(let i=0;i<3;i++){
-    gfx(0,20+i*10,GW,1,'#333');
-    const offset = (G.f * 2) % 12;
-    for(let j=0;j<GW+12;j+=8){
-      gfx((j - offset) % (GW+12), 20+i*10+4, 3,1,'#666');
+    gfx(0,20+i*10,GW,1,'#222');
+    const offset = (G.f * G.speed * 0.6) % 18;
+    for(let j=0;j<GW+20;j+=7){
+      gfx((j - offset) % (GW+20), 20+i*10 + 4, 4,1,'#666');
     }
   }
 
-  drawSprite(PLAYER, 5, 20 + G.lane*10, G.playerFrame);
+  // игрок (текущая машина)
+  const mach = MACHINES[G.currentMachine];
+  drawSprite(mach.frames, 5, 20 + G.lane*10, Math.floor(G.f/4)%4, mach.color);
 
-  if(G.npc.active){
-    const npcFrame = Math.floor(G.f / 8) % 2;
-    drawSprite(NPC_SPR, G.npc.x, 20 + G.npc.lane*10, npcFrame);
-  }
-
-  G.parts.forEach(p => drawPart(p.bad, Math.floor(p.x), Math.floor(p.y), G.f));
-
-  if(G.f % 16 < 3){
-    ctx.globalAlpha = 0.13;
-    gfx(0,0,GW,GH,'#00ffff');
+  // burnout дым
+  if (G.burnout) {
+    ctx.globalAlpha = 0.6;
+    gfx(8, 20 + G.lane*10 + 8, 3, 3, '#555555');
+    gfx(9, 20 + G.lane*10 + 9, 2, 2, '#ffaa00');
     ctx.globalAlpha = 1;
   }
 
-  gtxt('$'+G.money,2,4,'#ffd60a',2);
-  gtxt('HP:'+G.lives,2,9,'#ff2a2a',2);
-  gtxt('SCORE:'+G.score,GW/2-10,4,'#ffffff',2);
+  // соперники
+  G.rivals.forEach(r => drawSprite(NPC_SPR, r.x, r.y, r.frame));
+
+  // детали
+  G.parts.forEach(p => {
+    if (p.bad) drawSprite([BAD_PART], Math.floor(p.x), Math.floor(p.y), 0);
+    else drawSprite([GOOD_PART], Math.floor(p.x), Math.floor(p.y), 0);
+  });
+
+  // HUD PCR-style
+  gtxt('SPEED ' + Math.floor(G.speed*8) + ' km/h', 4, 4, '#00ffff', 2);
+  gtxt('GEAR ' + G.gear, 4, 9, '#ffd60a', 2);
+  gtxt('DIST ' + Math.floor(G.distance) + ' m', GW/2-12, 4, '#fff', 2);
+
+  // RPM бар
+  gfx(4, GH-12, 40, 4, '#111');
+  const rpmWidth = Math.floor((G.rpm / 8500) * 40);
+  gfx(4, GH-12, rpmWidth, 4, G.rpm > 7000 ? '#ff0044' : '#00ff88');
+
+  gtxt('NITRO', GW-28, GH-12, '#ffaa00', 1.5);
+  gfx(GW-28, GH-8, 26, 3, '#222');
+  gfx(GW-28, GH-8, Math.floor(G.nitro/4), 3, '#ffaa00');
 }
 
-// ───────── INPUT + SOUND
+// ───────── INPUT (как в PCR — смена полос, переключение передач, burnout)
 cv.addEventListener('pointerdown', e => {
   const px = e.clientX / PX;
   const py = e.clientY / PX;
 
-  if(G.sc === 'garage'){
-    if(px > GW-22 && px < GW-2){
-      if(py >10 && py <16){ // START
-        playButton();
+  if (G.sc === 'garage') {
+    if (px > GW-30 && px < GW-4) {
+      if (py > 8 && py < 15) { // RACE
         G.sc = 'game';
+        G.speed = 3;
+        G.gear = 1;
+        G.distance = 0;
+        G.nitro = 100;
+        G.rivals = [];
         G.parts = [];
-        G.score = 0;
-        G.f = 0;
-        G.lives = 3;
-        G.npc.active = false;
-        G.engineSound = playEngine();
       }
-      if(py >18 && py <24){ // UPGR
-        playButton();
-        const costS = 90 * G.upgrades.speed;
-        const costD = 130 * G.upgrades.durability;
-        if(G.money >= costS){
-          G.money -= costS;
-          G.upgrades.speed++;
-        } else if(G.money >= costD){
-          G.money -= costD;
-          G.upgrades.durability++;
+      if (py > 17 && py < 24) startDyno(); // DYNO
+      if (py > 26 && py < 33) { // UPGR
+        const cost = 180 * (G.upgrades.engine + G.upgrades.transmission);
+        if (G.money >= cost) {
+          G.money -= cost;
+          if (Math.random() > 0.5) G.upgrades.engine++;
+          else G.upgrades.transmission++;
         }
       }
     }
+    if (px < 28 && py > GH-15) G.currentMachine = (G.currentMachine + MACHINES.length - 1) % MACHINES.length;
+    if (px > GW-30 && py > GH-15) G.currentMachine = (G.currentMachine + 1) % MACHINES.length;
   } else {
     G.sc = 'garage';
-    if(G.engineSound) G.engineSound.gain.gain.value = 0;
+    G.speed = 0;
   }
 });
 
 document.addEventListener('keydown', e => {
-  if(e.key === 'ArrowUp') G.lane = Math.max(0, G.lane-1);
-  if(e.key === 'ArrowDown') G.lane = Math.min(2, G.lane+1);
+  if (G.sc !== 'game') return;
+  if (e.key === 'ArrowUp') G.lane = Math.max(0, G.lane - 1);
+  if (e.key === 'ArrowDown') G.lane = Math.min(2, G.lane + 1);
+  if (e.key === ' ' || e.key === 'Shift') { // переключение передач как в PCR
+    if (G.gear < 5) { G.gear++; playShift(); }
+    else G.gear = 1;
+  }
+  if (e.key === 'b' || e.key === 'B') { // burnout
+    G.burnout = true;
+    playBurnout();
+  }
 });
+
+// ───────── DRAW HELPERS
+function gfx(x,y,w,h,c){ if(isNaN(x)||isNaN(y))return; ctx.fillStyle=c; ctx.fillRect(x*PX,y*PX,w*PX,h*PX); }
+function gtxt(t,x,y,c,s=2,a='left'){
+  ctx.font = (s*PX)+'px monospace';
+  ctx.fillStyle = c; ctx.textAlign = a;
+  ctx.fillText(t, x*PX, y*PX);
+  ctx.textAlign = 'left';
+}
+function gbtn(x,y,w,h,t,c){
+  gfx(x,y,w,h,'#12152e');
+  gfx(x,y,w,1,c); gfx(x,y,1,h,c);
+  gfx(x,y+h-1,w,1,'#111'); gfx(x+w-1,y,1,h,'#111');
+  gtxt(t, x+w/2, y+h/2+1, c, 2, 'center');
+}
 
 // ───────── LOOP
 function loop() {
   ctx.clearRect(0,0,cv.width,cv.height);
 
-  if(G.sc === 'garage') drawGarage();
-  if(G.sc === 'game'){
+  if (G.sc === 'garage') {
+    if (dynoActive) {
+      gfx(0,0,GW,GH,'#04060f');
+      gtxt('DYNO TEST', GW/2, 12, '#ffaa00', 3, 'center');
+      gfx(GW/2-20, 22, 40, 6, '#111');
+      const bar = Math.sin(G.f/3)*18 + 22;
+      gfx(GW/2-20, 23, bar, 4, '#00ff88');
+      gtxt('HP: ' + (120 + G.upgrades.engine*45), GW/2, 32, '#fff', 2, 'center');
+    } else drawGarage();
+  }
+  if (G.sc === 'game') {
     update();
     drawGame();
   }
