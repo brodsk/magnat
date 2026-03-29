@@ -1,12 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>LISOVNA</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>LISOVNA — PCR EDITION</title>
 <style>
-* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:none; }
+* { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
 html,body { width:100%; height:100%; overflow:hidden; background:#000; }
 #app { width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:#000; }
 canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; cursor:none; }
@@ -16,1009 +16,760 @@ canvas { display:block; image-rendering:pixelated; image-rendering:crisp-edges; 
 <div id="app"><canvas id="c"></canvas></div>
 <script>
 // ═══════════════════════════════════════════════════════════════════════
-//  LISOVNA  –  Pixel Car Racer  visual clone  –  factory edition
-//  Native resolution: 160 × 256  (PCR portrait ratio)
-//  Everything drawn pixel-perfect, then scaled ×N to fill screen
+//  LISOVNA  –  PIXEL CAR RACER  visual exact clone  –  factory edition
+//  Native resolution: 240 × 320  (PCR style portrait)
+//  All UI elements match PCR: speedometer, tachometer, gear, side panel
 // ═══════════════════════════════════════════════════════════════════════
 
-const NW = 160, NH = 256;   // native resolution
+const NW = 240, NH = 320;   // native resolution (PCR portrait)
 const cv = document.getElementById('c');
 const cx = cv.getContext('2d');
 
-// Off-screen buffer at native res
+// Off-screen buffer
 const buf = document.createElement('canvas');
 buf.width = NW; buf.height = NH;
 const b = buf.getContext('2d');
 b.imageSmoothingEnabled = false;
 
-let SC = 1; // pixel scale
+let SC = 1;
 
 function resize() {
   const aw = window.innerWidth, ah = window.innerHeight;
   SC = Math.min(Math.floor(aw / NW), Math.floor(ah / NH));
   SC = Math.max(SC, 1);
-  cv.width  = NW * SC;
+  cv.width = NW * SC;
   cv.height = NH * SC;
   cx.imageSmoothingEnabled = false;
 }
 resize();
 window.addEventListener('resize', () => { resize(); render(); });
 
-// ───────────────────────────────────────────────────────
-//  COLOUR PALETTE  (PCR exact style)
-// ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+//  PCR EXACT COLOR PALETTE (from reference images)
+// ═══════════════════════════════════════════════════════════════════════
 const C = {
-  // UI chrome — PCR uses very dark navy/black
-  uiBg:    '#0b0c1a',
-  uiPanel: '#13152e',
-  uiLine:  '#252850',   // subtle panel divider
-  // PCR title gradient: orange → yellow
-  titleOr: '#e85d04',
-  titleYl: '#ffb703',
-  // Neon accent colours
-  neonB:   '#00b4d8',   // cyan/blue
-  neonG:   '#06d6a0',   // green
-  neonR:   '#ef233c',   // red
-  neonO:   '#fb8500',   // orange
-  neonY:   '#ffd60a',   // yellow
-  neonP:   '#9d4edd',   // purple
-  // Text
-  white:   '#f8f9fa',
-  dimW:    '#adb5bd',
-  // PCR button: dark body + bright top border + bottom shadow
-  btnBg:   '#1a1c3a',
-  btnTop:  '#3a3e6e',
-  btnBot:  '#05060f',
-  // Backdrop sky
-  sky0:    '#02040f',
-  sky1:    '#04071a',
-  sky2:    '#06091f',
-  // Buildings
-  bld0:    '#0d0f2b',
-  bld1:    '#111430',
-  bld2:    '#151838',
-  winOff:  '#1a1d40',
-  winYel:  '#c8a84b',
-  winBlu:  '#3a6ea8',
-  winCyn:  '#2a8a9a',
-  // Factory floor interior
-  wall:    '#0e1020',
-  wallA:   '#13162a',
-  floor:   '#0a0b18',
-  floorT:  '#0d0f20',
-  // Machine (Engel green)
-  mGrn:   '#3d8c1a',
-  mGrnL:  '#52b822',
-  mGrnD:  '#265c10',
-  mGrnDk: '#0f2308',
-  mGray:  '#2a2c40',
-  mGrayL: '#3e4060',
-  // Conveyor
-  cv1:    '#1e1f33',
-  cv2:    '#2c2e4a',
-  cv3:    '#3a3c58',
-  // Part colours
-  pGd:    '#1971c2',
-  pGdL:   '#4dabf7',
-  pBd:    '#c92a2a',
-  pBdL:   '#ff6b6b',
-  pBdY:   '#fab005',
-  // Characters (bold flat PCR sprite palette)
-  skn:    '#e8ae6e',  // skin
-  sk2:    '#f4c68e',  // lighter skin
-  h1:     '#1a0a04',  // very dark brown (male)
-  h2:     '#8b3a00',  // auburn (female, predak)
-  h3:     '#111',    // black (nastavovac, majster)
-  shirt:  '#2d2d2d',  // dark gray shirt (player)
-  srtO:   '#d4580a',  // orange (predak)
-  srtK:   '#0d0d0d',  // black (nastavovac, majster)
-  srtR:   '#b91c1c',  // red (skladnik)
-  srtW:   '#e8e8e8',  // white stripe
-  pants1: '#1e3a5f',  // dark blue pants (male)
-  pants2: '#1e3a5f',
-  shoe:   '#0d0d0d',
-  // Engel logo green
-  engLbl: '#6ecf38',
+  // Dashboard background (dark carbon)
+  dashBg: '#0a0c14',
+  dashPanel: '#12141f',
+  dashLight: '#1e2130',
+  // Speedometer background
+  gaugeBg: '#05070c',
+  gaugeBorder: '#2a3a5a',
+  gaugeNeedle: '#ff5e00',
+  gaugeText: '#88aaff',
+  // RPM bar gradient colors
+  rpmGreen: '#2a8a2a',
+  rpmYellow: '#d4b81a',
+  rpmRed: '#d43a1a',
+  // Digital display
+  digitOn: '#ffcc44',
+  digitOff: '#2a2a3a',
+  // Side panel
+  sidePanel: '#0b0d18',
+  sideAccent: '#ffaa33',
+  // UI chrome
+  uiWhite: '#f0f0f8',
+  uiDim: '#8a8aa0',
+  // Road / street
+  asphalt: '#12121c',
+  roadLine: '#ffcc44',
+  // Factory interior
+  factoryFloor: '#0f1120',
+  machineGreen: '#3c8520',
+  machineDark: '#1e4210',
+  conveyor: '#2a2c40',
+  // Characters
+  skin: '#dcb57a',
+  skinLight: '#f0ca8c',
+  hairDark: '#1a0e06',
+  hairAuburn: '#8b4513',
+  shirtGray: '#2d2d2d',
+  shirtOrange: '#d86a1a',
+  shirtBlack: '#111111',
+  shirtRed: '#aa2a2a',
+  pants: '#1e3a5f',
+  shoe: '#0f0f0f',
+  // Part colors
+  partGood: '#2a6ea8',
+  partBad: '#c03232',
+  // Neon
+  neonCyan: '#2ad4ff',
+  neonPink: '#ff44aa',
 };
 
-// ───────────────────────────────────────────────────────
-//  PIXEL DRAWING PRIMITIVES
-// ───────────────────────────────────────────────────────
-function px(x,y,w,h,c){ b.fillStyle=c; b.fillRect(~~x,~~y,w,h); }
-
-// PCR-style font helper (Press Start 2P)
-function ft(text, x, y, col, sz=5, align='left') {
+// ═══════════════════════════════════════════════════════════════════════
+//  PIXEL DRAW HELPERS
+// ═══════════════════════════════════════════════════════════════════════
+function px(x,y,w,h,col){ b.fillStyle=col; b.fillRect(~~x,~~y,w,h); }
+function ft(txt, x, y, col, sz=6, align='left') {
   b.font = `${sz}px 'Press Start 2P'`;
   b.textAlign = align;
   b.fillStyle = col;
-  b.fillText(text, ~~x, ~~y);
+  b.fillText(txt, ~~x, ~~y);
   b.textAlign = 'left';
 }
 
-// PCR panel: dark fill + top-lighter border + bottom-darker border
-function panel(x,y,w,h, col=C.uiPanel, borderT=C.uiLine, borderB='#000') {
-  px(x,y,w,h,col);
-  px(x,y,w,1,borderT);
-  px(x,y+h-1,w,1,borderB);
-  px(x,y,1,h,borderT);
-  px(x+w-1,y,1,h,borderB);
+// ═══════════════════════════════════════════════════════════════════════
+//  PCR DASHBOARD (exact style: speedometer, tachometer, gear, side logo)
+// ═══════════════════════════════════════════════════════════════════════
+let dashNeedle = 0; // for animation
+
+function drawPCRDashboard(score, speedVal, level, lives, turbo) {
+  // Bottom dashboard area (PCR style black panel)
+  px(0, NH-88, NW, 88, C.dashBg);
+  px(0, NH-88, NW, 2, C.sideAccent);
+  
+  // LEFT: SPEEDOMETER (round gauge)
+  const spdX = 12, spdY = NH-82, spdR = 34;
+  // outer ring
+  b.beginPath();
+  b.arc(spdX+spdR, spdY+spdR, spdR, 0, Math.PI*2);
+  b.fillStyle = C.gaugeBg;
+  b.fill();
+  b.strokeStyle = C.gaugeBorder;
+  b.lineWidth = 2;
+  b.stroke();
+  // inner numbers
+  ft('MPH', spdX+spdR-14, spdY+spdR-8, C.gaugeText, 5);
+  ft(Math.min(199, Math.floor(speedVal*3.5)).toString().padStart(3,'0'), spdX+spdR-14, spdY+spdR+10, C.digitOn, 7);
+  // speed needle
+  const angle = -Math.PI/2 + (Math.min(1, speedVal/12) * Math.PI * 1.4);
+  const nx = spdX+spdR + Math.cos(angle)*28;
+  const ny = spdY+spdR + Math.sin(angle)*28;
+  b.beginPath();
+  b.moveTo(spdX+spdR, spdY+spdR);
+  b.lineTo(nx, ny);
+  b.strokeStyle = C.gaugeNeedle;
+  b.lineWidth = 2;
+  b.stroke();
+  px(spdX+spdR-2, spdY+spdR-2, 4, 4, C.gaugeNeedle);
+  
+  // CENTER: DIGITAL SCORE / LEVEL PANEL (PCR style)
+  panelRect(70, NH-78, 98, 28, C.dashPanel);
+  ft('SCORE', 74, NH-65, C.uiDim, 5);
+  ft(Math.floor(score).toString().padStart(5,'0'), 110, NH-58, C.digitOn, 8);
+  ft('LV', 74, NH-44, C.uiDim, 5);
+  ft(level, 106, NH-38, C.neonCyan, 7);
+  
+  // RIGHT: TURBO / NITRO GAUGE (vertical bar, PCR style)
+  const tX = 198, tY = NH-80, tH = 48;
+  px(tX, tY, 10, tH, C.dashLight);
+  const fillH = Math.min(tH, (turbo/100) * tH);
+  px(tX, tY + tH - fillH, 10, fillH, C.neonPink);
+  ft('N', tX-8, tY+22, C.neonCyan, 5);
+  ft('2O', tX-8, tY+34, C.neonCyan, 5);
+  
+  // GEAR INDICATOR (PCR style bottom right)
+  const gearVal = Math.min(6, 1 + Math.floor(level/2));
+  px(204, NH-32, 30, 24, C.dashPanel);
+  ft(gearVal.toString(), 218, NH-16, C.digitOn, 12);
+  ft('GEAR', 210, NH-24, C.uiDim, 4);
+  
+  // SIDE PANEL LEFT (PCR logo strip)
+  px(0, 0, 28, NH, C.sidePanel);
+  ft('LIS', 5, 14, C.sideAccent, 6);
+  ft('OVNA', 5, 32, C.sideAccent, 5);
+  // Magna logo
+  px(5, 52, 4, 4, '#cc3300');
+  px(9, 52, 2, 4, '#cc3300');
+  ft('MAGNA', 5, 68, C.uiDim, 4);
+  // small dots
+  for(let i=0;i<6;i++) px(12, 90+i*12, 2, 2, i%2?C.neonCyan:C.neonPink);
 }
 
-// PCR button (dark body, lighter top, drop shadow)
-function btn(x,y,w,h, label, lc=C.white, bc=C.neonB) {
-  // shadow
-  px(x+2, y+2, w, h, '#00000088');
-  // body
-  px(x,y,w,h,C.btnBg);
-  // top highlight
-  px(x,y,w,1,C.btnTop);
-  px(x,y,1,h,C.btnTop);
-  // accent border
-  px(x,y,w,1,bc+'88');
-  px(x,y+h-1,w,1,C.btnBot);
-  // label
-  ft(label, x+w/2, y+h/2+2, lc, 5, 'center');
-}
+function panelRect(x,y,w,h,col){ px(x,y,w,h,col); px(x,y,w,1,C.sideAccent); px(x,y+h-1,w,1,'#000'); px(x,y,1,h,C.sideAccent); px(x+w-1,y,1,h,'#000'); }
 
-// PCR title bar (orange→yellow gradient faked with rows)
-function titleBar(x,y,w,h,text) {
-  const steps=h;
-  for(let i=0;i<steps;i++){
-    const t=i/steps;
-    const r2=Math.round(0xe8+t*(0xff-0xe8));
-    const g2=Math.round(0x5d+t*(0xb7-0x5d));
-    const b2=Math.round(0x04+t*(0x03-0x04));
-    b.fillStyle=`rgb(${r2},${g2},${b2})`;
-    b.fillRect(~~x,~~(y+i),w,1);
+// ═══════════════════════════════════════════════════════════════════════
+//  NIGHT STREET / FACTORY BACKGROUND (PCR style with road)
+// ═══════════════════════════════════════════════════════════════════════
+let roadOffset = 0;
+
+function drawPCRBackground(frame) {
+  // Sky gradient (dark to midnight blue)
+  for(let i=0;i<NH-100;i++) {
+    const t = i/(NH-100);
+    const r = 5 + t*8, g = 6 + t*12, b2 = 14 + t*22;
+    px(28, i, NW-28, 1, `rgb(${r},${g},${b2})`);
   }
-  // text shadow
-  ft(text, x+w/2+1, y+h/2+3, '#00000066', 6, 'center');
-  ft(text, x+w/2, y+h/2+2, '#0b0c1a', 6, 'center');
+  // stars (PCR pixel stars)
+  for(let s=0;s<40;s++) {
+    if((s*131+frame)%255 > 200) {
+      px(32 + (s*19)%(NW-40), 12 + (s*7)%50, 1, 1, '#fff');
+    }
+  }
+  
+  // ROAD (asphalt with lane markings) - PCR style
+  px(28, NH-110, NW-28, 110, C.asphalt);
+  // road lines (dashed)
+  const dashOff = (roadOffset + frame) % 40;
+  for(let y = NH-110 + dashOff - 40; y < NH; y += 40) {
+    px(NW/2-10, y, 20, 6, C.roadLine);
+  }
+  // side lines
+  px(32, NH-110, 4, 110, C.sideAccent+'88');
+  px(NW-36, NH-110, 4, 110, C.sideAccent+'88');
+  
+  // Factory buildings on sides (PCR style industrial)
+  for(let i=0;i<4;i++) {
+    const bx = 32 + i*38;
+    const bh = 38 + Math.sin(i)*12;
+    px(bx, NH-140-bh, 28, bh, '#18202e');
+    px(bx+4, NH-140-bh+6, 20, 8, '#2a3850');
+    for(let ww=0;ww<3;ww++) px(bx+8+ww*8, NH-140-bh+18, 4, 8, '#ffaa3366');
+  }
+  // Right side factories
+  for(let i=0;i<4;i++) {
+    const bx = NW-60 - i*34;
+    const bh = 42 + Math.cos(i)*10;
+    px(bx, NH-144-bh, 26, bh, '#1a2236');
+    px(bx+4, NH-144-bh+8, 18, 12, '#2a3a60');
+  }
+  
+  // FLOOR (factory interior floor for machines)
+  px(28, NH-108, NW-28, 4, '#334455');
+  px(28, NH-104, NW-28, 4, '#223344');
+  px(28, NH-100, NW-28, 98, C.factoryFloor);
+  // floor grid
+  for(let fx=28; fx<NW; fx+=24) px(fx, NH-100, 12, 98, '#0a0c1a');
 }
 
-// ───────────────────────────────────────────────────────
-//  SPRITE SYSTEM  (16×16 pixel chars, PCR style)
-//  Each sprite = array of 16 strings, each 16 chars wide
-//  '.' = transparent, any other = colour key
-// ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
+//  MACHINE (ENGEL PRESS) PCR pixel style
+// ═══════════════════════════════════════════════════════════════════════
+function drawMachine(x, y, w, h, active, frame) {
+  // base
+  px(x, y+h-6, w, 6, C.machineDark);
+  px(x+2, y, w-4, h-6, C.machineGreen);
+  // shading
+  px(x+2, y, 4, h-6, '#2a6010');
+  px(x+w-6, y, 4, h-6, '#2a6010');
+  // panel lines
+  for(let i=6; i<h-8; i+=8) px(x+8, y+i, w-16, 1, '#1e3a0a');
+  // control panel (PCR digital style)
+  const cpx = x+w-14, cpy = y+4;
+  px(cpx, cpy, 12, 22, '#0a0a1a');
+  px(cpx+1, cpy+2, 10, 8, '#1e2a3a');
+  if(active && (frame>>2)&1) px(cpx+3, cpy+4, 6, 3, C.neonCyan);
+  // buttons
+  px(cpx+2, cpy+12, 3, 4, active?C.neonCyan:'#335');
+  px(cpx+7, cpy+12, 3, 4, '#c33');
+  // Engel logo
+  ft('ENGEL', x+4, y+h-5, '#8bc84a', 4);
+  // Mold area (center cavity)
+  const mgx = x+Math.floor(w*0.28), mgw = Math.floor(w*0.44);
+  px(mgx, y+4, mgw, h-12, '#0a0f18');
+  px(mgx, y+4, 3, h-12, '#4a6a30');
+  px(mgx+mgw-3, y+4, 3, h-12, '#4a6a30');
+}
+
+function drawConveyor(x, y, w, frame) {
+  px(x, y, w, 6, C.conveyor);
+  const off = (frame*2) % 16;
+  for(let bx=x+off-16; bx<x+w; bx+=16) {
+    if(bx+8 > x && bx < x+w) px(Math.max(x,bx), y+2, 8, 3, '#6a6c88');
+  }
+  px(x, y, w, 1, '#8a8aaa');
+  px(x, y+5, w, 1, '#2a2c3a');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  CHARACTER SPRITES (PCR pixel style 12x16)
+// ═══════════════════════════════════════════════════════════════════════
+const SPR_MALE = [
+  '..HHHH.....',
+  '.HSSSSH....',
+  '.SSSSSS....',
+  '.S.SS.S....',
+  '.SSSSSS....',
+  'STTTTTS....',
+  'STTTXTS....',
+  '.TTTTTT....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.ZZ.ZZ.....',
+  '.ZZ.ZZ.....',
+  '...........',
+];
+const SPR_FEMALE = [
+  '..AAAAA....',
+  '.ASSSSAA...',
+  '.SSSSSS....',
+  '.S.SS.S....',
+  '.SSSSSS....',
+  'STTTTTS....',
+  'STTTXTS....',
+  '.TTTTTT....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.ZZ.ZZ.....',
+  '.ZZ.ZZ.....',
+  '...........',
+];
+const SPR_PREDAK = [
+  '..AAAAA....',
+  '.ASSSSAA...',
+  '.SSSSSS....',
+  '.S.SS.S....',
+  '.SSSSSS....',
+  'SOOOOOS....',
+  'SOOOXOS....',
+  '.OOOOOO....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.ZZ.ZZ.....',
+  '.ZZ.ZZ.....',
+  '...........',
+];
+const SPR_NAST = [
+  '..KKKKK....',
+  '.KSSSSK....',
+  '.SSSSSK....',
+  '.S.SS.K....',
+  '.KKKKKK....',
+  'SBBBBBS....',
+  'SBBBDBS....',
+  '.BBBBBB....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.ZZ.ZZ.....',
+  '.ZZ.ZZ.....',
+  '...........',
+];
+const SPR_SKLADNIK = [
+  '..HHHHH....',
+  '.HSSSSH....',
+  '.SSSSSS....',
+  '.S.SS.S....',
+  '.SSSSSS....',
+  'SRRRRRS....',
+  'SWWWWWS....',
+  '.RRRRRR....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.PP.PP.....',
+  '.ZZ.ZZ.....',
+  '.ZZ.ZZ.....',
+  '...........',
+];
+const PART_GOOD = [
+  '.CCCCCCCC.',
+  'CCccccccCC',
+  'CCcc..ccCC',
+  'CCcc..ccCC',
+  'CCccccccCC',
+  '.CCCCCCCC.',
+  '...CCCC...',
+];
+const PART_BAD = [
+  '.VVVVVVVV.',
+  'VVvvvvvvVV',
+  'VVvU..vUVV',
+  'VVUv..vUVV',
+  'VVvvvvvvVV',
+  '.VVVVVVVV.',
+  '...VVVV...',
+];
 
 const PAL = {
-  'S': C.skn,   // skin
-  's': C.sk2,   // lighter skin
-  'H': C.h1,   // dark hair
-  'A': C.h2,   // auburn
-  'K': C.h3,   // black
-  'T': C.shirt, // dark gray shirt
-  'O': C.srtO,  // orange shirt
-  'B': C.srtK,  // black shirt
-  'R': C.srtR,  // red shirt
-  'W': C.srtW,  // white stripe
-  'P': C.pants1,// pants blue
-  'Q': '#1a2c44',// pants dark
-  'Z': C.shoe,  // shoe
-  'X': '#cc0000',// red dot (logo)
-  'Y': C.neonY, // yellow
-  'G': '#2d7d46',// dark green detail
-  'N': '#888',  // gray (wrench)
-  'D': '#ddd',  // light detail
-  'M': C.mGrn,  // machine green
-  'F': '#ffffff',// white
-  'E': '#e86820',// orange
-  'C': '#1971c2',// blue part
-  'c': '#4dabf7',// light blue
-  'V': '#c92a2a',// red part
-  'v': '#ff6b6b',// light red part
-  'U': '#fab005',// yellow marker on bad part
-  'L': '#c8a84b',// window yellow
-  'J': '#2a8a9a',// window cyan
+  'H': C.hairDark, 'A': C.hairAuburn, 'K': '#111', 'S': C.skin, 's': C.skinLight,
+  'T': C.shirtGray, 'O': C.shirtOrange, 'B': C.shirtBlack, 'R': C.shirtRed,
+  'W': '#e8e8e8', 'P': C.pants, 'Z': C.shoe, 'X': '#cc3300', 'D': '#aaa',
+  'C': C.partGood, 'c': '#6aaee8', 'V': C.partBad, 'v': '#e86a6a', 'U': '#f0b020',
 };
 
-function drawSprite(sprite, x, y) {
-  sprite.forEach((row, ry) => {
-    for(let rx=0;rx<row.length;rx++){
-      const ch=row[rx];
-      if(ch!=='.'&&PAL[ch]){
-        b.fillStyle=PAL[ch];
+function drawSprite(spr, x, y, flip=false) {
+  if(flip) {
+    b.save(); b.translate(x+11, y); b.scale(-1,1); x=0;
+  }
+  spr.forEach((row, ry) => {
+    for(let rx=0; rx<row.length; rx++) {
+      const ch = row[rx];
+      if(ch !== '.' && PAL[ch]) {
+        b.fillStyle = PAL[ch];
         b.fillRect(~~x+rx, ~~y+ry, 1, 1);
       }
     }
   });
+  if(flip) b.restore();
 }
 
-// ── PCR-style 10×16 character sprites ──────────────────
-
-const SPR_MALE = [
-  '.HHHHHH...',
-  '.HSSSSH...',
-  '.SSSSS....',
-  '.S.SS.S...',
-  '.SSSSSS...',
-  'STTTTTS...',
-  'STTTXTS...',
-  '.TTTTTT...',
-  '.PP.PP....',
-  '.PP.PP....',
-  '.PP.PP....',
-  '.PP.PP....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.......   ',
-];
-
-const SPR_FEMALE = [
-  'AAAAAAAAA.',
-  'ASSSSSAA..',
-  'ASSSSSS...',
-  'AS.SS.S...',
-  'ASSSSSS...',
-  'STTTTTS...',
-  'STTTXTS...',
-  '.TTTTTT...',
-  '.QQQQQQ...',
-  '.QQQQQQ...',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.......   ',
-];
-
-const SPR_PREDAK = [  // Orange shirt, auburn bob
-  '.AAAAAAA..',
-  'AASSSSSAA.',
-  'ASSSSSSAA.',
-  'AS.SS.SA..',
-  'ASSSSSS...',
-  'SOOOOOOOS.',
-  'SOOOEOOOS.',
-  '.OOOOOOOO.',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.......   ',
-];
-
-const SPR_NAST = [   // Black shirt, beard
-  '.KKKKKK...',
-  '.KSSSSK...',
-  '.SSSSSK...',
-  '.S.SS.KK..',
-  '.KKKKKK...',  // beard
-  'SBBBBBS...',
-  'SBBBDBS...',
-  '.BBBBBB...',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.......   ',
-];
-
-const SPR_MAJSTER = [ // Black shirt, angry arms raised
-  '.KKKKKK...',
-  '.KSSSSK...',
-  '.SSSSSK...',
-  '.KSSSK....',
-  '.SSSSSS...',
-  'SBBBBBBBS.',
-  'SBBBDBBBS.',
-  '.BBBBBBBB.',
-  '.BBBBBBBB.',
-  '.QQ..QQ...',
-  '.QQ..QQ...',
-  '.QQ..QQ...',
-  '.ZZ..ZZ...',
-  '.ZZ..ZZ...',
-  '.ZZ..ZZ...',
-  '.......   ',
-];
-
-const SPR_SKLADNIK = [ // Red shirt + white stripe
-  '.HHHHHH...',
-  '.HSSSSH...',
-  '.SSSSSS...',
-  '.S.SS.S...',
-  '.SSSSSS...',
-  'SRRRRRRS..',
-  'SWWWWWWS..',
-  '.RRRRRR...',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.QQ.QQ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.ZZ.ZZ....',
-  '.......   ',
-];
-
-// Walking animation: flip left arm/leg every N frames
 function drawChar(spr, x, y, frame, flip=false) {
-  const bob = (frame>>3)&1;
-  const ay = ~~y + bob;
-  if(flip) {
-    b.save();
-    b.translate(~~x + spr[0].length, 0);
-    b.scale(-1, 1);
-    drawSprite(spr, 0, ay);
-    b.restore();
-  } else {
-    drawSprite(spr, ~~x, ay);
-  }
+  const bob = Math.sin(frame*0.2)*1;
+  drawSprite(spr, x, y+~~bob, flip);
 }
 
-// ───────────────────────────────────────────────────────
-//  PART SPRITE (plastic mirror housing, 12×8)
-// ───────────────────────────────────────────────────────
-const PART_GOOD = [
-  '.CCCCCCCCCC.',
-  'CCccccccccCC',
-  'CCcc....ccCC',
-  'CCcc....ccCC',
-  'CCccccccccCC',
-  '.CCCCCCCCCC.',
-  '....CCCC....',
-  '....CCCC....',
-];
-const PART_BAD = [
-  '.VVVVVVVVVV.',
-  'VVvvvvvvvvVV',
-  'VVUv....UvVV',
-  'VVvU....vUVV',
-  'VVvvvvvvvvVV',
-  '.VVVVVVVVVV.',
-  '....VVVV....',
-  '....VVVV....',
-];
-
-// ───────────────────────────────────────────────────────
-//  ROLLER CART (skladnik)  18×10
-// ───────────────────────────────────────────────────────
-const CART_TOP = [
-  // bins row
-  'VVVV.CCCC.GGGG.YYYY',
-  'VVVV.CCCC.GGGG.YYYY',
-  'VVVV.CCCC.GGGG.YYYY',
-  'VVVV.CCCC.GGGG.YYYY',
-];
-function drawCart(x, y) {
-  // bed
-  px(x,y,36,6,C.mGray);
-  px(x,y,36,1,C.mGrayL);
-  // bins
-  const bc=[C.neonR,C.neonB,'#2d7d46',C.neonY];
-  bc.forEach((col,i)=>{ px(x+1+i*9,y-8,8,8,col); px(x+2+i*9,y-7,6,2,'#ffffff33'); });
-  // rollers
-  for(let r2=0;r2<4;r2++){ const rx=x+3+r2*9; px(rx,y+6,6,5,C.mGray); px(rx+1,y+7,4,3,C.mGrayL); px(rx+2,y+8,2,1,'#aaa'); }
-  // handle
-  px(x-3,y-8,2,14,C.mGrayL); px(x-5,y-8,6,2,C.mGray);
-}
-
-// ───────────────────────────────────────────────────────
-//  INJECTION MOLDING MACHINE  (Engel style, 32×50)
-// ───────────────────────────────────────────────────────
-function drawMachine(x, y, w, h, active, frame) {
-  // Base
-  px(x,y+h-4,w,4,C.mGrnDk);
-  // Body
-  px(x+2,y,w-4,h-4,C.mGrn);
-  // Left shading
-  px(x+2,y,3,h-4,C.mGrnD);
-  // Right shading
-  px(x+w-5,y,3,h-4,C.mGrnD);
-  // Top shine
-  px(x+2,y,w-4,1,C.mGrnL);
-  // Panel lines
-  for(let i=6;i<h-8;i+=8) px(x+6,y+i,w-12,1,C.mGrnD);
-
-  // Control panel box (right)
-  const cpx=x+w-13, cpy=y+3;
-  px(cpx,cpy,11,Math.floor(h*0.5),C.mGrnDk);
-  px(cpx,cpy,11,1,'#335');
-  // Screen
-  px(cpx+1,cpy+2,9,8,'#0a0a1a');
-  px(cpx+2,cpy+3,7,4,'#0a2a4a');
-  // blinking line
-  if((frame>>3)&1) px(cpx+2,cpy+4,7,1,C.neonG+'99');
-  // Buttons
-  px(cpx+2,cpy+11,3,2,active?C.neonG:'#115');
-  px(cpx+6,cpy+11,3,2,C.neonR);
-  px(cpx+2,cpy+15,7,2,C.neonO+'99');
-
-  // Mold gap (center dark cavity)
-  const mgx=x+Math.floor(w*0.25), mgw=Math.floor(w*0.42);
-  px(mgx,y+2,mgw,h-10,C.mGrnDk);
-  px(mgx,y+2,3,h-10,C.mGray);
-  px(mgx+mgw-3,y+2,3,h-10,C.mGray);
-  px(mgx+1,y+3,mgw-2,1,'#334');
-  px(mgx+1,y+h-12,mgw-2,1,'#334');
-
-  // Injection barrel
-  const ibx=x+w-5;
-  px(ibx,y+Math.floor(h*0.2),10,Math.floor(h*0.3),C.mGray);
-  px(ibx+1,y+Math.floor(h*0.2)+1,8,Math.floor(h*0.3)-2,C.mGrnDk);
-  px(ibx+10,y+Math.floor(h*0.28),4,6,'#556');
-
-  // Status LED
-  px(x+3,y+3,4,4,active&&(frame>>2)&1?C.neonG:C.mGrnDk);
-
-  // ENGEL label
-  ft('ENGEL',x+5,y+h-6,C.engLbl,4);
-}
-
-// ───────────────────────────────────────────────────────
-//  CONVEYOR BELT  (horizontal, exits left of machine)
-// ───────────────────────────────────────────────────────
-function drawConveyor(x, y, w, frame) {
-  const bh=5;
-  px(x,y,w,bh,C.cv1);
-  const off=(frame*2)%12;
-  for(let bx=x+w-off;bx>=x-12;bx-=12) {
-    if(bx+8>x&&bx<x+w) px(Math.max(x,bx),y+1,Math.min(8,bx+8-x),bh-2,C.cv2);
-  }
-  px(x,y,w,1,C.cv3);
-  px(x,y+bh-1,w,1,'#111');
-  px(x,y-1,3,bh+2,C.mGray);
-  px(x+w-3,y-1,3,bh+2,C.mGray);
-}
-
-// ───────────────────────────────────────────────────────
-//  NIGHT CITY BACKGROUND  (PCR side-scrolling style)
-// ───────────────────────────────────────────────────────
-let bgOff=0;
-
-function drawNightCity(ctx2, frame) {
-  // Sky — PCR uses 3-4 tone horizontal bands very dark
-  for(let y2=0;y2<NH;y2++){
-    const t=y2/NH;
-    b.fillStyle = t<0.3 ? C.sky0 : t<0.6 ? C.sky1 : C.sky2;
-    b.fillRect(0,y2,NW,1);
-  }
-
-  // Stars
-  [[8,4],[22,9],[47,3],[73,11],[99,5],[128,8],[151,2]].forEach(([sx,sy])=>{
-    px(sx,sy,1,1,(frame>>4)&1?'#ffffff':'#aaaaaa');
-  });
-
-  // ── Far buildings (slow scroll)
-  const far = ~~(bgOff*0.4)%160;
-  drawBldLayer(far, 28, 30, 0.55);
-  // ── Mid buildings
-  const mid = ~~(bgOff*0.7)%160;
-  drawBldLayer(mid, 42, 40, 0.8);
-  // ── Near buildings
-  const near = ~~bgOff%160;
-  drawBldLayer(near, 56, 50, 1.0);
-
-  // Road
-  px(0,62,NW,6,'#111122');
-  px(0,64,NW,2,'#1a1a30');
-  // Dashes
-  const dash=(~~bgOff*3)%24;
-  for(let dx=-dash;dx<NW;dx+=24) px(dx,65,12,1,C.neonY+'aa');
-  // Curb
-  px(0,67,NW,1,'#2a2a44');
-}
-
-// Template building data (width, height, col-index)
-const BTEMPLATE=[
-  {w:18,h:26,c:0},{w:12,h:20,c:1},{w:14,h:32,c:2},
-  {w:20,h:24,c:0},{w:10,h:36,c:1},{w:16,h:22,c:2},
-  {w:22,h:28,c:0},{w:12,h:18,c:1},{w:18,h:34,c:2},
-  {w:14,h:26,c:0},{w:20,h:20,c:1},{w:10,h:30,c:2},
-];
-const BCOLS=[C.bld0,C.bld1,C.bld2];
-
-function drawBldLayer(scrollOff, baseY, maxH, alpha) {
-  b.globalAlpha=alpha;
-  let bx=0;
-  // repeat the template list until we fill 2× the screen width
-  for(let rep=0;rep<3;rep++){
-    BTEMPLATE.forEach(bt=>{
-      const x2=bx-scrollOff;
-      if(x2+bt.w>0&&x2<NW){
-        const by=baseY-bt.h;
-        // body
-        px(x2,by,bt.w,bt.h,BCOLS[bt.c]);
-        // roof neon line
-        px(x2,by,bt.w,1,'#cc00ff44');
-        // windows (4×4 grid of 2×2 pixels)
-        const cols=Math.floor((bt.w-4)/5);
-        const rows=Math.floor((bt.h-6)/6);
-        for(let wr=0;wr<rows;wr++) for(let wc=0;wc<cols;wc++){
-          const wx=x2+2+wc*5, wy=by+3+wr*6;
-          const seed=(wx*7+wy*13+rep*100)%17;
-          if(seed<8){
-            const col=seed<3?C.winYel:seed<6?C.winBlu:C.winCyn;
-            px(wx,wy,2,3,col);
-          } else {
-            px(wx,wy,2,3,C.winOff);
-          }
-        }
-      }
-      bx+=bt.w+2;
-    });
-  }
-
-  // Magna factory (always visible, large building)
-  const mx=(200-~~(scrollOff*0.3))%(NW+60)-20;
-  drawMagnaBuilding(mx,baseY);
-
-  b.globalAlpha=1;
-}
-
-function drawMagnaBuilding(bx,baseY){
-  if(bx+50<0||bx>NW) return;
-  const bh=44, by=baseY-bh;
-  // body
-  px(bx,by,50,bh,'#b8bfd4');
-  // blue accents
-  px(bx,by,50,3,'#1a44cc');
-  px(bx,by+bh-4,50,4,'#1a44cc');
-  px(bx,by,3,bh,'#1a44cc');
-  px(bx+47,by,3,bh,'#1a44cc');
-  // panel lines
-  for(let pl=by+7;pl<by+bh-4;pl+=8) px(bx+3,pl,44,1,'#9098b0');
-  // windows (2 rows × 5 cols)
-  for(let wr=0;wr<2;wr++) for(let wc=0;wc<5;wc++){
-    const wx=bx+5+wc*9, wy=by+6+wr*12;
-    px(wx,wy,7,8,'#1a44cc');
-    px(wx+1,wy+1,5,6,'#1a3366');
-    px(wx+1,wy+1,2,2,'#334466');
-  }
-  // Magna sign
-  px(bx+4,by+3,3,3,'#cc0000');
-  ft('MAGNA',bx+9,by+8,'#1a2255',4);
-}
-
-// ───────────────────────────────────────────────────────
-//  SPEECH BUBBLE  (PCR style: black box, coloured border)
-// ───────────────────────────────────────────────────────
-function speechBubble(x,y,lines,bc) {
-  const lh=8, pad=3;
-  let maxW=0;
-  b.font="4px 'Press Start 2P'";
-  lines.forEach(l=>{ maxW=Math.max(maxW,b.measureText(l).width); });
-  const bw=Math.ceil(maxW)+pad*2+2, bh=lines.length*lh+pad*2;
-  // shadow
-  px(x+2,y-bh+2,bw,bh,'#00000099');
-  // box
-  px(x,y-bh,bw,bh,C.uiBg);
-  px(x,y-bh,bw,1,bc);
-  px(x,y-1,bw,1,bc);
-  px(x,y-bh,1,bh,bc);
-  px(x+bw-1,y-bh,1,bh,bc);
-  // tail
-  px(x+4,y,2,3,bc);
-  px(x+5,y+1,1,2,C.uiBg);
-  // text
-  lines.forEach((l,i)=>ft(l,x+pad,y-bh+pad+5+i*lh,bc,4));
-}
-
-// ───────────────────────────────────────────────────────
-//  PCR SCANLINES EFFECT
-// ───────────────────────────────────────────────────────
-function scanlines() {
-  b.globalAlpha=0.09;
-  for(let y2=0;y2<NH;y2+=2) px(0,y2,NW,1,'#000');
-  b.globalAlpha=1;
-}
-
-// ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
 //  GAME STATE
-// ───────────────────────────────────────────────────────
-const G={
-  sc:'menu',  // menu|game|over
-  run:false,
-  f:0,        // frame
-  score:0, lives:3, level:1,
-  char:'m',
-  // layout
-  numL:3, lXs:[], mw:0, mh:0, mY:0, cvY:0, flY:0,
-  // player
-  lane:1, px:0, tpx:0,
-  // parts
-  parts:[],
-  pSpd:1.2, spRate:60, spTimer:0,
-  // NPCs
-  pred:{x:180,y:0,dir:-1,f:0,on:false,t:0,bub:0},
-  nast:{x:-20,y:0,f:0,on:false,t:0,bub:0,stop:false},
-  skl: {x:200,y:0,f:0,on:false,t:350},
-  // feedback
-  flash:0, fCol:'#f00',
-  hitAnim:0,
-  majQ:[],
+// ═══════════════════════════════════════════════════════════════════════
+let G = {
+  scene: 'menu', // menu, game, over
+  running: false,
+  frame: 0,
+  score: 0, lives: 3, level: 1, turbo: 40,
+  char: 'm',
+  numLanes: 3, laneX: [], laneW: 0, laneY: 0, convY: 0, floorY: 0,
+  playerLane: 1, playerX: 0, targetX: 0,
+  parts: [],
+  partSpeed: 1.4, spawnRate: 55, spawnTimer: 0,
+  predak: {active:false, x:0, dir:-1, frame:0, timer:0, bubble:0},
+  nastav: {active:false, x:-30, frame:0, timer:0, bubble:0, stopped:false},
+  skladnik: {active:false, x:0, frame:0, timer:280},
+  flash: 0, hitAnim: 0,
+  quotes: ['PRESSURE!','FORM SHIFT','QUALITY?','CHECK GAUGE','OVERHEAT'],
 };
 
-const QUOTES=[
-  ['CO TO ROBIS?!','MOJA BABICKA','RYCHLEJSIE!'],
-  ['NESPOKOJNY!','REKLAMACIA!!'],
-  ['ZAJTRA AUDIT','A TY TOTO??'],
-  ['KTO TA NAUCIL','TAKTO ROBIT?'],
-];
-
-function layout(){
-  G.numL=Math.min(2+Math.floor(G.level/2),5);
-  G.mh=52; G.mw=Math.floor((NW-4)/G.numL)-2;
-  G.mY=13; G.cvY=G.mY+G.mh-7; G.flY=NH-28;
-  G.lXs=[]; for(let i=0;i<G.numL;i++) G.lXs.push(2+i*(G.mw+2));
-  G.lane=Math.min(G.lane,G.numL-1);
-  G.tpx=G.lXs[G.lane]+G.mw/2-5;
+function layout() {
+  G.numLanes = Math.min(2 + Math.floor(G.level/2), 5);
+  G.laneW = Math.floor((NW-56) / G.numLanes);
+  G.laneY = NH-108;
+  G.convY = G.laneY + 36;
+  G.floorY = G.laneY + 58;
+  G.laneX = [];
+  for(let i=0;i<G.numLanes;i++) G.laneX.push(32 + i*(G.laneW+2));
+  G.playerLane = Math.min(G.playerLane, G.numLanes-1);
+  G.targetX = G.laneX[G.playerLane] + G.laneW/2 - 8;
+  G.playerX = G.targetX;
 }
 
-// ───────────────────────────────────────────────────────
-//  SCREENS
-// ───────────────────────────────────────────────────────
-function drawMenu(){
-  // Animated night city behind
-  drawNightCity(b,G.f);
-
-  // Dark overlay so menu is readable
-  b.globalAlpha=0.6; px(0,0,NW,NH,C.uiBg); b.globalAlpha=1;
-
-  // ── Title bar ──
-  titleBar(4,4,NW-8,16,'LISOVNA');
-
-  // ── Main panel ──
-  panel(4,22,NW-8,NH-50,C.uiPanel,'#252850','#000');
-
-  // Subtitle
-  ft('FACTORY EDITION',NW/2,32,C.neonO,4,'center');
-  ft('CHYTAJ DIELY!',NW/2,41,C.dimW,4,'center');
-
-  // ── Character select ──
-  px(4,45,NW-8,1,C.uiLine);
-  ft('VYBER POSTAVU',NW/2,53,C.neonB,4,'center');
-
-  // Cards
-  const cw=48, ch=62, gap=8;
-  const total=2*cw+gap, cx1=NW/2-total/2, cx2=cx1+cw+gap, cy=57;
-
-  // Male card
-  const msel=G.char==='m';
-  px(cx1,cy,cw,ch,msel?'#0a1a2a':C.uiPanel);
-  px(cx1,cy,cw,1,msel?C.neonY:C.uiLine);
-  px(cx1,cy+ch-1,cw,1,msel?C.neonY:'#000');
-  px(cx1,cy,1,ch,msel?C.neonY:C.uiLine);
-  px(cx1+cw-1,cy,1,ch,msel?C.neonY:'#000');
-  // char sprite (scaled 3×)
-  b.save(); b.translate(cx1+4,cy+6); b.scale(3,3);
-  drawChar(SPR_MALE,0,0,G.f); b.restore();
-  ft('MUZ',cx1+cw/2,cy+ch-5,msel?C.neonY:C.dimW,4,'center');
-
-  // Female card
-  const fsel=G.char==='f';
-  px(cx2,cy,cw,ch,fsel?'#0a1a2a':C.uiPanel);
-  px(cx2,cy,cw,1,fsel?C.neonY:C.uiLine);
-  px(cx2,cy+ch-1,cw,1,fsel?C.neonY:'#000');
-  px(cx2,cy,1,ch,fsel?C.neonY:C.uiLine);
-  px(cx2+cw-1,cy,1,ch,fsel?C.neonY:'#000');
-  b.save(); b.translate(cx2+4,cy+6); b.scale(3,3);
-  drawChar(SPR_FEMALE,0,0,G.f); b.restore();
-  ft('ZENA',cx2+cw/2,cy+ch-5,fsel?C.neonY:C.dimW,4,'center');
-
-  // ── Play button (PCR big green button) ──
-  const by2=cy+ch+6;
-  btn(8,by2,NW-16,16,'▶  HRAT',C.neonG,C.neonG);
-
-  // How to play
-  ft('< POHYB >',NW/2,by2+22,C.uiLine,4,'center');
-  ft('TAP: LAVY / PRAVY',NW/2,by2+30,C.uiLine,3,'center');
-
-  scanlines();
+function startGame() {
+  G.scene = 'game';
+  G.running = true;
+  G.score = 0; G.lives = 3; G.level = 1; G.turbo = 35;
+  G.frame = 0;
+  G.partSpeed = 1.4;
+  G.spawnRate = 55;
+  G.parts = [];
+  G.spawnTimer = 0;
+  G.predak.active = false;
+  G.nastav.active = false;
+  G.skladnik.active = false;
+  G.skladnik.timer = 300;
+  G.flash = 0;
+  G.hitAnim = 0;
+  layout();
 }
 
-function drawGame(){
-  // Factory interior bg
-  px(0,0,NW,NH,C.wall);
-  // Ceiling band
-  px(0,0,NW,12,C.uiBg);
-  for(let lx=8;lx<NW;lx+=18){ px(lx,1,12,4,C.wallA); px(lx+2,2,8,2,'#ffeeaa11'); }
-  px(0,11,NW,1,'#cc00ff33');
-  // Wall
-  px(0,12,NW,60,'#0d0e1e');
-  for(let wx=0;wx<NW;wx+=20){ px(wx,12,18,60,'#0f1022'); px(wx,12,18,1,'#1a1c38'); }
-  // Floor
-  px(0,G.flY,NW,NH-G.flY,C.floor);
-  for(let fx=0;fx<NW;fx+=14){ px(fx,G.flY,12,NH-G.flY,C.floorT); px(fx,G.flY,12,1,'#1a1c30'); }
-  px(0,G.flY,NW,1,'#2a2c44');
-
-  // ── HUD top bar (PCR style) ──
-  px(0,0,NW,11,C.uiBg);
-  px(0,10,NW,1,'#cc00ff55');
-  ft('SCR',3,9,C.neonB,4);
-  ft(String(G.score).padStart(5,'0'),22,9,C.neonY,5);
-  ft('HP',83,9,C.neonB,4);
-  ft('♥'.repeat(Math.max(0,G.lives)),99,9,C.neonR,5);
-  ft('L'+G.level,145,9,C.neonG,5);
-
-  // ── Machines + conveyors ──
-  for(let i=0;i<G.numL;i++){
-    drawMachine(G.lXs[i], G.mY, G.mw, G.mh, i===G.lane, G.f);
-    drawConveyor(G.lXs[i], G.cvY, G.mw, G.f);
-  }
-
-  // ── Parts ──
-  G.parts.forEach(p=>{
-    if(p.x>G.lXs[p.l]-14&&p.x<G.lXs[p.l]+G.mw)
-      drawSprite(p.bad?PART_BAD:PART_GOOD, ~~p.x, p.y);
-  });
-
-  // ── Skladnik ──
-  if(G.skl.on){
-    const sy=G.flY-16;
-    drawCart(~~G.skl.x+14, sy);
-    b.save(); b.translate(~~G.skl.x, sy-16); b.scale(2,2);
-    drawChar(SPR_SKLADNIK,0,0,G.skl.f); b.restore();
-  }
-
-  // ── Player ──
-  {
-    const py2=G.flY-32;
-    b.save(); b.translate(~~G.px, py2); b.scale(2,2);
-    drawChar(G.char==='m'?SPR_MALE:SPR_FEMALE,0,0,G.f);
-    b.restore();
-    // Lane glow under player
-    if((G.f>>2)&1) px(G.lXs[G.lane],G.flY-1,G.mw,2,C.neonG+'33');
-  }
-
-  // ── Predak ──
-  if(G.pred.on){
-    const py2=G.flY-32;
-    const flip=G.pred.dir>0;
-    b.save(); b.translate(~~G.pred.x, py2); b.scale(2,2);
-    drawChar(SPR_PREDAK,0,0,G.pred.f,flip); b.restore();
-    if(G.pred.bub>0) speechBubble(~~G.pred.x, py2, ['VEZMI AJ','DRUHY LIS!'], C.neonO);
-  }
-
-  // ── Nastavovac ──
-  if(G.nast.on||(G.nast.x>-16&&G.nast.x<NW+16)){
-    const py2=G.flY-32;
-    b.save(); b.translate(~~G.nast.x, py2); b.scale(2,2);
-    drawChar(SPR_NAST,0,0,G.nast.f); b.restore();
-    if(G.nast.bub>0&&G.nast.on) speechBubble(~~G.nast.x, py2, ['PORUCHA','FORMY!'], C.neonY);
-  }
-
-  // ── Flash ──
-  if(G.flash>0){ b.globalAlpha=G.flash/16; px(0,0,NW,NH,G.fCol); b.globalAlpha=1; }
-
-  // ── Hit score popup ──
-  if(G.hitAnim>0){ ft('+'+10*G.level, ~~G.px+16, G.flY-38, C.neonG, 5); G.hitAnim--; }
-
-  // ── Bottom controls (PCR style) ──
-  px(0,NH-12,NW,12,C.uiBg);
-  px(0,NH-12,NW,1,'#cc00ff44');
-  btn(1,NH-11,NW/2-2,10,'◀',C.neonB,C.neonB);
-  btn(NW/2+1,NH-11,NW/2-2,10,'▶',C.neonB,C.neonB);
-
-  scanlines();
+function gameOver() {
+  G.running = false;
+  G.scene = 'over';
+  G.flash = 0;
 }
 
-function drawOver(){
-  px(0,0,NW,NH,C.uiBg);
-
-  // Red title bar
-  for(let i=0;i<14;i++){
-    const t=i/14, r2=~~(0xef+t*(-0x50)), g2=~~(0x23+t*(-0x10)), b2=~~(0x3c+t*(-0x1f));
-    b.fillStyle=`rgb(${r2},${g2},${b2})`; b.fillRect(0,i,NW,1);
-  }
-  ft('GAME OVER',NW/2,11,'#0b0c1a',7,'center');
-
-  // Majster (big, angry)
-  b.save(); b.translate(NW/2-10,30); b.scale(3,3);
-  drawChar(SPR_MAJSTER,0,0,G.f); b.restore();
-
-  // Quote
-  G.majQ.forEach((l,i)=>ft(l,NW/2,78+i*9,C.neonR,4,'center'));
-
-  // Score panel
-  panel(8,104,NW-16,50,C.uiPanel,C.uiLine);
-  ft('SKORE',NW/2,116,C.neonB,4,'center');
-  ft(String(G.score).padStart(6,'0'),NW/2,128,C.neonY,7,'center');
-  ft('LEVEL '+G.level,NW/2,140,C.neonG,4,'center');
-
-  // Buttons
-  btn(8,156,NW/2-12,14,'MENU',C.neonB,C.neonB);
-  btn(NW/2+4,156,NW/2-12,14,'ZNOVA ▶',C.neonG,C.neonG);
-
-  scanlines();
-}
-
-// ───────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════
 //  UPDATE
-// ───────────────────────────────────────────────────────
-function update(){
-  G.f++; bgOff+=0.5;
-
-  // smooth player
-  G.tpx=G.lXs[G.lane]+G.mw/2-5;
-  G.px+=(G.tpx-G.px)*0.3;
-
+// ═══════════════════════════════════════════════════════════════════════
+function update() {
+  if(!G.running) return;
+  G.frame++;
+  roadOffset = (roadOffset + G.partSpeed) % 60;
+  
+  // smooth player movement
+  G.targetX = G.laneX[G.playerLane] + G.laneW/2 - 8;
+  G.playerX += (G.targetX - G.playerX) * 0.25;
+  
   // spawn parts
-  G.spTimer++;
-  if(!G.nast.on && G.spTimer>=G.spRate){
-    G.spTimer=0;
-    const ln=~~(Math.random()*G.numL);
-    const bad=Math.random()<(0.2+G.level*0.03+(G.pred.on?0.1:0));
-    G.parts.push({l:ln, x:G.lXs[ln]+G.mw-14, y:G.cvY, bad,
-      spd:G.pSpd+Math.random()*0.5+(G.pred.on?0.8:0)});
+  G.spawnTimer++;
+  if(!G.nastav.active && G.spawnTimer >= G.spawnRate) {
+    G.spawnTimer = 0;
+    const lane = Math.floor(Math.random() * G.numLanes);
+    const bad = Math.random() < (0.15 + G.level*0.02 + (G.predak.active?0.08:0));
+    G.parts.push({
+      lane: lane,
+      x: G.laneX[lane] + G.laneW - 14,
+      y: G.convY,
+      bad: bad,
+      speed: G.partSpeed + Math.random()*0.6 + (G.predak.active?0.7:0)
+    });
   }
-
-  // move + catch parts
-  for(let i=G.parts.length-1;i>=0;i--){
-    const p=G.parts[i];
-    p.x-=p.spd;
-    if(p.l===G.lane){
-      const pm=G.px+10;
-      if(p.x+6<pm+12&&p.x+6>pm-16){
-        if(!p.bad){ G.score+=10*G.level; G.hitAnim=18; }
-        else { G.lives--; G.flash=14; G.fCol=C.neonR+'aa'; }
-        G.parts.splice(i,1);
-        if(G.lives<=0){gameOver();return;}
-        continue;
+  
+  // move and catch parts
+  for(let i=G.parts.length-1; i>=0; i--) {
+    const p = G.parts[i];
+    p.x -= p.speed;
+    if(p.lane === G.playerLane && p.x+8 > G.playerX-4 && p.x+4 < G.playerX+24) {
+      if(!p.bad) {
+        G.score += 10 * G.level;
+        G.turbo = Math.min(100, G.turbo + 4);
+        G.hitAnim = 12;
+      } else {
+        G.lives--;
+        G.flash = 12;
+        G.turbo = Math.max(0, G.turbo - 15);
+        if(G.lives <= 0) { gameOver(); return; }
       }
+      G.parts.splice(i,1);
+      continue;
     }
-    if(p.x<G.lXs[p.l]-16){
-      if(!p.bad){ G.lives--; G.flash=10; G.fCol='#ff660088';
-        if(G.lives<=0){gameOver();return;} }
+    if(p.x < G.laneX[p.lane] - 20) {
+      if(!p.bad) { G.lives--; G.flash = 10; if(G.lives<=0) gameOver(); }
       G.parts.splice(i,1);
     }
   }
-
+  
   // level up
-  if(G.score>0&&G.score%(160*G.level)===0&&G.f%4===0&&!G.pred.on){
-    G.level++; G.pSpd=Math.min(G.pSpd+0.1,4); G.spRate=Math.max(24,G.spRate-3);
+  if(G.score > 0 && G.score % (180 * G.level) === 0 && G.frame%3===0 && !G.predak.active) {
+    G.level++;
+    G.partSpeed = Math.min(G.partSpeed + 0.12, 4.2);
+    G.spawnRate = Math.max(32, G.spawnRate - 3);
     layout();
   }
-
-  // ── Predak ──
-  if(!G.pred.on&&!G.nast.on&&G.f>150&&G.f%580===0){
-    G.pred.on=true; G.pred.t=300; G.pred.x=NW+20; G.pred.dir=-1; G.pred.bub=220;
-    G.pSpd=Math.min(G.pSpd+0.9,8);
-    const nn=Math.min(G.numL+1,5); if(nn!==G.numL){G.numL=nn;layout();}
+  
+  // Predak (speed up event)
+  if(!G.predak.active && !G.nastav.active && G.frame>200 && G.frame%580===0) {
+    G.predak.active = true;
+    G.predak.timer = 280;
+    G.predak.x = NW+20;
+    G.predak.dir = -1;
+    G.predak.bubble = 180;
+    G.partSpeed = Math.min(G.partSpeed + 1.0, 7.5);
+    const newLanes = Math.min(G.numLanes+1, 5);
+    if(newLanes !== G.numLanes) { G.numLanes = newLanes; layout(); }
   }
-  if(G.pred.on){
-    G.pred.f++; G.pred.x+=G.pred.dir*1.4; G.pred.t--;
-    G.pred.bub=Math.max(0,G.pred.bub-1);
-    if(G.pred.x<18&&G.pred.dir<0) G.pred.dir=1;
-    if(G.pred.x>NW-28&&G.pred.dir>0) G.pred.dir=-1;
-    if(G.pred.t<=0){G.pred.on=false; G.pSpd=Math.max(G.pSpd-0.5,1.2+G.level*0.08);}
+  if(G.predak.active) {
+    G.predak.frame++;
+    G.predak.x += G.predak.dir * 1.5;
+    G.predak.bubble--;
+    if(G.predak.x < 25 && G.predak.dir < 0) G.predak.dir = 1;
+    if(G.predak.x > NW-45 && G.predak.dir > 0) G.predak.dir = -1;
+    G.predak.timer--;
+    if(G.predak.timer <= 0) {
+      G.predak.active = false;
+      G.partSpeed = Math.max(G.partSpeed - 0.7, 1.4 + G.level*0.08);
+    }
   }
-
-  // ── Nastavovac ──
-  if(!G.nast.on&&!G.pred.on&&G.f>250&&G.f%750===0){
-    G.nast.on=true; G.nast.t=200; G.nast.x=-20; G.nast.stop=false; G.nast.bub=170;
+  
+  // Nastavovac (stops parts)
+  if(!G.nastav.active && !G.predak.active && G.frame>300 && G.frame%720===0) {
+    G.nastav.active = true;
+    G.nastav.timer = 180;
+    G.nastav.x = -25;
+    G.nastav.stopped = false;
+    G.nastav.bubble = 150;
   }
-  if(G.nast.on){
-    G.nast.f++; G.nast.bub=Math.max(0,G.nast.bub-1);
-    if(!G.nast.stop){G.nast.x+=1.2; if(G.nast.x>NW*0.35) G.nast.stop=true;}
-    G.nast.t--;
-    if(G.nast.t<=0){G.nast.on=false;}
-  } else if(G.nast.x>-20&&G.nast.x<NW+20){G.nast.x+=1.5;G.nast.f++;}
-
-  // ── Skladnik ──
-  G.skl.t--;
-  if(G.skl.t<=0&&!G.skl.on){G.skl.on=true;G.skl.x=NW+60;G.skl.f=0;G.skl.t=550+~~(Math.random()*400);}
-  if(G.skl.on){G.skl.x-=1.1;G.skl.f++;if(G.skl.x<-80)G.skl.on=false;}
-
-  if(G.flash>0)G.flash--;
+  if(G.nastav.active) {
+    G.nastav.frame++;
+    G.nastav.bubble--;
+    if(!G.nastav.stopped) {
+      G.nastav.x += 1.2;
+      if(G.nastav.x > NW*0.3) G.nastav.stopped = true;
+    }
+    G.nastav.timer--;
+    if(G.nastav.timer <= 0) G.nastav.active = false;
+  } else if(G.nastav.x > -30 && G.nastav.x < NW+30) {
+    G.nastav.x += 1.3;
+    G.nastav.frame++;
+  }
+  
+  // Skladnik (cart)
+  G.skladnik.timer--;
+  if(G.skladnik.timer <= 0 && !G.skladnik.active) {
+    G.skladnik.active = true;
+    G.skladnik.x = NW+40;
+    G.skladnik.frame = 0;
+    G.skladnik.timer = 450 + Math.floor(Math.random()*350);
+  }
+  if(G.skladnik.active) {
+    G.skladnik.x -= 1.0;
+    G.skladnik.frame++;
+    if(G.skladnik.x < -60) G.skladnik.active = false;
+  }
+  
+  if(G.flash > 0) G.flash--;
+  if(G.hitAnim > 0) G.hitAnim--;
+  
+  // turbo auto-use
+  if(G.turbo >= 80 && !G.predak.active && Math.random()<0.02) {
+    G.turbo -= 35;
+    G.flash = 8;
+  }
 }
 
-function gameOver(){G.run=false;G.sc='over';G.majQ=QUOTES[~~(Math.random()*QUOTES.length)];}
+// ═══════════════════════════════════════════════════════════════════════
+//  DRAW
+// ═══════════════════════════════════════════════════════════════════════
+function draw() {
+  drawPCRBackground(G.frame);
+  
+  // Machines and conveyors
+  for(let i=0;i<G.numLanes;i++) {
+    drawMachine(G.laneX[i]-4, G.laneY-38, G.laneW+8, 52, i===G.playerLane, G.frame);
+    drawConveyor(G.laneX[i]-2, G.convY, G.laneW+4, G.frame);
+  }
+  
+  // Parts
+  for(let p of G.parts) {
+    drawSprite(p.bad ? PART_BAD : PART_GOOD, ~~p.x, p.y);
+  }
+  
+  // Skladnik with cart
+  if(G.skladnik.active) {
+    const sy = G.floorY - 8;
+    px(G.skladnik.x+8, sy-6, 28, 8, '#3a3c5a');
+    for(let bi=0;bi<4;bi++) px(G.skladnik.x+10+bi*8, sy-12, 6, 6, ['#c33','#3a8','#ea0','#5ac'][bi]);
+    drawChar(SPR_SKLADNIK, G.skladnik.x, sy-20, G.skladnik.frame);
+  }
+  
+  // Player
+  drawChar(G.char==='m'?SPR_MALE:SPR_FEMALE, ~~G.playerX, G.floorY-28, G.frame);
+  if(G.hitAnim>0) { b.globalAlpha=0.5; px(G.playerX-4, G.floorY-32, 28, 40, C.neonCyan); b.globalAlpha=1; }
+  
+  // Predak
+  if(G.predak.active) {
+    drawChar(SPR_PREDAK, ~~G.predak.x, G.floorY-28, G.predak.frame, G.predak.dir>0);
+    if(G.predak.bubble>0) {
+      px(G.predak.x+6, G.floorY-44, 48, 22, '#0a0a1a');
+      ft('TAKE BOTH', G.predak.x+10, G.floorY-36, C.neonCyan, 5);
+      ft('PRESS!', G.predak.x+14, G.floorY-28, C.neonCyan, 5);
+    }
+  }
+  
+  // Nastavovac
+  if(G.nastav.active || (G.nastav.x>-30 && G.nastav.x<NW+30)) {
+    drawChar(SPR_NAST, ~~G.nastav.x, G.floorY-28, G.nastav.frame);
+    if(G.nastav.bubble>0 && G.nastav.active) {
+      px(G.nastav.x+10, G.floorY-44, 48, 22, '#0a0a1a');
+      ft('FORM ERROR', G.nastav.x+14, G.floorY-36, C.neonPink, 5);
+    }
+  }
+  
+  // Flash effect
+  if(G.flash>0) {
+    b.globalAlpha = G.flash/12;
+    px(0,0,NW,NH, G.flash>8?'#ff8844':'#ff2222');
+    b.globalAlpha=1;
+  }
+  
+  // PCR DASHBOARD (always on top)
+  const speedVal = G.partSpeed * 1.8 + (G.predak.active?2.5:0);
+  drawPCRDashboard(G.score, speedVal, G.level, G.lives, G.turbo);
+  
+  // small combo text
+  if(G.hitAnim>6) ft('+'+10*G.level, G.playerX+18, G.floorY-38, C.digitOn, 5);
+  
+  // scanlines (PCR effect)
+  b.globalAlpha=0.07;
+  for(let sy=0; sy<NH; sy+=3) px(0,sy,NW,1,'#000');
+  b.globalAlpha=1;
+}
 
-// ───────────────────────────────────────────────────────
-//  RENDER
-// ───────────────────────────────────────────────────────
-function render(){
+// ═══════════════════════════════════════════════════════════════════════
+//  MENU SCREEN
+// ═══════════════════════════════════════════════════════════════════════
+function drawMenu() {
+  drawPCRBackground(G.frame);
+  b.globalAlpha=0.7; px(0,0,NW,NH,C.dashBg); b.globalAlpha=1;
+  
+  // PCR title
+  ft('LISOVNA', NW/2, 38, C.sideAccent, 12, 'center');
+  ft('FACTORY PRESS', NW/2, 58, C.neonCyan, 6, 'center');
+  
+  // character select
+  panelRect(28, 74, 184, 70, C.dashPanel);
+  ft('SELECT WORKER', NW/2, 86, C.uiDim, 5, 'center');
+  const charX = [NW/2-40, NW/2+12];
+  for(let i=0;i<2;i++) {
+    const g = i===0?'m':'f';
+    const sel = G.char===g;
+    px(charX[i], 98, 28, 40, sel?C.sideAccent:C.dashLight);
+    drawChar(g==='m'?SPR_MALE:SPR_FEMALE, charX[i]+2, 100, G.frame);
+    if(sel) px(charX[i], 98, 28, 2, C.neonCyan);
+    ft(g==='m'?'MALE':'FEMALE', charX[i]+4, 142, sel?C.digitOn:C.uiDim, 4);
+  }
+  
+  // start button (PCR style)
+  panelRect(60, 170, 120, 28, C.sideAccent);
+  ft('START', NW/2, 190, C.dashBg, 8, 'center');
+  ft('TAP TO PLAY', NW/2, 222, C.uiDim, 4, 'center');
+  ft('←  →  OR SWIPE', NW/2, 238, C.uiDim, 4, 'center');
+}
+
+function drawGameOver() {
+  drawPCRBackground(G.frame);
+  b.globalAlpha=0.85; px(0,0,NW,NH,'#0a0a1a'); b.globalAlpha=1;
+  ft('GAME OVER', NW/2, 70, C.gaugeNeedle, 10, 'center');
+  drawChar(SPR_NAST, NW/2-18, 90, G.frame);
+  ft('SCORE '+Math.floor(G.score), NW/2, 170, C.digitOn, 7, 'center');
+  ft('LEVEL '+G.level, NW/2, 200, C.neonCyan, 6, 'center');
+  panelRect(50, 230, 140, 28, C.sideAccent);
+  ft('RESTART', NW/2, 250, C.dashBg, 6, 'center');
+  ft('MENU', NW/2, 280, C.uiDim, 5, 'center');
+}
+
+// ═══════════════════════════════════════════════════════════════════════
+//  RENDER & INPUT
+// ═══════════════════════════════════════════════════════════════════════
+function render() {
   b.clearRect(0,0,NW,NH);
-  if(G.sc==='menu') drawMenu();
-  else if(G.sc==='game') drawGame();
-  else drawOver();
+  if(G.scene === 'menu') drawMenu();
+  else if(G.scene === 'game') draw();
+  else drawGameOver();
   cx.clearRect(0,0,cv.width,cv.height);
-  cx.imageSmoothingEnabled=false;
   cx.drawImage(buf,0,0,cv.width,cv.height);
 }
 
-let raf2=null;
-function loop(){
-  if(G.run) update();
-  else if(G.sc==='menu'||G.sc==='over') G.f++;
-  bgOff+=G.run?0:0.3;
+let animId = null;
+function loop() {
+  if(G.running) update();
+  else G.frame++;
   render();
-  raf2=requestAnimationFrame(loop);
+  animId = requestAnimationFrame(loop);
 }
 
-// ───────────────────────────────────────────────────────
-//  GAME FLOW
-// ───────────────────────────────────────────────────────
-function startGame(){
-  G.sc='game'; G.run=true;
-  G.score=0;G.lives=3;G.level=1;G.f=0;
-  G.pSpd=1.2;G.spRate=60;G.parts=[];G.spTimer=0;G.lane=1;
-  G.pred.on=false;G.nast.on=false;G.skl.on=false;
-  G.skl.t=350;G.nast.x=-20;G.pred.x=NW+20;
-  G.flash=0;G.hitAnim=0;
-  layout();
-  G.px=G.lXs[G.lane]+G.mw/2-5;
-}
+// Controls
+function moveLeft() { if(G.scene==='game' && G.playerLane>0) G.playerLane--; }
+function moveRight() { if(G.scene==='game' && G.playerLane<G.numLanes-1) G.playerLane++; }
 
-// ───────────────────────────────────────────────────────
-//  INPUT
-// ───────────────────────────────────────────────────────
-let lh=false,rh=false,mi=null;
-function mL(){if(G.sc!=='game')return;if(G.lane>0)G.lane--;}
-function mR(){if(G.sc!=='game')return;if(G.lane<G.numL-1)G.lane++;}
-function stL(e){if(e&&e.cancelable)e.preventDefault();mL();clearInterval(mi);mi=setInterval(()=>{if(lh)mL();},130);lh=true;}
-function spL(){lh=false;clearInterval(mi);}
-function stR(e){if(e&&e.cancelable)e.preventDefault();mR();clearInterval(mi);mi=setInterval(()=>{if(rh)mR();},130);rh=true;}
-function spR(){rh=false;clearInterval(mi);}
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowLeft'){e.preventDefault();mL();}
-  if(e.key==='ArrowRight'){e.preventDefault();mR();}
-  if(e.key==='Enter'||e.key===' '){
-    if(G.sc==='menu') startGame();
-    else if(G.sc==='over') startGame();
-  }
-});
-
-cv.addEventListener('pointerdown',e=>{
-  e.preventDefault();
-  const r2=cv.getBoundingClientRect();
-  const nx=(e.clientX-r2.left)/r2.width*NW;
-  const ny=(e.clientY-r2.top)/r2.height*NH;
-
-  if(G.sc==='menu'){
-    // char cards
-    const cw=48,ch=62,gap=8,total=2*cw+gap,cx1=NW/2-total/2,cx2=cx1+cw+gap,cy=57;
-    if(ny>cy&&ny<cy+ch){
-      if(nx>cx1&&nx<cx1+cw) G.char='m';
-      else if(nx>cx2&&nx<cx2+cw) G.char='f';
+cv.addEventListener('click', (e) => {
+  const rect = cv.getBoundingClientRect();
+  const nx = (e.clientX - rect.left) / rect.width * NW;
+  const ny = (e.clientY - rect.top) / rect.height * NH;
+  if(G.scene === 'menu') {
+    // char select
+    if(ny>98 && ny<138) {
+      if(nx>NW/2-44 && nx<NW/2-16) G.char='m';
+      if(nx>NW/2+8 && nx<NW/2+36) G.char='f';
     }
-    // play btn
-    const by2=cy+ch+6;
-    if(ny>by2&&ny<by2+16) startGame();
-  } else if(G.sc==='game'){
-    if(ny>NH-12){ nx<NW/2?mL():mR(); return; }
-    nx<NW/2?mL():mR();
-  } else if(G.sc==='over'){
-    if(ny>156&&ny<170){
-      if(nx<NW/2){ G.sc='menu'; G.run=false; }
-      else startGame();
-    }
+    // start button area
+    if(ny>170 && ny<198) startGame();
+  } else if(G.scene === 'over') {
+    if(ny>230 && ny<258) startGame();
+    else if(ny>270 && ny<290) { G.scene='menu'; G.running=false; }
+  } else if(G.scene === 'game') {
+    if(ny > NH-50) nx<NW/2 ? moveLeft() : moveRight();
+    else nx<NW/2 ? moveLeft() : moveRight();
   }
 });
 
-cv.addEventListener('touchstart',e=>{
+// touch and keyboard
+cv.addEventListener('touchstart', (e) => {
   e.preventDefault();
-  const r2=cv.getBoundingClientRect();
-  const nx=(e.touches[0].clientX-r2.left)/r2.width*NW;
-  const ny=(e.touches[0].clientY-r2.top)/r2.height*NH;
-  if(G.sc==='game'){
-    if(ny>NH-12){ if(nx<NW/2)stL(e);else stR(e);}
-    else{nx<NW/2?mL():mR();}
-  } else {
-    // trigger pointerdown logic
+  const rect = cv.getBoundingClientRect();
+  const nx = (e.touches[0].clientX - rect.left) / rect.width * NW;
+  const ny = (e.touches[0].clientY - rect.top) / rect.height * NH;
+  if(G.scene === 'game') {
+    if(ny > NH-50) nx<NW/2 ? moveLeft() : moveRight();
+    else nx<NW/2 ? moveLeft() : moveRight();
   }
-},{passive:false});
-cv.addEventListener('touchend',()=>{spL();spR();},{passive:true});
+}, {passive:false});
 
-// ───────────────────────────────────────────────────────
-//  START
-// ───────────────────────────────────────────────────────
-window.addEventListener('load',()=>{
-  layout();
-  loop();
+document.addEventListener('keydown', (e) => {
+  if(e.key === 'ArrowLeft') { e.preventDefault(); moveLeft(); }
+  if(e.key === 'ArrowRight') { e.preventDefault(); moveRight(); }
+  if(e.key === 'Enter' && G.scene !== 'game') startGame();
 });
+
+layout();
+loop();
 </script>
 </body>
 </html>
+```
