@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html>
+<!DOCTYPE html><html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISOVNA PCR</title>
+<title>LISOVNA PCR FULL+</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#04060f;overflow:hidden}
@@ -12,218 +11,69 @@ canvas{display:block;image-rendering:pixelated}
 </head>
 <body>
 <canvas id="c"></canvas>
-<script>
+<script>// ───────── BASE ENGINE (СОХРАНЁН + РАСШИРЕН) const cv=document.getElementById('c'); const ctx=cv.getContext('2d'); let PX=4,GW,GH;
 
-const cv = document.getElementById('c');
-const ctx = cv.getContext('2d');
+function resize(){ cv.width=innerWidth; cv.height=innerHeight; PX=Math.max(3,Math.floor(cv.width/90)); GW=Math.ceil(cv.width/PX); GH=Math.ceil(cv.height/PX); ctx.imageSmoothingEnabled=false; } resize();onresize=resize;
 
-let PX = 4;
-let GW, GH;
+// ───────── DRAW HELPERS function gfx(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(xPX,yPX,wPX,hPX)} function gtxt(t,x,y,c,s=2,a='left'){ ctx.font=${s*PX}px 'Press Start 2P', monospace; ctx.fillStyle=c;ctx.textAlign=a; ctx.fillText(t,xPX,yPX); ctx.textAlign='left'; } function gbtn(x,y,w,h,t,c){ gfx(x,y,w,h,'#12152e'); gfx(x,y,w,1,c);gfx(x,y,1,h,c); gfx(x,y+h-1,w,1,'#000');gfx(x+w-1,y,1,h,'#000'); gtxt(t,x+w/2,y+h/2+1,c,2,'center'); }
 
-function resize(){
-  cv.width = window.innerWidth;
-  cv.height = window.innerHeight;
-  PX = Math.max(3, Math.floor(cv.width / 80));
-  GW = Math.ceil(cv.width / PX);
-  GH = Math.ceil(cv.height / PX);
-  ctx.imageSmoothingEnabled = false;
-}
-resize();
-window.addEventListener('resize', resize);
+// ───────── PIXEL SPRITES (PCR STYLE) const PAL={ 'S':'#e8ae6e','H':'#1c0a04','T':'#2d2d2d','P':'#1e3a5f','Z':'#0d0d0d', 'B':'#000','W':'#fff','R':'#ff2a2a','G':'#00ff88' };
 
-// ───────── HELPERS
-function gfx(x,y,w,h,c){
-  ctx.fillStyle=c;
-  ctx.fillRect(x*PX,y*PX,w*PX,h*PX);
-}
-function gtxt(t,x,y,c,s=2,align='left'){
-  ctx.font=`${s*PX}px 'Press Start 2P', monospace`;
-  ctx.fillStyle=c;
-  ctx.textAlign=align;
-  ctx.fillText(t,x*PX,y*PX);
-  ctx.textAlign='left';
-}
+const PLAYER=[ '.HHHHHH....', '.H.SSSH....', '.SSSSSS....', '.S.SS.S....', '.SSSSSS....', 'STTTTTS....', 'STTTTTS....', 'STTTTTS....', '.PP.PP.....', '.PP.PP.....', '.ZZ.ZZ.....', '.ZZZ.ZZZ...' ];
 
-function gbtn(x,y,w,h,label,color){
-  gfx(x,y,w,h,'#12152e');
-  gfx(x,y,w,1,color);
-  gfx(x,y+h-1,w,1,'#000');
-  gfx(x,y,1,h,color);
-  gfx(x+w-1,y,1,h,'#000');
-  gtxt(label,x+w/2,y+h/2+1,color,2,'center');
-}
+const NPC_PREDAK=[ '.AAAAAA....', '.ASSSSA....', '.SSSSS.....', '.S.SS.S....', '.SSSSS.....', 'SOOOOOS....', '.OOOOO.....' ];
 
-function gtitle(text){
-  for(let i=0;i<6;i++){
-    const t=i/6;
-    const r=232+t*23;
-    const g=93+t*90;
-    ctx.fillStyle=`rgb(${r},${g},3)`;
-    ctx.fillRect(0,i*PX,cv.width,PX);
-  }
-  gtxt(text,GW/2,4,'#0a0c1e',3,'center');
-}
+function spr(data,x,y){ data.forEach((r,ry)=>{ [...r].forEach((c,rx)=>{ if(PAL[c]){ ctx.fillStyle=PAL[c]; ctx.fillRect((x+rx)*PX,(y+ry)*PX,PX,PX); } }); }); }
 
-// ───────── PLAYER (ТЁМНО-СЕРАЯ ФУТБОЛКА)
-const PLAYER = [
-'.HHHHHH....',
-'.H.SSSH....',
-'.SSSSSS....',
-'.S.SS.S....',
-'.SSSSSS....',
-'STTTTTS....',
-'STTTTTS....',
-'STTTTTS....',
-'.PP.PP.....',
-'.PP.PP.....',
-'.ZZ.ZZ.....',
-'.ZZZ.ZZZ...'
-];
+// ───────── GAME STATE const G={ sc:'garage', lane:1, parts:[], money:0, level:1, lives:3, f:0, upgrades:{speed:1,quality:1}, npc:{x:GW,active:false} };
 
-const PAL={
-'S':'#e8ae6e',
-'H':'#1c0a04',
-'T':'#2d2d2d', // ТЁМНО-СЕРАЯ ФУТБОЛКА
-'P':'#1e3a5f',
-'Z':'#0d0d0d'
-};
+// ───────── GARAGE function drawGarage(){ gfx(0,0,GW,GH,'#04060f');
 
-function spr(data,x,y){
-  data.forEach((r,ry)=>{
-    [...r].forEach((c,rx)=>{
-      if(PAL[c]){
-        ctx.fillStyle=PAL[c];
-        ctx.fillRect((x+rx)*PX,(y+ry)*PX,PX,PX);
-      }
-    });
-  });
-}
+// title for(let i=0;i<6;i++){ ctx.fillStyle=rgb(${232+i*5},${93+i*10},3); ctx.fillRect(0,i*PX,cv.width,PX); } gtxt('LISOVNA',GW/2,4,'#0a0c1e',3,'center');
 
-// ───────── GAME STATE
-const G={
-  sc:'garage',
-  lane:1,
-  parts:[],
-  money:0,
-  level:1,
-  lives:3,
-  f:0
-};
+// shelves for(let i=0;i<3;i++){ let y=12+i10; gfx(5,y,20,1,'#222'); for(let j=0;j<4;j++){ gfx(6+j4,y-3,3,3,['#ff595e','#ffca3a','#8ac926','#1982c4'][j]); } }
 
-// ───────── GARAGE (PCR STYLE)
-function drawGarage(){
-  gfx(0,0,GW,GH,'#04060f');
-  gtitle('LISOVNA');
+// machine gfx(GW/2-12,GH/2-3,24,6,'#000'); gfx(GW/2-12,GH/2-3,24,1,'#00e5ff');
 
-  // стена
-  gfx(0,6,GW,GH/2,'#0b0c1a');
+// reflection ctx.globalAlpha=0.2; gfx(GW/2-12,GH/2+4,24,3,'#00e5ff'); ctx.globalAlpha=1;
 
-  // полки
-  for(let i=0;i<3;i++){
-    let y=12+i*10;
-    gfx(5,y,20,1,'#222');
-    for(let j=0;j<4;j++){
-      gfx(6+j*4,y-3,3,3,['#ff595e','#ffca3a','#8ac926','#1982c4'][j]);
-    }
-  }
+// UI gbtn(GW-22,10,20,6,'START','#00e5ff'); gbtn(GW-22,18,20,6,'UPGR','#ffd60a');
 
-  // инструмент
-  for(let i=0;i<5;i++){
-    gfx(30+i*2,15,1,6,'#888');
-  }
+gtxt('$'+G.money,2,8,'#ffd60a'); }
 
-  // свет
-  ctx.globalAlpha=0.2;
-  gfx(GW/2-10,8,20,8,'#ffffaa');
-  ctx.globalAlpha=1;
+// ───────── GAME function spawn(){ G.parts.push({x:GW,y:20+Math.random()*20,bad:Math.random()<0.3}); }
 
-  // станок (как машина)
-  gfx(GW/2-12,GH/2-3,24,6,'#000');
-  gfx(GW/2-12,GH/2-3,24,1,'#00e5ff');
+function update(){ G.f++; if(G.f%40===0) spawn();
 
-  // отражение
-  ctx.globalAlpha=0.2;
-  gfx(GW/2-12,GH/2+4,24,3,'#00e5ff');
-  ctx.globalAlpha=1;
+// NPC spawn if(G.f%600===0){G.npc.active=true;G.npc.x=GW;}
 
-  // кнопки
-  gbtn(GW-22,10,20,6,'START','#00e5ff');
-  gbtn(GW-22,18,20,6,'UPGRADE','#ffd60a');
-  gbtn(GW-22,26,20,6,'CUSTOM','#00b4d8');
+if(G.npc.active){ G.npc.x-=0.5; if(G.npc.x<0) G.npc.active=false; }
 
-  gtxt('$'+G.money,2,8,'#ffd60a',2);
-}
+G.parts.forEach(p=>p.x-=1.5+G.upgrades.speed*0.5);
 
-// ───────── GAME
-function spawn(){
-  G.parts.push({
-    x:GW,
-    y:20+Math.random()*20,
-    bad:Math.random()<0.3
-  });
-}
+G.parts=G.parts.filter(p=>{ if(p.x<10){ if(!p.bad){G.lives--;} return false; } return true; });
 
-function updateGame(){
-  G.f++;
+if(G.lives<=0) G.sc='garage'; }
 
-  if(G.f%40===0) spawn();
+function drawGame(){ gfx(0,0,GW,GH,'#04060f');
 
-  G.parts.forEach(p=>p.x-=1.5);
+// conveyor for(let i=0;i<3;i++) gfx(0,20+i*10,GW,1,'#333');
 
-  G.parts = G.parts.filter(p=>{
-    if(p.x<10){
-      if(!p.bad) G.lives--;
-      return false;
-    }
-    return true;
-  });
-}
+// player spr(PLAYER,5,20+G.lane*10);
 
-function drawGame(){
-  gfx(0,0,GW,GH,'#04060f');
+// npc if(G.npc.active) spr(NPC_PREDAK,G.npc.x,10);
 
-  // линии
-  for(let i=0;i<3;i++){
-    gfx(0,20+i*10,GW,1,'#333');
-  }
+// parts G.parts.forEach(p=>{ gfx(p.x,p.y,3,3,p.bad?'#ff0033':'#00ff88'); });
 
-  // игрок
-  spr(PLAYER,5,20+G.lane*10);
+// effects (flash) if(G.f%20<5){ctx.globalAlpha=0.1;gfx(0,0,GW,GH,'#ffffff');ctx.globalAlpha=1;}
 
-  // детали
-  G.parts.forEach(p=>{
-    gfx(p.x,p.y,3,3,p.bad?'#ff0033':'#00ff88');
-  });
+gtxt('$'+G.money,2,5,'#fff'); gtxt('HP:'+G.lives,2,8,'#ff2a2a'); }
 
-  gtxt('$'+G.money,2,5,'#fff',2);
-}
+// ───────── INPUT cv.addEventListener('pointerdown',e=>{ const x=e.clientX/PX; if(G.sc==='garage'){ if(x>GW-22) G.sc='game'; } else G.sc='garage'; });
 
-// ───────── INPUT
-cv.addEventListener('pointerdown',e=>{
-  const x=e.clientX/PX;
+document.addEventListener('keydown',e=>{ if(e.key==='ArrowUp') G.lane=Math.max(0,G.lane-1); if(e.key==='ArrowDown') G.lane=Math.min(2,G.lane+1); });
 
-  if(G.sc==='garage'){
-    if(x>GW-22) G.sc='game';
-  } else {
-    G.sc='garage';
-  }
-});
-
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowUp') G.lane=Math.max(0,G.lane-1);
-  if(e.key==='ArrowDown') G.lane=Math.min(2,G.lane+1);
-});
-
-// ───────── LOOP
-function loop(){
-  ctx.clearRect(0,0,cv.width,cv.height);
-
-  if(G.sc==='garage') drawGarage();
-  if(G.sc==='game'){ updateGame(); drawGame(); }
-
-  requestAnimationFrame(loop);
-}
-loop();
+// ───────── LOOP function loop(){ ctx.clearRect(0,0,cv.width,cv.height); if(G.sc==='garage') drawGarage(); if(G.sc==='game'){update();drawGame();} requestAnimationFrame(loop); } loop();
 
 </script>
 </body>
