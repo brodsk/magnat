@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISOVNA PCR FIX</title>
+<title>LISOVNA PCR - с анимациями и звуком</title>
 <style>
 body{margin:0;background:#04060f;overflow:hidden}
 canvas{display:block;image-rendering:pixelated}
@@ -13,230 +13,328 @@ canvas{display:block;image-rendering:pixelated}
 <canvas id="c"></canvas>
 <script>
 
-const cv=document.getElementById('c');
-const ctx=cv.getContext('2d');
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
 
-let PX=4,GW=0,GH=0;
+let PX = 4, GW = 0, GH = 0;
 
-function resize(){
-  cv.width=window.innerWidth;
-  cv.height=window.innerHeight;
-
-  PX=Math.max(3,Math.floor(cv.width/90));
-  GW=Math.floor(cv.width/PX);
-  GH=Math.floor(cv.height/PX);
-
-  ctx.imageSmoothingEnabled=false;
-
-  // безопасный апдейт npc
-  if(G.npc) G.npc.x = GW;
+function resize() {
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  PX = Math.max(3, Math.floor(cv.width / 90));
+  GW = Math.floor(cv.width / PX);
+  GH = Math.floor(cv.height / PX);
+  ctx.imageSmoothingEnabled = false;
 }
 resize();
 window.addEventListener('resize', resize);
 
-// ───────── DRAW
-function gfx(x,y,w,h,c){
-  if(isNaN(x)||isNaN(y)) return;
-  ctx.fillStyle=c;
-  ctx.fillRect(x*PX,y*PX,w*PX,h*PX);
+// ───────── AUDIO SYSTEM (Web Audio API — ретро 8-bit sounds)
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+const audioCtx = new (AudioContext || window.webkitAudioContext)();
+
+function playTone(freq, duration, type = 'square', volume = 0.3, sweep = 0) {
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+  if (sweep) osc.frequency.exponentialRampToValueAtTime(freq * sweep, audioCtx.currentTime + duration);
+  gain.gain.value = volume;
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
 }
 
-function gtxt(t,x,y,c,s=2,a='left'){
-  ctx.font=(s*PX)+'px monospace';
-  ctx.fillStyle=c;
-  ctx.textAlign=a;
-  ctx.fillText(t,x*PX,y*PX);
-  ctx.textAlign='left';
+function playCollect() { // хорошая деталь
+  playTone(800, 0.05, 'sine', 0.4);
+  setTimeout(() => playTone(1200, 0.05, 'sine', 0.4), 50);
+  setTimeout(() => playTone(1600, 0.12, 'sine', 0.35), 100);
 }
 
-function gbtn(x,y,w,h,t,c){
-  gfx(x,y,w,h,'#12152e');
-  gfx(x,y,w,1,c);
-  gfx(x,y,1,h,c);
-  gfx(x,y+h-1,w,1,'#000');
-  gfx(x+w-1,y,1,h,'#000');
-  gtxt(t,x+w/2,y+h/2+1,c,2,'center');
+function playBadHit() { // плохая деталь
+  playTone(180, 0.15, 'sawtooth', 0.6);
+  playTone(80, 0.25, 'square', 0.4);
 }
 
-// ───────── SPRITES
-const PAL={
- 'S':'#e8ae6e','H':'#1c0a04','T':'#2d2d2d',
- 'P':'#1e3a5f','Z':'#0d0d0d','A':'#888'
+function playCrash() { // NPC столкновение
+  playTone(120, 0.4, 'sawtooth', 0.7, 0.3);
+  playTone(60, 0.5, 'square', 0.5);
+}
+
+function playButton() {
+  playTone(600, 0.03, 'square', 0.3);
+  setTimeout(() => playTone(900, 0.05, 'square', 0.25), 30);
+}
+
+function playGameOver() {
+  playTone(600, 0.2, 'square', 0.4);
+  setTimeout(() => playTone(400, 0.2, 'square', 0.4), 200);
+  setTimeout(() => playTone(200, 0.6, 'sawtooth', 0.35), 400);
+}
+
+function playEngine() { // тихий гул конвейера
+  const noise = audioCtx.createBufferSource();
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * 2, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < buffer.length; i++) data[i] = Math.random() * 2 - 1;
+  noise.buffer = buffer;
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'lowpass';
+  filter.frequency.value = 180;
+  const gain = audioCtx.createGain();
+  gain.gain.value = 0.07;
+  noise.connect(filter).connect(gain).connect(audioCtx.destination);
+  noise.loop = true;
+  noise.start();
+  return {noise, gain};
+}
+
+// ───────── SPRITES (оставлены с предыдущей версии — 4 кадра игрока и т.д.)
+const PAL = {
+  'S':'#e8ae6e','H':'#1c0a04','T':'#2d2d2d','P':'#1e3a5f','Z':'#0d0d0d','A':'#888',
+  'E':'#ff0044','Q':'#00ff88','R':'#4488ff','D':'#ffaa00','X':'#555555'
 };
 
-const PLAYER=[
-'.HHHHHH....',
-'.H.SSSH....',
-'.SSSSSS....',
-'.S.SS.S....',
-'.SSSSSS....',
-'STTTTTS....',
-'STTTTTS....',
-'STTTTTS....',
-'.PP.PP.....',
-'.PP.PP.....',
-'.ZZ.ZZ.....',
-'.ZZZ.ZZZ...'
+const PLAYER = [ /* 4 кадра анимации — как в предыдущей версии */ 
+  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
+  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PPPPPP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.X.'],
+  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PPPPPP.....','.ZZ.ZZ.....','.ZZZ.ZZZ...'],
+  ['.HHHHHH....','.H.SSSH....','.SSSSSS....','.S.SS.S....','.SSSSSS....','STTTTTS....','STTTTTS....','STTTTTS....','.PP.PP.....','.PP.PP.....','.ZZ.ZZ.....','.ZZZ.ZZZ.XX']
 ];
 
-const NPC=[
-'.AAAAAA....',
-'.ASSSSA....',
-'.SSSSS.....',
-'.S.SS.S....',
-'.SSSSS.....',
-'.AAAAAA....'
+const NPC_SPR = [
+  ['.AAAAAA....','.ASSSSA....','.SSSSS.....','.S.SS.S....','.SSSSS.....','.EQQQRE....'],
+  ['.AAAAAA....','.ASSSSA....','.SSSSS.....','.S.SS.S....','.SSSSS.....','.ERRRQE....']
 ];
 
-function spr(data,x,y){
-  if(!data) return;
-  data.forEach((row,ry)=>{
-    [...row].forEach((c,rx)=>{
-      if(PAL[c]){
-        ctx.fillStyle=PAL[c];
-        ctx.fillRect((x+rx)*PX,(y+ry)*PX,PX,PX);
-      }
-    });
-  });
+const GOOD_PART = ['..QQQ..','.QQQQQ.','QQQQQQQ','.QQQQQ.','..QQQ..'];
+const BAD_PART  = ['..EEE..','.EEEEE.','EEEEEEE','.EEEEE.','..EEE..'];
+
+function drawSprite(frames, x, y, frame) {
+  const data = frames[frame % frames.length];
+  data.forEach((row, ry) => [...row].forEach((c, rx) => {
+    if (PAL[c]) {
+      ctx.fillStyle = PAL[c];
+      ctx.fillRect((x + rx) * PX, (y + ry) * PX, PX, PX);
+    }
+  }));
+}
+
+function drawPart(isBad, x, y, frame) {
+  const data = isBad ? BAD_PART : GOOD_PART;
+  ctx.globalAlpha = isBad ? 1 : (0.9 + Math.sin(frame / 4) * 0.1);
+  data.forEach((row, ry) => [...row].forEach((c, rx) => {
+    if (PAL[c]) {
+      ctx.fillStyle = PAL[c];
+      ctx.fillRect((x + rx) * PX, (y + ry) * PX, PX, PX);
+    }
+  }));
+  ctx.globalAlpha = 1;
 }
 
 // ───────── GAME STATE
-const G={
-  sc:'garage',
-  lane:1,
-  parts:[],
-  money:0,
-  lives:3,
-  f:0,
-  upgrades:{speed:1},
-  npc:{x:0,active:false}
+const G = {
+  sc: 'garage',
+  lane: 1,
+  parts: [],
+  money: 320,
+  lives: 3,
+  f: 0,
+  score: 0,
+  upgrades: { speed: 1, durability: 1 },
+  npc: { x: 0, active: false, lane: 0 },
+  playerFrame: 0,
+  engineSound: null
 };
 
 // ───────── GARAGE
-function drawGarage(){
+function drawGarage() {
   gfx(0,0,GW,GH,'#04060f');
-
-  // title
-  for(let i=0;i<6;i++){
-    ctx.fillStyle=`rgb(${232+i*5},${93+i*10},3)`;
+  for(let i=0;i<6;i++) {
+    ctx.fillStyle = `rgb(\( {232+i*5}, \){93+i*10},3)`;
     ctx.fillRect(0,i*PX,cv.width,PX);
   }
   gtxt('LISOVNA',GW/2,4,'#000',3,'center');
+  gtxt('PCR + SOUND',GW/2,8,'#ff0044',2,'center');
 
-  // shelves
   for(let i=0;i<3;i++){
     let y=12+i*10;
     gfx(5,y,20,1,'#222');
-    for(let j=0;j<4;j++){
-      gfx(6+j*4,y-3,3,3,['#ff595e','#ffca3a','#8ac926','#1982c4'][j]);
-    }
+    for(let j=0;j<4;j++) gfx(6+j*4,y-3,3,3,['#ff595e','#ffca3a','#8ac926','#1982c4'][j]);
   }
 
-  // machine
   gfx(GW/2-12,GH/2-3,24,6,'#000');
   gfx(GW/2-12,GH/2-3,24,1,'#00e5ff');
 
-  // buttons
   gbtn(GW-22,10,20,6,'START','#00e5ff');
   gbtn(GW-22,18,20,6,'UPGR','#ffd60a');
 
   gtxt('$'+G.money,2,8,'#ffd60a');
+  gtxt('SPD:'+G.upgrades.speed,2,13,'#00e5ff');
+  gtxt('DUR:'+G.upgrades.durability,2,18,'#ff2a2a');
+}
+
+function gfx(x,y,w,h,c){ ctx.fillStyle=c; ctx.fillRect(x*PX,y*PX,w*PX,h*PX); }
+function gtxt(t,x,y,c,s=2,a='left'){
+  ctx.font=(s*PX)+'px monospace';
+  ctx.fillStyle=c; ctx.textAlign=a;
+  ctx.fillText(t,x*PX,y*PX);
+  ctx.textAlign='left';
+}
+function gbtn(x,y,w,h,t,c){
+  gfx(x,y,w,h,'#12152e');
+  gfx(x,y,w,1,c); gfx(x,y,1,h,c);
+  gfx(x,y+h-1,w,1,'#000'); gfx(x+w-1,y,1,h,'#000');
+  gtxt(t,x+w/2,y+h/2+1,c,2,'center');
 }
 
 // ───────── GAME
-function spawn(){
-  G.parts.push({
-    x:GW,
-    y:20+Math.random()*20,
-    bad:Math.random()<0.3
-  });
+function spawnPart() {
+  const lane = Math.floor(Math.random()*3);
+  G.parts.push({x: GW+8, y:20+lane*10+1, bad: Math.random()<0.32, lane});
 }
 
-function update(){
+function spawnNPC() {
+  G.npc.active = true;
+  G.npc.lane = Math.floor(Math.random()*3);
+  G.npc.x = GW + 12;
+}
+
+function update() {
   G.f++;
+  G.score += 1 + Math.floor(G.upgrades.speed * 0.4);
 
-  if(G.f%40===0) spawn();
+  if(G.f % 32 === 0) spawnPart();
+  if(G.f % 480 === 0) spawnNPC();
 
-  // npc spawn
-  if(G.f%600===0){
-    G.npc.active=true;
-    G.npc.x=GW;
-  }
+  const speed = 1.7 + G.upgrades.speed * 0.65;
+  G.parts.forEach(p => p.x -= speed);
+  G.parts = G.parts.filter(p => p.x > -10);
 
   if(G.npc.active){
-    G.npc.x-=0.5;
-    if(G.npc.x<0) G.npc.active=false;
+    G.npc.x -= 1.3 + G.upgrades.speed * 0.25;
+    if(G.npc.x < -15) G.npc.active = false;
   }
 
-  G.parts.forEach(p=>{
-    p.x -= (1.5 + G.upgrades.speed*0.5);
-  });
+  G.playerFrame = Math.floor(G.f / 5) % 4;
 
-  G.parts = G.parts.filter(p=>{
-    if(p.x<10){
-      if(!p.bad) G.lives--;
+  // коллизии + звуки
+  const px = 5, py = 20 + G.lane*10 + 1;
+
+  G.parts = G.parts.filter(p => {
+    const dx = Math.abs(p.x - (px + 6));
+    const dy = Math.abs(p.y - py);
+    if(dx < 9 && dy < 8){
+      if(p.bad){
+        G.lives -= 1;
+        playBadHit();
+      } else {
+        G.money += 18 + G.upgrades.durability * 7;
+        playCollect();
+      }
       return false;
     }
     return true;
   });
 
-  if(G.lives<=0){
-    G.sc='garage';
-    G.lives=3;
+  if(G.npc.active){
+    const ny = 20 + G.npc.lane*10 + 1;
+    if(Math.abs(G.npc.x - (px+6)) < 13 && Math.abs(ny-py) < 9){
+      G.lives -= 2;
+      playCrash();
+      G.npc.active = false;
+    }
+  }
+
+  if(G.lives <= 0){
+    playGameOver();
+    G.sc = 'garage';
+    G.lives = 3;
+    G.parts = [];
+    G.npc.active = false;
+    if(G.engineSound) G.engineSound.gain.gain.value = 0;
   }
 }
 
-function drawGame(){
+function drawGame() {
   gfx(0,0,GW,GH,'#04060f');
 
-  // lines
+  // анимированный конвейер
   for(let i=0;i<3;i++){
     gfx(0,20+i*10,GW,1,'#333');
+    const offset = (G.f * 2) % 12;
+    for(let j=0;j<GW+12;j+=8){
+      gfx((j - offset) % (GW+12), 20+i*10+4, 3,1,'#666');
+    }
   }
 
-  spr(PLAYER,5,20+G.lane*10);
+  drawSprite(PLAYER, 5, 20 + G.lane*10, G.playerFrame);
 
   if(G.npc.active){
-    spr(NPC,G.npc.x,10);
+    const npcFrame = Math.floor(G.f / 8) % 2;
+    drawSprite(NPC_SPR, G.npc.x, 20 + G.npc.lane*10, npcFrame);
   }
 
-  G.parts.forEach(p=>{
-    gfx(p.x,p.y,3,3,p.bad?'#ff0033':'#00ff88');
-  });
+  G.parts.forEach(p => drawPart(p.bad, Math.floor(p.x), Math.floor(p.y), G.f));
 
-  // flash effect
-  if(G.f%20<5){
-    ctx.globalAlpha=0.1;
-    gfx(0,0,GW,GH,'#fff');
-    ctx.globalAlpha=1;
+  if(G.f % 16 < 3){
+    ctx.globalAlpha = 0.13;
+    gfx(0,0,GW,GH,'#00ffff');
+    ctx.globalAlpha = 1;
   }
 
-  gtxt('$'+G.money,2,5,'#fff');
-  gtxt('HP:'+G.lives,2,8,'#ff2a2a');
+  gtxt('$'+G.money,2,4,'#ffd60a',2);
+  gtxt('HP:'+G.lives,2,9,'#ff2a2a',2);
+  gtxt('SCORE:'+G.score,GW/2-10,4,'#ffffff',2);
 }
 
-// ───────── INPUT
-cv.addEventListener('pointerdown',e=>{
-  const x=e.clientX/PX;
+// ───────── INPUT + SOUND
+cv.addEventListener('pointerdown', e => {
+  const px = e.clientX / PX;
+  const py = e.clientY / PX;
 
-  if(G.sc==='garage'){
-    if(x>GW-22) G.sc='game';
+  if(G.sc === 'garage'){
+    if(px > GW-22 && px < GW-2){
+      if(py >10 && py <16){ // START
+        playButton();
+        G.sc = 'game';
+        G.parts = [];
+        G.score = 0;
+        G.f = 0;
+        G.lives = 3;
+        G.npc.active = false;
+        G.engineSound = playEngine();
+      }
+      if(py >18 && py <24){ // UPGR
+        playButton();
+        const costS = 90 * G.upgrades.speed;
+        const costD = 130 * G.upgrades.durability;
+        if(G.money >= costS){
+          G.money -= costS;
+          G.upgrades.speed++;
+        } else if(G.money >= costD){
+          G.money -= costD;
+          G.upgrades.durability++;
+        }
+      }
+    }
   } else {
-    G.sc='garage';
+    G.sc = 'garage';
+    if(G.engineSound) G.engineSound.gain.gain.value = 0;
   }
 });
 
-document.addEventListener('keydown',e=>{
-  if(e.key==='ArrowUp') G.lane=Math.max(0,G.lane-1);
-  if(e.key==='ArrowDown') G.lane=Math.min(2,G.lane+1);
+document.addEventListener('keydown', e => {
+  if(e.key === 'ArrowUp') G.lane = Math.max(0, G.lane-1);
+  if(e.key === 'ArrowDown') G.lane = Math.min(2, G.lane+1);
 });
 
 // ───────── LOOP
-function loop(){
+function loop() {
   ctx.clearRect(0,0,cv.width,cv.height);
 
-  if(G.sc==='garage') drawGarage();
-  if(G.sc==='game'){
+  if(G.sc === 'garage') drawGarage();
+  if(G.sc === 'game'){
     update();
     drawGame();
   }
