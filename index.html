@@ -2,68 +2,53 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISOVNA PCR</title>
+<title>LISOVNA PCR GARAGE</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-body{margin:0;background:#000;overflow:hidden}
+body{margin:0;background:#04060f;overflow:hidden}
 canvas{display:block;image-rendering:pixelated}
 </style>
 </head>
 <body>
 <canvas id="c"></canvas>
 <script>
-// ─────────────────────────────────────
-// FULL PCR-STYLE FACTORY GAME
-// garage + upgrades + gameplay
-// ─────────────────────────────────────const c = document.getElementById('c'); const ctx = c.getContext('2d'); let W,H; function resize(){W=c.width=innerWidth;H=c.height=innerHeight;ctx.imageSmoothingEnabled=false} resize();onresize=resize;
+const c=document.getElementById('c');
+const ctx=c.getContext('2d');
+let W,H;
+function resize(){W=c.width=innerWidth;H=c.height=innerHeight;ctx.imageSmoothingEnabled=false}
+resize();onresize=resize;// ───────── HELPERS function r(x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(x,y,w,h)} function txt(t,x,y,s=10,c='#fff',align='left'){ ctx.font=s+"px 'Press Start 2P'"; ctx.textAlign=align; ctx.fillStyle=c; ctx.fillText(t,x,y); ctx.textAlign='left'; }
 
-const G={ scene:'menu', money:0, level:1, upgrades:{speed:1,quality:1}, parts:[], lane:1, lanes:3, t:0, shiftTime:0 };
+function btn(x,y,w,h,label,color){ r(x,y,w,h,'#12152e'); r(x,y, w,2,color); r(x,y+h-2,w,2,'#000'); r(x,y,2,h,color); r(x+w-2,y,2,h,'#000'); txt(label,x+w/2,y+h/2+3,8,color,'center'); }
 
-// ───────── DRAW HELPERS function r(x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(x,y,w,h)} function txt(t,x,y,s=16,col='#fff'){ctx.fillStyle=col;ctx.font=s+'px monospace';ctx.fillText(t,x,y)} function btn(x,y,w,h,label){ r(x,y,w,h,'#111'); r(x,y,w,2,'#555'); txt(label,x+10,y+h/2+5,14,'#0ff'); }
+function titleBar(){ for(let i=0;i<30;i++){ ctx.fillStyle=rgb(${232+i*2},${93+i*3},3); ctx.fillRect(0,i,W,1); } txt('LISOVNA',W/2,20,12,'#0a0c1e','center'); }
 
-// ───────── MENU function drawMenu(){ r(0,0,W,H,'#050510'); txt('LISOVNA RACER',W/2-120,H/3,30,'#ff8800'); btn(W/2-100,H/2,200,50,'ENTER GARAGE'); }
+// ───────── GAME STATE const G={scene:'garage',money:1200,level:3};
 
-// ───────── GARAGE (PCR STYLE) function drawGarage(){ r(0,0,W,H,'#0a0a14'); // floor r(0,H/2,W,H/2,'#111');
+// ───────── GARAGE FULL PCR STYLE function drawGarage(){ r(0,0,W,H,'#0a0b18'); titleBar();
 
-// machine (car analog) r(W/2-100,H/2-20,200,40,'#222'); r(W/2-100,H/2-20,200,5,'#0ff');
+// back wall r(0,30,W,H/2,'#0b0c1a');
 
-txt('MACHINE LVL '+G.level,20,40,18,'#0ff'); txt('$ '+G.money,20,70,18,'#0f0');
+// shelves for(let i=0;i<4;i++){ let y=80+i*60; r(50,y,200,6,'#222');
 
-btn(W-220,100,200,50,'START SHIFT'); btn(W-220,170,200,50,'UPGRADE'); }
+// boxes/tools for(let j=0;j<4;j++){ r(60+j*45,y-20,20,20,['#ff595e','#ffca3a','#8ac926','#1982c4'][j%4]); } }
 
-// ───────── GAME function spawnPart(){ G.parts.push({x:W,y:H/2+20+Math.random()*100,bad:Math.random()<0.3}); }
+// tool rack for(let i=0;i<6;i++){ r(300+i*20,120,4,30,'#888'); }
 
-function drawGame(){ r(0,0,W,H,'#000');
+// hanging light glow ctx.globalAlpha=0.2; r(W/2-100,60,200,100,'#ffffaa'); ctx.globalAlpha=1;
 
-// player r(100,H/2+50+G.lane*60,30,30,'#0ff');
+// machine (centerpiece like car) r(W/2-120,H/2-20,240,40,'#000'); r(W/2-120,H/2-20,240,5,'#00e5ff');
 
-G.parts.forEach(p=>{ r(p.x,p.y,20,20,p.bad?'#f00':'#0f0'); });
+// reflection ctx.globalAlpha=0.2; r(W/2-120,H/2+25,240,20,'#00e5ff'); ctx.globalAlpha=1;
 
-txt('$ '+G.money,20,30,20,'#fff'); }
+// floor r(0,H/2,W,H/2,'#0f1022');
 
-function updateGame(){ G.t++; G.shiftTime++;
+// floor shine lines for(let i=0;i<10;i++){ r(0,H/2+i*20,W,1,'#1a1c30'); }
 
-if(G.t%60===0) spawnPart();
+// right UI panel btn(W-180,80,160,40,'START','#00e5ff'); btn(W-180,130,160,40,'UPGRADE','#ffd60a'); btn(W-180,180,160,40,'CUSTOM','#00b4d8'); btn(W-180,230,160,40,'PARTS','#06d6a0');
 
-G.parts.forEach(p=>p.x-=4+G.upgrades.speed);
+// stats txt('$ '+G.money,20,60,10,'#ffd60a'); txt('LVL '+G.level,20,80,10,'#06d6a0'); }
 
-G.parts=G.parts.filter(p=>{ if(p.x<120 && Math.abs(p.y-(H/2+50+G.lane*60))<30){ if(!p.bad) G.money+=10; return false; } return p.x>0; });
+// ───────── LOOP function loop(){ if(G.scene==='garage') drawGarage(); requestAnimationFrame(loop); } loop(); </script>
 
-if(G.shiftTime>1800){ // 30 sec G.scene='result'; } }
-
-// ───────── RESULT function drawResult(){ r(0,0,W,H,'#111'); txt('SHIFT COMPLETE',W/2-100,H/2-40,24,'#0ff'); txt('EARNED: $'+G.money,W/2-100,H/2,20,'#0f0'); btn(W/2-100,H/2+60,200,50,'BACK TO GARAGE'); }
-
-// ───────── INPUT onclick=(e)=>{ const x=e.clientX,y=e.clientY;
-
-if(G.scene==='menu') G.scene='garage';
-
-else if(G.scene==='garage'){ if(x>W-220&&x<W-20&&y>100&&y<150){ G.scene='game';G.parts=[];G.shiftTime=0; } if(x>W-220&&x<W-20&&y>170&&y<220){ if(G.money>=100){G.money-=100;G.upgrades.speed++} } }
-
-else if(G.scene==='result') G.scene='garage'; }
-
-onkeydown=(e)=>{ if(e.key==='ArrowUp') G.lane=Math.max(0,G.lane-1); if(e.key==='ArrowDown') G.lane=Math.min(2,G.lane+1); }
-
-// ───────── LOOP function loop(){ if(G.scene==='menu') drawMenu(); if(G.scene==='garage') drawGarage(); if(G.scene==='game'){updateGame();drawGame();} if(G.scene==='result') drawResult(); requestAnimationFrame(loop); } loop();
-
-</script>
 </body>
 </html>
