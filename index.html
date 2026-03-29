@@ -1,8 +1,9 @@
-<!DOCTYPE html><html lang="ru">
+<!DOCTYPE html>
+<html>
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LISOVNA PCR GARAGE</title>
+<title>LISOVNA PCR</title>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
 body{margin:0;background:#04060f;overflow:hidden}
@@ -12,43 +13,218 @@ canvas{display:block;image-rendering:pixelated}
 <body>
 <canvas id="c"></canvas>
 <script>
-const c=document.getElementById('c');
-const ctx=c.getContext('2d');
-let W,H;
-function resize(){W=c.width=innerWidth;H=c.height=innerHeight;ctx.imageSmoothingEnabled=false}
-resize();onresize=resize;// ───────── HELPERS function r(x,y,w,h,col){ctx.fillStyle=col;ctx.fillRect(x,y,w,h)} function txt(t,x,y,s=10,c='#fff',align='left'){ ctx.font=s+"px 'Press Start 2P'"; ctx.textAlign=align; ctx.fillStyle=c; ctx.fillText(t,x,y); ctx.textAlign='left'; }
 
-function btn(x,y,w,h,label,color){ r(x,y,w,h,'#12152e'); r(x,y, w,2,color); r(x,y+h-2,w,2,'#000'); r(x,y,2,h,color); r(x+w-2,y,2,h,'#000'); txt(label,x+w/2,y+h/2+3,8,color,'center'); }
+const cv = document.getElementById('c');
+const ctx = cv.getContext('2d');
 
-function titleBar(){ for(let i=0;i<30;i++){ ctx.fillStyle=rgb(${232+i*2},${93+i*3},3); ctx.fillRect(0,i,W,1); } txt('LISOVNA',W/2,20,12,'#0a0c1e','center'); }
+let PX = 4;
+let GW, GH;
 
-// ───────── GAME STATE const G={scene:'garage',money:1200,level:3};
+function resize(){
+  cv.width = window.innerWidth;
+  cv.height = window.innerHeight;
+  PX = Math.max(3, Math.floor(cv.width / 80));
+  GW = Math.ceil(cv.width / PX);
+  GH = Math.ceil(cv.height / PX);
+  ctx.imageSmoothingEnabled = false;
+}
+resize();
+window.addEventListener('resize', resize);
 
-// ───────── GARAGE FULL PCR STYLE function drawGarage(){ r(0,0,W,H,'#0a0b18'); titleBar();
+// ───────── HELPERS
+function gfx(x,y,w,h,c){
+  ctx.fillStyle=c;
+  ctx.fillRect(x*PX,y*PX,w*PX,h*PX);
+}
+function gtxt(t,x,y,c,s=2,align='left'){
+  ctx.font=`${s*PX}px 'Press Start 2P', monospace`;
+  ctx.fillStyle=c;
+  ctx.textAlign=align;
+  ctx.fillText(t,x*PX,y*PX);
+  ctx.textAlign='left';
+}
 
-// back wall r(0,30,W,H/2,'#0b0c1a');
+function gbtn(x,y,w,h,label,color){
+  gfx(x,y,w,h,'#12152e');
+  gfx(x,y,w,1,color);
+  gfx(x,y+h-1,w,1,'#000');
+  gfx(x,y,1,h,color);
+  gfx(x+w-1,y,1,h,'#000');
+  gtxt(label,x+w/2,y+h/2+1,color,2,'center');
+}
 
-// shelves for(let i=0;i<4;i++){ let y=80+i*60; r(50,y,200,6,'#222');
+function gtitle(text){
+  for(let i=0;i<6;i++){
+    const t=i/6;
+    const r=232+t*23;
+    const g=93+t*90;
+    ctx.fillStyle=`rgb(${r},${g},3)`;
+    ctx.fillRect(0,i*PX,cv.width,PX);
+  }
+  gtxt(text,GW/2,4,'#0a0c1e',3,'center');
+}
 
-// boxes/tools for(let j=0;j<4;j++){ r(60+j*45,y-20,20,20,['#ff595e','#ffca3a','#8ac926','#1982c4'][j%4]); } }
+// ───────── PLAYER (ТЁМНО-СЕРАЯ ФУТБОЛКА)
+const PLAYER = [
+'.HHHHHH....',
+'.H.SSSH....',
+'.SSSSSS....',
+'.S.SS.S....',
+'.SSSSSS....',
+'STTTTTS....',
+'STTTTTS....',
+'STTTTTS....',
+'.PP.PP.....',
+'.PP.PP.....',
+'.ZZ.ZZ.....',
+'.ZZZ.ZZZ...'
+];
 
-// tool rack for(let i=0;i<6;i++){ r(300+i*20,120,4,30,'#888'); }
+const PAL={
+'S':'#e8ae6e',
+'H':'#1c0a04',
+'T':'#2d2d2d', // ТЁМНО-СЕРАЯ ФУТБОЛКА
+'P':'#1e3a5f',
+'Z':'#0d0d0d'
+};
 
-// hanging light glow ctx.globalAlpha=0.2; r(W/2-100,60,200,100,'#ffffaa'); ctx.globalAlpha=1;
+function spr(data,x,y){
+  data.forEach((r,ry)=>{
+    [...r].forEach((c,rx)=>{
+      if(PAL[c]){
+        ctx.fillStyle=PAL[c];
+        ctx.fillRect((x+rx)*PX,(y+ry)*PX,PX,PX);
+      }
+    });
+  });
+}
 
-// machine (centerpiece like car) r(W/2-120,H/2-20,240,40,'#000'); r(W/2-120,H/2-20,240,5,'#00e5ff');
+// ───────── GAME STATE
+const G={
+  sc:'garage',
+  lane:1,
+  parts:[],
+  money:0,
+  level:1,
+  lives:3,
+  f:0
+};
 
-// reflection ctx.globalAlpha=0.2; r(W/2-120,H/2+25,240,20,'#00e5ff'); ctx.globalAlpha=1;
+// ───────── GARAGE (PCR STYLE)
+function drawGarage(){
+  gfx(0,0,GW,GH,'#04060f');
+  gtitle('LISOVNA');
 
-// floor r(0,H/2,W,H/2,'#0f1022');
+  // стена
+  gfx(0,6,GW,GH/2,'#0b0c1a');
 
-// floor shine lines for(let i=0;i<10;i++){ r(0,H/2+i*20,W,1,'#1a1c30'); }
+  // полки
+  for(let i=0;i<3;i++){
+    let y=12+i*10;
+    gfx(5,y,20,1,'#222');
+    for(let j=0;j<4;j++){
+      gfx(6+j*4,y-3,3,3,['#ff595e','#ffca3a','#8ac926','#1982c4'][j]);
+    }
+  }
 
-// right UI panel btn(W-180,80,160,40,'START','#00e5ff'); btn(W-180,130,160,40,'UPGRADE','#ffd60a'); btn(W-180,180,160,40,'CUSTOM','#00b4d8'); btn(W-180,230,160,40,'PARTS','#06d6a0');
+  // инструмент
+  for(let i=0;i<5;i++){
+    gfx(30+i*2,15,1,6,'#888');
+  }
 
-// stats txt('$ '+G.money,20,60,10,'#ffd60a'); txt('LVL '+G.level,20,80,10,'#06d6a0'); }
+  // свет
+  ctx.globalAlpha=0.2;
+  gfx(GW/2-10,8,20,8,'#ffffaa');
+  ctx.globalAlpha=1;
 
-// ───────── LOOP function loop(){ if(G.scene==='garage') drawGarage(); requestAnimationFrame(loop); } loop(); </script>
+  // станок (как машина)
+  gfx(GW/2-12,GH/2-3,24,6,'#000');
+  gfx(GW/2-12,GH/2-3,24,1,'#00e5ff');
 
+  // отражение
+  ctx.globalAlpha=0.2;
+  gfx(GW/2-12,GH/2+4,24,3,'#00e5ff');
+  ctx.globalAlpha=1;
+
+  // кнопки
+  gbtn(GW-22,10,20,6,'START','#00e5ff');
+  gbtn(GW-22,18,20,6,'UPGRADE','#ffd60a');
+  gbtn(GW-22,26,20,6,'CUSTOM','#00b4d8');
+
+  gtxt('$'+G.money,2,8,'#ffd60a',2);
+}
+
+// ───────── GAME
+function spawn(){
+  G.parts.push({
+    x:GW,
+    y:20+Math.random()*20,
+    bad:Math.random()<0.3
+  });
+}
+
+function updateGame(){
+  G.f++;
+
+  if(G.f%40===0) spawn();
+
+  G.parts.forEach(p=>p.x-=1.5);
+
+  G.parts = G.parts.filter(p=>{
+    if(p.x<10){
+      if(!p.bad) G.lives--;
+      return false;
+    }
+    return true;
+  });
+}
+
+function drawGame(){
+  gfx(0,0,GW,GH,'#04060f');
+
+  // линии
+  for(let i=0;i<3;i++){
+    gfx(0,20+i*10,GW,1,'#333');
+  }
+
+  // игрок
+  spr(PLAYER,5,20+G.lane*10);
+
+  // детали
+  G.parts.forEach(p=>{
+    gfx(p.x,p.y,3,3,p.bad?'#ff0033':'#00ff88');
+  });
+
+  gtxt('$'+G.money,2,5,'#fff',2);
+}
+
+// ───────── INPUT
+cv.addEventListener('pointerdown',e=>{
+  const x=e.clientX/PX;
+
+  if(G.sc==='garage'){
+    if(x>GW-22) G.sc='game';
+  } else {
+    G.sc='garage';
+  }
+});
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='ArrowUp') G.lane=Math.max(0,G.lane-1);
+  if(e.key==='ArrowDown') G.lane=Math.min(2,G.lane+1);
+});
+
+// ───────── LOOP
+function loop(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+
+  if(G.sc==='garage') drawGarage();
+  if(G.sc==='game'){ updateGame(); drawGame(); }
+
+  requestAnimationFrame(loop);
+}
+loop();
+
+</script>
 </body>
 </html>
