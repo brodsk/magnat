@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>MAGNA FACTORY - Pixel Style</title>
+<title>MAGNA FACTORY - 8bit Premium</title>
 <style>
   * {
     margin: 0;
@@ -14,7 +14,7 @@
   }
 
   body {
-    background: #0a0a0f;
+    background: #0a0c1a;
     overflow: hidden;
     width: 100vw;
     height: 100vh;
@@ -22,7 +22,6 @@
     font-family: 'Courier New', monospace;
   }
 
-  /* Fullscreen canvas */
   #gameCanvas {
     display: block;
     width: 100%;
@@ -32,73 +31,73 @@
     image-rendering: pixelated;
     image-rendering: pixelated;
     cursor: pointer;
-    background: #0a0a12;
+    background: #0a1020;
   }
 
-  /* Mobile touch controls - pixel style */
-  .touch-panel {
+  /* Mobile touch controls - retro style */
+  .touch-controls {
     position: fixed;
-    bottom: 15px;
+    bottom: 12px;
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
-    gap: 10px;
-    padding: 10px;
+    gap: 8px;
+    padding: 8px;
     z-index: 100;
     pointer-events: none;
     flex-wrap: wrap;
   }
 
-  .pixel-btn {
+  .retro-btn {
     pointer-events: auto;
-    background: #1a1a2a;
-    border: 3px solid #5a5a7a;
+    background: #1e1e2e;
+    border: 3px solid #7a6a4a;
     color: #ffdd99;
     font-family: 'Courier New', monospace;
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     padding: 8px 14px;
     cursor: pointer;
     image-rendering: pixelated;
-    box-shadow: 3px 3px 0 #000;
-    transition: 0.02s linear;
+    box-shadow: 3px 3px 0 #0a0a0a;
+    transition: 0.03s linear;
     text-shadow: 1px 1px 0 #000;
+    border-radius: 0;
   }
 
-  .pixel-btn:active {
+  .retro-btn:active {
     transform: translate(2px, 2px);
-    box-shadow: 1px 1px 0 #000;
-    background: #2a2a3e;
-    border-color: #ffaa66;
+    box-shadow: 1px 1px 0 #0a0a0a;
+    background: #3a3a4e;
   }
 
-  .ctrl-btn {
-    min-width: 60px;
-    font-size: 18px;
+  .move-btn {
     background: #2a2a3e;
-    border-color: #7a7aaa;
+    border-color: #8a8aaa;
+    font-size: 20px;
+    padding: 8px 18px;
   }
 
-  .action-btn {
+  .action-retro {
     background: #2a4a2a;
     border-color: #6a9a6a;
-    color: #aaffaa;
+    color: #ccffcc;
   }
 
-  .special-btn {
+  .special-retro {
     background: #4a2a2a;
     border-color: #aa6a6a;
-    color: #ffaa88;
+    color: #ffccaa;
   }
 
-  @media (max-width: 700px) {
-    .pixel-btn { padding: 6px 10px; font-size: 10px; }
-    .ctrl-btn { font-size: 14px; min-width: 50px; }
+  @media (max-width: 750px) {
+    .retro-btn { padding: 6px 10px; font-size: 10px; }
+    .move-btn { font-size: 16px; padding: 6px 14px; }
   }
 
-  /* UI overlays - pixel style */
-  .pixel-overlay {
+  /* Overlays - retro window style */
+  .retro-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -110,31 +109,29 @@
     align-items: center;
     justify-content: center;
     z-index: 200;
-    image-rendering: pixelated;
   }
 
-  .pixel-overlay.visible {
-    display: flex;
-  }
+  .retro-overlay.visible { display: flex; }
 
-  .pixel-window {
+  .retro-window {
     background: #1a1a2a;
     border: 4px solid #ffaa66;
     padding: 25px 35px;
     text-align: center;
     box-shadow: 8px 8px 0 #000;
     max-width: 85%;
+    image-rendering: pixelated;
   }
 
-  .pixel-window h1 {
+  .retro-window h1 {
     color: #ffaa66;
-    font-size: 24px;
+    font-size: 28px;
     margin-bottom: 15px;
     text-shadow: 3px 3px 0 #000;
     letter-spacing: 2px;
   }
 
-  .pixel-window button {
+  .retro-window button {
     background: #2a2a3e;
     border: 3px solid #ffaa66;
     color: #ffdd99;
@@ -146,9 +143,7 @@
     font-family: monospace;
   }
 
-  .pixel-window button:active {
-    transform: translate(2px, 2px);
-  }
+  .retro-window button:active { transform: translate(2px, 2px); }
 
   .stat-line {
     color: #ddd;
@@ -158,12 +153,12 @@
     font-family: monospace;
   }
 
-  .notification-pixel {
+  .notif-retro {
     position: fixed;
     top: 70px;
     left: 50%;
     transform: translateX(-50%);
-    background: #000000cc;
+    background: #000000dd;
     border: 3px solid #ffaa66;
     padding: 8px 18px;
     color: #ffdd99;
@@ -173,11 +168,9 @@
     z-index: 150;
     display: none;
     text-shadow: 1px 1px 0 #000;
-    backdrop-filter: blur(2px);
   }
 
-  /* Top HUD - pixel style */
-  .pixel-hud {
+  .hud-retro {
     position: fixed;
     top: 8px;
     left: 8px;
@@ -192,19 +185,18 @@
 
   .hud-item {
     background: #0a0a1acc;
-    border: 2px solid #5a7a9a;
-    padding: 4px 10px;
-    font-size: 10px;
+    border: 2px solid #ffaa66;
+    padding: 5px 12px;
+    font-size: 11px;
     font-weight: bold;
     color: #ffdd99;
     font-family: monospace;
-    backdrop-filter: blur(2px);
     text-shadow: 1px 1px 0 #000;
   }
 
-  .task-pixel {
+  .task-retro {
     position: fixed;
-    top: 50px;
+    top: 55px;
     right: 8px;
     background: #0a0a1acc;
     border: 2px solid #ffaa66;
@@ -214,8 +206,7 @@
     font-family: monospace;
     pointer-events: none;
     z-index: 50;
-    backdrop-filter: blur(2px);
-    min-width: 120px;
+    min-width: 125px;
   }
 
   .task-item {
@@ -232,28 +223,26 @@
 </style>
 </head>
 <body>
-<canvas id="gameCanvas" width="800" height="600"></canvas>
+<canvas id="gameCanvas" width="900" height="675"></canvas>
 
-<!-- Mobile touch controls -->
-<div class="touch-panel">
-  <button class="pixel-btn ctrl-btn" id="btnLeft">◀</button>
-  <button class="pixel-btn action-btn" id="btnPickup">✋ KUS</button>
-  <button class="pixel-btn action-btn" id="btnBox">📦 BOX</button>
-  <button class="pixel-btn action-btn" id="btnCart">🛒 VOZÍK</button>
-  <button class="pixel-btn special-btn" id="btnLabel">🏷️ ETIKETA</button>
-  <button class="pixel-btn special-btn" id="btnWarehouse">🚛 ODTOČ</button>
-  <button class="pixel-btn ctrl-btn" id="btnRight">▶</button>
+<div class="touch-controls">
+  <button class="retro-btn move-btn" id="btnLeft">◀</button>
+  <button class="retro-btn action-retro" id="btnPickup">🔧 ZOBRAŤ</button>
+  <button class="retro-btn action-retro" id="btnBox">📦 DO BOXA</button>
+  <button class="retro-btn action-retro" id="btnCart">🛒 NA VOZÍK</button>
+  <button class="retro-btn special-retro" id="btnLabel">🏷️ ETIKETA</button>
+  <button class="retro-btn special-retro" id="btnWarehouse">🚛 ODTOZ</button>
+  <button class="retro-btn move-btn" id="btnRight">▶</button>
 </div>
 
-<!-- HUD -->
-<div class="pixel-hud">
-  <div class="hud-item">🔧 KUSY: <span id="uiParts">0</span></div>
+<div class="hud-retro">
+  <div class="hud-item">🔩 KUSY: <span id="uiParts">0</span></div>
   <div class="hud-item">📦 BOXY: <span id="uiBoxes">0</span></div>
   <div class="hud-item">🛒 VOZÍK: <span id="uiCart">0</span>/6</div>
   <div class="hud-item">💰 €: <span id="uiMoney">0</span></div>
 </div>
 
-<div class="task-pixel" id="taskPanel">
+<div class="task-retro">
   <div style="color:#ffaa66;">⚙ ÚLOHY</div>
   <div class="task-item" id="task1">📦 20 kusov = BOX</div>
   <div class="task-item" id="task2">🏭 6 boxov = VOZÍK</div>
@@ -261,37 +250,36 @@
   <div class="task-item" id="task4">🚛 Skladník → ODTOZ</div>
 </div>
 
-<div id="notification" class="notification-pixel"></div>
+<div id="notif" class="notif-retro"></div>
 
-<!-- Menus -->
-<div id="menuOverlay" class="pixel-overlay">
-  <div class="pixel-window">
+<div id="menuOverlay" class="retro-overlay">
+  <div class="retro-window">
     <h1>🏭 MAGNA</h1>
     <p style="color:#88ff88; margin:10px;">PIXEL FACTORY</p>
-    <p style="color:#aaa; font-size:10px;">LISY & KUSY</p>
+    <p style="color:#aaa; font-size:9px;">LISY & KUSY - 8bit edícia</p>
     <button id="startBtn">▶ ZAČAŤ ZMENU</button>
     <button id="statsBtn">📊 ŠTATISTIKA</button>
   </div>
 </div>
 
-<div id="statsOverlay" class="pixel-overlay">
-  <div class="pixel-window">
+<div id="statsOverlay" class="retro-overlay">
+  <div class="retro-window">
     <h2>📊 ŠTATISTIKA</h2>
     <div id="statsContent"></div>
     <button id="closeStatsBtn">SPÄŤ</button>
   </div>
 </div>
 
-<div id="poruchaOverlay" class="pixel-overlay">
-  <div class="pixel-window" style="border-color:#ff6666;">
+<div id="poruchaOverlay" class="retro-overlay">
+  <div class="retro-window" style="border-color:#ff6666;">
     <h2 style="color:#ff6666;">⚠ PORUCHA FORMY!</h2>
     <p style="color:#ffaa88;">Prvé kusy sú chybné!</p>
     <button id="fixBtn">🔧 OPRAVIŤ</button>
   </div>
 </div>
 
-<div id="endOverlay" class="pixel-overlay">
-  <div class="pixel-window">
+<div id="endOverlay" class="retro-overlay">
+  <div class="retro-window">
     <h2>ZMENA SKONČILA</h2>
     <p id="endText" style="color:#ddd; margin:15px;"></p>
     <button id="endMenuBtn">MENU</button>
@@ -299,8 +287,6 @@
 </div>
 
 <script>
-// ========== PIXEL STYLE GAME ==========
-// Canvas setup
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 ctx.imageSmoothingEnabled = false;
@@ -308,12 +294,12 @@ ctx.imageSmoothingEnabled = false;
 // Game state
 let gameRunning = false;
 let money = 0, totalParts = 0, shiftParts = 0, badPassed = 0;
-let boxes = []; // {count}
-let cartBoxes = []; // max 6 boxes
-let heldPart = null; // {bad}
-let playerX = 380;
+let boxes = [];
+let cartBoxes = [];
+let heldPart = null;
+let playerX = 420;
 let moveLeft = false, moveRight = false;
-let shiftTime = 0, shiftDuration = 180; // 3 minutes
+let shiftTime = 0, shiftDuration = 180;
 let shiftInterval = null;
 let partsOnConveyor = [];
 let partId = 0;
@@ -321,9 +307,8 @@ let labelPrinted = false;
 let poruchaActive = false;
 let poruchaTimer = null;
 let spawnInterval = null;
-let frame = 0;
+let animFrame = 0;
 
-// UI update
 function updateUI() {
   document.getElementById('uiParts').innerText = shiftParts;
   document.getElementById('uiBoxes').innerText = boxes.filter(b => b.count >= 20).length;
@@ -332,13 +317,12 @@ function updateUI() {
 }
 
 function showNotif(msg, isError = false) {
-  const n = document.getElementById('notification');
+  const n = document.getElementById('notif');
   n.textContent = msg;
   n.style.display = 'block';
   setTimeout(() => n.style.display = 'none', 1500);
 }
 
-// Game mechanics
 function spawnPart() {
   if (!gameRunning || poruchaActive) return;
   let isBad = false;
@@ -347,24 +331,20 @@ function spawnPart() {
   
   partsOnConveyor.push({
     id: partId++,
-    x: 140,
-    y: 395,
+    x: 160,
+    y: 460,
     bad: isBad,
-    wobble: Math.random() * Math.PI * 2
+    anim: 0
   });
 }
 
 function pickupPart() {
   if (!gameRunning) return;
   if (heldPart) { showNotif('Už držíš kus!', true); return; }
-  let nearest = null;
-  let minDist = 55;
+  let nearest = null, minDist = 60;
   for (let p of partsOnConveyor) {
     let dist = Math.abs(p.x - playerX);
-    if (dist < minDist) {
-      minDist = dist;
-      nearest = p;
-    }
+    if (dist < minDist) { minDist = dist; nearest = p; }
   }
   if (nearest) {
     if (nearest.bad) {
@@ -375,9 +355,7 @@ function pickupPart() {
       partsOnConveyor = partsOnConveyor.filter(p => p.id !== nearest.id);
       showNotif('✅ Kus v ruke', false);
     }
-  } else {
-    showNotif('Žiadny kus nablízku!', true);
-  }
+  } else showNotif('Žiadny kus nablízku!', true);
 }
 
 function placeToBox() {
@@ -386,18 +364,12 @@ function placeToBox() {
   if (heldPart.bad) { showNotif('Chybný kus nejde do boxu!', true); heldPart = null; return; }
   
   let currentBox = boxes.find(b => b.count < 20);
-  if (!currentBox) {
-    currentBox = { count: 0 };
-    boxes.push(currentBox);
-  }
+  if (!currentBox) { currentBox = { count: 0 }; boxes.push(currentBox); }
   currentBox.count++;
   shiftParts++;
   totalParts++;
   heldPart = null;
-  
-  if (currentBox.count === 20) {
-    showNotif('📦 Box naplnený! (20 kusov)', false);
-  }
+  if (currentBox.count === 20) showNotif('📦 Box naplnený! (20 kusov)', false);
   updateUI();
 }
 
@@ -431,7 +403,6 @@ function callSkladnik() {
   cartBoxes = [];
   labelPrinted = false;
   updateUI();
-  
   if (shiftTime >= shiftDuration) endShift();
 }
 
@@ -447,7 +418,7 @@ function fixPorucha() {
   document.getElementById('poruchaOverlay').classList.remove('visible');
   showNotif('🔧 Porucha opravená!', false);
   clearTimeout(poruchaTimer);
-  poruchaTimer = setTimeout(() => startPorucha(), 25000 + Math.random() * 20000);
+  poruchaTimer = setTimeout(() => startPorucha(), 28000 + Math.random() * 18000);
 }
 
 function endShift() {
@@ -456,7 +427,6 @@ function endShift() {
   clearInterval(shiftInterval);
   clearInterval(spawnInterval);
   clearTimeout(poruchaTimer);
-  
   let bonus = Math.floor(totalParts * 0.5) + (cartBoxes.length * 8);
   money += bonus;
   document.getElementById('endText').innerHTML = `Vyrobených: ${totalParts} kusov<br>Boxov: ${boxes.filter(b=>b.count>=20).length + cartBoxes.length}<br>Zárobok: ${money} €`;
@@ -466,43 +436,23 @@ function endShift() {
 
 function startShift() {
   gameRunning = true;
-  money = 0;
-  totalParts = 0;
-  shiftParts = 0;
-  badPassed = 0;
-  boxes = [];
-  cartBoxes = [];
-  heldPart = null;
-  partsOnConveyor = [];
-  partId = 0;
-  labelPrinted = false;
-  poruchaActive = false;
-  playerX = 380;
-  moveLeft = false;
-  moveRight = false;
-  shiftTime = 0;
+  money = 0; totalParts = 0; shiftParts = 0; badPassed = 0;
+  boxes = []; cartBoxes = []; heldPart = null;
+  partsOnConveyor = []; partId = 0;
+  labelPrinted = false; poruchaActive = false;
+  playerX = 420; moveLeft = false; moveRight = false; shiftTime = 0;
   
-  clearInterval(shiftInterval);
-  clearInterval(spawnInterval);
-  clearTimeout(poruchaTimer);
-  
-  shiftInterval = setInterval(() => {
-    if (!gameRunning) return;
-    shiftTime++;
-    if (shiftTime >= shiftDuration) endShift();
-  }, 1000);
-  
-  spawnInterval = setInterval(() => spawnPart(), 1900);
-  poruchaTimer = setTimeout(() => startPorucha(), 18000);
-  
+  clearInterval(shiftInterval); clearInterval(spawnInterval); clearTimeout(poruchaTimer);
+  shiftInterval = setInterval(() => { if (gameRunning) { shiftTime++; if (shiftTime >= shiftDuration) endShift(); } }, 1000);
+  spawnInterval = setInterval(() => spawnPart(), 1950);
+  poruchaTimer = setTimeout(() => startPorucha(), 20000);
   updateUI();
   
   document.getElementById('menuOverlay').classList.remove('visible');
   document.getElementById('statsOverlay').classList.remove('visible');
   document.getElementById('endOverlay').classList.remove('visible');
   document.getElementById('poruchaOverlay').classList.remove('visible');
-  
-  showNotif('🔧 ZMENA ZAČALA! Zbieraj kusy, plň boxy, volaj predačku a skladníka!', false);
+  showNotif('🔧 ZMENA ZAČALA! Zbieraj kusy, plň boxy!', false);
 }
 
 function showStats() {
@@ -515,224 +465,224 @@ function showStats() {
   document.getElementById('statsOverlay').classList.add('visible');
 }
 
-// ========== PIXEL CAR RACER STYLE DRAWING ==========
+// ========== PREMIUM 8-BIT GRAPHICS ==========
 function drawPixelArt() {
-  // Dark gradient background like Pixel Car Racer
-  const grad = ctx.createLinearGradient(0, 0, 0, 600);
-  grad.addColorStop(0, '#0a0a18');
-  grad.addColorStop(1, '#12122a');
+  animFrame++;
+  
+  // Gradient sky
+  const grad = ctx.createLinearGradient(0, 0, 0, 400);
+  grad.addColorStop(0, '#1a2a3a');
+  grad.addColorStop(1, '#2a3a4a');
   ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 800, 600);
+  ctx.fillRect(0, 0, 900, 675);
   
-  // Grid floor pattern
-  ctx.fillStyle = '#2a2a3a';
-  for (let i = 0; i < 20; i++) {
-    ctx.fillRect(i * 40, 430, 2, 150);
-    ctx.fillRect(0, 430 + i * 8, 800, 1);
-  }
+  // Factory background details
+  ctx.fillStyle = '#3a4a5a';
+  for(let i=0;i<12;i++) ctx.fillRect(50+i*70, 80, 35, 120);
+  ctx.fillStyle = '#4a6a7a';
+  for(let i=0;i<8;i++) ctx.fillRect(400+i*55, 60, 25, 100);
   
-  // Factory floor
-  ctx.fillStyle = '#2a2a2e';
-  ctx.fillRect(0, 420, 800, 180);
-  ctx.fillStyle = '#3a3a4a';
-  for (let i = 0; i < 30; i++) ctx.fillRect(i * 30, 418, 15, 4);
+  // Floor with pattern
+  ctx.fillStyle = '#3a3a3a';
+  ctx.fillRect(0, 480, 900, 195);
+  ctx.fillStyle = '#5a5a5a';
+  for(let i=0;i<30;i++) ctx.fillRect(i*30, 478, 18, 5);
   
-  // Engel machine - pixel style
-  ctx.fillStyle = '#4a6a4a';
-  ctx.fillRect(18, 340, 100, 82);
-  ctx.fillStyle = '#6a8a6a';
-  ctx.fillRect(25, 332, 86, 12);
-  ctx.fillStyle = '#2a4a2a';
-  ctx.fillRect(28, 338, 80, 6);
-  // Light
-  ctx.fillStyle = poruchaActive ? '#ff6666' : '#66ff66';
-  ctx.fillRect(100, 348, 12, 12);
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 10px "Courier New", monospace';
-  ctx.fillText('ENGEL', 45, 390);
-  ctx.fillText('ES 200', 48, 405);
-  
-  // Conveyor belt - animated
+  // Conveyor belt with animation
   ctx.fillStyle = '#4a3a2a';
-  ctx.fillRect(125, 390, 620, 24);
-  let offset = (Date.now() / 25) % 24;
-  ctx.fillStyle = '#8a6a3a';
-  for (let i = 0; i < 30; i++) {
-    ctx.fillRect(125 + offset + i * 24, 394, 12, 16);
-  }
+  ctx.fillRect(140, 455, 680, 28);
+  let beltOffset = (animFrame * 2) % 24;
+  ctx.fillStyle = '#b88a4a';
+  for(let i=0;i<35;i++) ctx.fillRect(140 + beltOffset + i*24, 459, 16, 20);
   
-  // Parts on conveyor - pixel style
-  for (let p of partsOnConveyor) {
-    if (p.bad) {
-      ctx.fillStyle = '#cc5555';
-      ctx.fillRect(p.x, p.y, 22, 16);
-      ctx.fillStyle = '#aa3333';
-      ctx.fillRect(p.x + 5, p.y + 4, 12, 8);
+  // Parts on conveyor - detailed
+  for(let p of partsOnConveyor) {
+    if(p.bad) {
+      ctx.fillStyle = '#aa5555';
+      ctx.fillRect(p.x, p.y, 24, 18);
+      ctx.fillStyle = '#884444';
+      ctx.fillRect(p.x+6, p.y+4, 12, 10);
       ctx.fillStyle = '#ff8888';
-      ctx.fillRect(p.x + 9, p.y + 7, 4, 4);
+      ctx.fillRect(p.x+10, p.y+7, 4, 4);
     } else {
       ctx.fillStyle = '#e8d898';
-      ctx.fillRect(p.x, p.y, 22, 16);
+      ctx.fillRect(p.x, p.y, 24, 18);
       ctx.fillStyle = '#c8a858';
-      ctx.fillRect(p.x + 4, p.y + 3, 14, 10);
-      ctx.fillStyle = '#f8e8a8';
-      ctx.fillRect(p.x + 8, p.y + 7, 6, 4);
+      ctx.fillRect(p.x+5, p.y+3, 14, 12);
+      ctx.fillStyle = '#f8f0b8';
+      ctx.fillRect(p.x+9, p.y+6, 6, 6);
     }
   }
   
-  // Boxes storage
+  // Engel machine - detailed
+  ctx.fillStyle = '#4a6a3a';
+  ctx.fillRect(35, 395, 110, 85);
+  ctx.fillStyle = '#6a8a5a';
+  ctx.fillRect(45, 385, 90, 15);
+  ctx.fillStyle = '#2a4a1a';
+  ctx.fillRect(50, 390, 80, 8);
+  ctx.fillStyle = poruchaActive ? '#ff6666' : '#66ff66';
+  ctx.fillRect(115, 400, 14, 14);
+  ctx.fillStyle = '#ffdd99';
+  ctx.font = 'bold 12px "Courier New"';
+  ctx.fillText('ENGEL', 70, 450);
+  ctx.fillStyle = '#ccaa88';
+  ctx.font = '8px monospace';
+  ctx.fillText('ES 200', 75, 465);
+  
+  // Storage boxes area
   let bx = 25;
-  for (let i = 0; i < boxes.length && i < 10; i++) {
+  for(let i=0;i<boxes.length && i<12;i++) {
     let box = boxes[i];
     let isFull = box.count >= 20;
-    ctx.fillStyle = isFull ? '#e8c86a' : '#b89a58';
-    ctx.fillRect(bx, 455, 32, 28);
+    ctx.fillStyle = isFull ? '#f0d878' : '#b89a58';
+    ctx.fillRect(bx, 510, 36, 32);
     ctx.fillStyle = '#8a6a3a';
-    ctx.fillRect(bx + 4, 460, 24, 18);
+    ctx.fillRect(bx+5, 516, 26, 20);
     ctx.fillStyle = '#fff';
-    ctx.font = 'bold 9px monospace';
-    ctx.fillText(`${box.count}`, bx + 12, 476);
-    if (isFull) {
-      ctx.fillStyle = '#ffdd88';
-      ctx.fillRect(bx + 22, 457, 6, 6);
+    ctx.font = 'bold 10px monospace';
+    ctx.fillText(`${box.count}`, bx+14, 534);
+    if(isFull) {
+      ctx.fillStyle = '#ffaa44';
+      ctx.fillRect(bx+26, 514, 6, 6);
     }
-    bx += 38;
+    bx += 42;
   }
   
-  // Roller cart - pixel style
-  ctx.fillStyle = '#6a5a4a';
-  ctx.fillRect(640, 415, 145, 42);
+  // Roller cart - detailed
+  ctx.fillStyle = '#6a5a42';
+  ctx.fillRect(700, 485, 165, 48);
   ctx.fillStyle = '#4a3a2a';
-  ctx.fillRect(643, 418, 139, 36);
-  for (let i = 0; i < 6; i++) {
+  ctx.fillRect(704, 488, 157, 42);
+  for(let i=0;i<6;i++) {
     let filled = i < cartBoxes.length;
     ctx.fillStyle = filled ? '#6a9a4a' : '#5a4a2a';
-    ctx.fillRect(648 + i * 22, 422, 19, 28);
-    if (filled) {
-      ctx.fillStyle = '#ffdd88';
-      ctx.fillRect(651 + i * 22, 426, 13, 20);
-      ctx.fillStyle = '#aa8866';
-      ctx.fillRect(654 + i * 22, 440, 7, 6);
+    ctx.fillRect(710 + i*25, 492, 21, 32);
+    if(filled) {
+      ctx.fillStyle = '#ffdd99';
+      ctx.fillRect(714 + i*25, 497, 13, 22);
+      ctx.fillStyle = '#ccaa66';
+      ctx.fillRect(717 + i*25, 514, 7, 6);
     } else {
       ctx.fillStyle = '#7a6a4a';
-      ctx.fillRect(651 + i * 22, 428, 13, 18);
+      ctx.fillRect(714 + i*25, 498, 13, 20);
     }
   }
   
-  // Player - Pixel Car Racer style character
-  ctx.fillStyle = '#5a7aaa';
-  ctx.fillRect(playerX, 402, 28, 44);
+  // Player - detailed Mario-style character
+  ctx.fillStyle = '#3a6ea5';
+  ctx.fillRect(playerX, 470, 30, 48);
   ctx.fillStyle = '#ffcc88';
-  ctx.fillRect(playerX + 4, 396, 20, 14);
+  ctx.fillRect(playerX+4, 463, 22, 16);
   ctx.fillStyle = '#2a2a3a';
-  ctx.fillRect(playerX + 8, 400, 4, 4);
-  ctx.fillRect(playerX + 16, 400, 4, 4);
-  ctx.fillStyle = '#aa8866';
-  ctx.fillRect(playerX + 10, 412, 8, 6);
-  ctx.fillStyle = '#4a6aaa';
-  ctx.fillRect(playerX + 6, 425, 16, 12);
-  ctx.fillStyle = '#ffaa66';
-  ctx.fillRect(playerX + 12, 432, 4, 8);
-  // Helmet / hair
+  ctx.fillRect(playerX+8, 467, 5, 5);
+  ctx.fillRect(playerX+17, 467, 5, 5);
   ctx.fillStyle = '#8b5a2b';
-  ctx.fillRect(playerX + 6, 392, 16, 6);
-  
-  // Held part indicator
-  if (heldPart) {
-    ctx.fillStyle = '#e8d898';
-    ctx.fillRect(playerX + 32, 412, 18, 14);
-    ctx.fillStyle = '#c8a858';
-    ctx.fillRect(playerX + 35, 416, 12, 8);
-  }
-  
-  // NPC - Predačka (orange shirt, pixel style)
-  ctx.fillStyle = '#e07a2a';
-  ctx.fillRect(560, 402, 28, 44);
-  ctx.fillStyle = '#ffccaa';
-  ctx.fillRect(564, 396, 20, 14);
-  ctx.fillStyle = '#2a1a0a';
-  ctx.fillRect(568, 400, 4, 4);
-  ctx.fillRect(576, 400, 4, 4);
-  ctx.fillStyle = '#cc8844';
-  ctx.fillRect(566, 422, 16, 12);
-  // Speech bubble indicator
-  if (labelPrinted) {
-    ctx.fillStyle = '#ffaa66';
-    ctx.fillRect(550, 375, 48, 18);
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold 7px monospace';
-    ctx.fillText('ETIKETA', 558, 388);
-  }
-  
-  // NPC - Skladník (red stripe shirt)
-  ctx.fillStyle = '#cc4422';
-  ctx.fillRect(700, 402, 28, 44);
-  ctx.fillStyle = '#2a8a2a';
-  ctx.fillRect(704, 410, 20, 10);
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(708, 414, 12, 4);
-  ctx.fillStyle = '#ffccaa';
-  ctx.fillRect(704, 396, 20, 14);
-  
-  // NPC - Kvalitár (green shirt)
-  ctx.fillStyle = '#3a8a3a';
-  ctx.fillRect(460, 402, 28, 44);
-  ctx.fillStyle = '#ffccaa';
-  ctx.fillRect(464, 396, 20, 14);
-  ctx.fillStyle = '#ffff88';
-  ctx.fillRect(468, 420, 12, 8);
-  
-  // NPC - Naštavovač (black shirt, walking)
-  let navX = 210 + Math.sin(Date.now() / 500) * 12;
-  ctx.fillStyle = '#222222';
-  ctx.fillRect(navX, 402, 28, 44);
+  ctx.fillRect(playerX+6, 458, 18, 7);
+  ctx.fillStyle = '#aa8866';
+  ctx.fillRect(playerX+12, 488, 6, 12);
+  ctx.fillStyle = '#5a8acc';
+  ctx.fillRect(playerX+6, 498, 18, 12);
   ctx.fillStyle = '#ffaa66';
-  ctx.fillRect(navX + 4, 396, 20, 14);
+  ctx.fillRect(playerX+12, 508, 6, 8);
+  // Overalls
+  ctx.fillStyle = '#2a6a8a';
+  ctx.fillRect(playerX+4, 480, 22, 16);
+  // Held part
+  if(heldPart) {
+    ctx.fillStyle = '#e8d898';
+    ctx.fillRect(playerX+34, 485, 20, 16);
+    ctx.fillStyle = '#c8a858';
+    ctx.fillRect(playerX+38, 489, 12, 10);
+  }
+  
+  // NPC Predačka - detailed
+  ctx.fillStyle = '#e07a2a';
+  ctx.fillRect(620, 470, 30, 48);
+  ctx.fillStyle = '#ffccaa';
+  ctx.fillRect(624, 463, 22, 16);
+  ctx.fillStyle = '#2a1a0a';
+  ctx.fillRect(628, 467, 5, 5);
+  ctx.fillRect(637, 467, 5, 5);
+  ctx.fillStyle = '#cc8844';
+  ctx.fillRect(626, 490, 18, 14);
+  ctx.fillStyle = '#aa6644';
+  ctx.fillRect(630, 500, 10, 12);
+  
+  // NPC Skladník - with red stripe
+  ctx.fillStyle = '#cc4422';
+  ctx.fillRect(780, 470, 30, 48);
+  ctx.fillStyle = '#2a8a2a';
+  ctx.fillRect(784, 480, 22, 12);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(788, 484, 14, 5);
+  ctx.fillStyle = '#ffccaa';
+  ctx.fillRect(784, 463, 22, 16);
+  
+  // NPC Kvalitár
+  ctx.fillStyle = '#3a8a3a';
+  ctx.fillRect(520, 470, 30, 48);
+  ctx.fillStyle = '#ffccaa';
+  ctx.fillRect(524, 463, 22, 16);
+  ctx.fillStyle = '#ffff88';
+  ctx.fillRect(528, 490, 14, 10);
+  
+  // NPC Naštavovač - walking
+  let navX = 230 + Math.sin(Date.now() / 600) * 14;
+  ctx.fillStyle = '#222222';
+  ctx.fillRect(navX, 470, 30, 48);
+  ctx.fillStyle = '#ffaa66';
+  ctx.fillRect(navX+4, 463, 22, 16);
   ctx.fillStyle = '#cc5555';
-  ctx.fillRect(navX + 10, 428, 8, 10);
+  ctx.fillRect(navX+10, 500, 10, 12);
   
-  // Shift timer bar
-  let pct = (shiftTime / shiftDuration) * 220;
+  // Label indicator
+  if(labelPrinted) {
+    ctx.fillStyle = '#ffaa66';
+    ctx.fillRect(610, 435, 70, 22);
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 8px monospace';
+    ctx.fillText('PALETOVA ETIKETA', 615, 450);
+  }
+  
+  // Shift timer
+  let pct = (shiftTime / shiftDuration) * 250;
   ctx.fillStyle = '#2a2a3a';
-  ctx.fillRect(15, 28, 220, 14);
+  ctx.fillRect(20, 25, 260, 18);
   ctx.fillStyle = '#6a9a3a';
-  ctx.fillRect(15, 28, Math.min(pct, 220), 14);
-  ctx.fillStyle = '#ffdd99';
-  ctx.font = 'bold 8px monospace';
-  let mins = Math.floor(shiftTime / 60);
-  let secs = shiftTime % 60;
-  ctx.fillText(`ZMENA ${mins}:${secs.toString().padStart(2, '0')}`, 15, 24);
-  
-  // Cart counter on cart
+  ctx.fillRect(20, 25, Math.min(pct, 260), 18);
   ctx.fillStyle = '#ffdd99';
   ctx.font = 'bold 10px monospace';
-  ctx.fillText(`${cartBoxes.length}/6`, 710, 445);
+  let mins = Math.floor(shiftTime / 60);
+  let secs = shiftTime % 60;
+  ctx.fillText(`ZMENA ${mins}:${secs.toString().padStart(2,'0')}`, 25, 21);
+  
+  // Cart counter
+  ctx.fillStyle = '#ffdd99';
+  ctx.font = 'bold 12px monospace';
+  ctx.fillText(`${cartBoxes.length}/6`, 785, 528);
   
   // Task status icons
-  let boxesFull = boxes.filter(b => b.count >= 20).length;
-  ctx.fillStyle = boxesFull > 0 ? '#88ff88' : '#aaa';
-  ctx.fillRect(25, 530, 12, 12);
-  ctx.fillStyle = cartBoxes.length === 6 ? '#88ff88' : '#aaa';
-  ctx.fillRect(25, 548, 12, 12);
-  ctx.fillStyle = labelPrinted ? '#88ff88' : '#aaa';
-  ctx.fillRect(25, 566, 12, 12);
-  ctx.fillStyle = '#ddd';
-  ctx.font = '7px monospace';
-  ctx.fillText('BOX', 42, 540);
-  ctx.fillText('VOZÍK 6/6', 42, 558);
-  ctx.fillText('ETIKETA', 42, 576);
+  ctx.fillStyle = boxes.filter(b=>b.count>=20).length > 0 ? '#88ff88' : '#666';
+  ctx.fillRect(25, 590, 14, 14);
+  ctx.fillStyle = cartBoxes.length === 6 ? '#88ff88' : '#666';
+  ctx.fillRect(25, 610, 14, 14);
+  ctx.fillStyle = labelPrinted ? '#88ff88' : '#666';
+  ctx.fillRect(25, 630, 14, 14);
+  ctx.fillStyle = '#aaa';
+  ctx.font = '8px monospace';
+  ctx.fillText('BOX', 45, 602);
+  ctx.fillText('VOZIK 6', 45, 622);
+  ctx.fillText('ETIKETA', 45, 642);
 }
 
-// Animation and movement
+// Movement and animation
 function gameLoop() {
-  if (moveLeft && gameRunning) playerX = Math.max(35, playerX - 4.5);
-  if (moveRight && gameRunning) playerX = Math.min(760, playerX + 4.5);
+  if (moveLeft && gameRunning) playerX = Math.max(35, playerX - 5);
+  if (moveRight && gameRunning) playerX = Math.min(860, playerX + 5);
   
-  // Move parts
-  for (let p of partsOnConveyor) {
-    p.x += 1.2;
-  }
-  partsOnConveyor = partsOnConveyor.filter(p => p.x < 780);
+  for (let p of partsOnConveyor) p.x += 1.25;
+  partsOnConveyor = partsOnConveyor.filter(p => p.x < 860);
   
   drawPixelArt();
   requestAnimationFrame(gameLoop);
@@ -764,7 +714,7 @@ document.getElementById('endMenuBtn').addEventListener('click', () => {
   document.getElementById('menuOverlay').classList.add('visible');
 });
 
-// Keyboard support
+// Keyboard
 document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowLeft') moveLeft = true;
   if (e.key === 'ArrowRight') moveRight = true;
@@ -779,7 +729,6 @@ document.addEventListener('keyup', (e) => {
   if (e.key === 'ArrowRight') moveRight = false;
 });
 
-// Start menu
 document.getElementById('menuOverlay').classList.add('visible');
 gameLoop();
 updateUI();
