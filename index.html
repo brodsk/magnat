@@ -3,418 +3,499 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>PIXEL FABRIKA - Magna Edícia</title>
+<title>MAGNA FABRIKA - Lisy a Kusy</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
-
   * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    image-rendering: crisp-edges;
-    image-rendering: pixelated;
-    image-rendering: pixelated;
-    -webkit-tap-highlight-color: transparent;
     user-select: none;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
     background: #0a0a1a;
-    font-family: 'Press Start 2P', monospace;
+    font-family: 'Courier New', 'Press Start 2P', monospace;
     overflow: hidden;
     width: 100vw;
     height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    touch-action: pan-x pan-y;
+  }
+
+  /* FULLSCREEN FLEX CONTAINER */
+  .game-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
   }
 
   #game-container {
+    position: relative;
+    background: #3a4a5a;
+    overflow: hidden;
+    box-shadow: 0 0 0 4px #2a2a3a;
     width: 100%;
     height: 100%;
-    max-width: 900px;
-    max-height: 675px;
-    position: relative;
-    background: #0f0f23;
-    border: 4px solid #4a4a6a;
-    overflow: hidden;
-    box-shadow: 0 0 0 3px #000;
+    max-width: 1200px;
+    max-height: 800px;
   }
 
-  @media (max-width: 900px) and (max-height: 675px) {
-    #game-container { width: 100vw; height: 100vh; max-width: none; max-height: none; }
+  /* Responsive scaling - keep game area visible */
+  @media (min-aspect-ratio: 4/3) {
+    #game-container { width: auto; height: 100%; aspect-ratio: 4/3; margin: auto; }
   }
   @media (max-aspect-ratio: 4/3) {
-    #game-container { width: 100vw; height: calc(100vw * 0.75); max-height: 100vh; }
-  }
-  @media (min-aspect-ratio: 4/3) {
-    #game-container { height: 100vh; width: calc(100vh * 1.333); max-width: 100vw; }
+    #game-container { width: 100%; height: auto; aspect-ratio: 4/3; margin: auto; }
   }
 
-  .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: hidden; }
+  .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; background: #2a3a3a; overflow-y: auto; }
   .screen.active { display: block; }
 
   /* MENU */
-  #menu-screen {
-    background: linear-gradient(180deg, #2a2a4a 0%, #1a1a2e 40%, #3a6a2a 70%, #2a4a1a 100%);
-  }
-  .title-area { text-align: center; padding-top: 35px; }
-  .title-area h1 { font-size: 32px; color: #ffd966; text-shadow: 5px 5px 0 #4a2a1a; letter-spacing: 3px; }
-  .subtitle { font-size: 8px; color: #ffaa66; margin-top: 8px; text-shadow: 2px 2px 0 #2a1a0a; }
-  .menu-buttons { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 35px; }
-  .menu-btn {
-    width: 240px; padding: 12px 16px; background: #2a2a3e; border: 3px solid #ffaa44;
-    color: #ffdd88; font-family: 'Press Start 2P', monospace; font-size: 10px;
-    cursor: pointer; text-align: center; transition: all 0.05s linear;
-  }
-  .menu-btn:active { transform: scale(0.96); background: #4a4a6e; }
+  #menu-screen { background: linear-gradient(135deg, #1a3a2a, #0a2a2a); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .menu-card { background: #000000aa; backdrop-filter: blur(4px); padding: 30px; border: 4px solid #ffaa44; text-align: center; border-radius: 20px; margin: 20px; }
+  .menu-card h1 { font-size: 2.5rem; color: #ffcc66; text-shadow: 3px 3px 0 #5a3a1a; }
+  .menu-btn { display: block; width: 200px; margin: 15px auto; padding: 12px; background: #2a4a3a; border: 2px solid #ffaa66; color: #ffdd99; font-weight: bold; cursor: pointer; font-size: 1rem; }
+  .menu-btn:active { transform: scale(0.96); background: #4a6a4a; }
 
   /* HUD */
-  .top-hud { position: absolute; top: 6px; right: 6px; display: flex; gap: 6px; z-index: 100; }
-  .hud-box { background: #111122; border: 2px solid #88aaff; padding: 4px 8px; font-size: 9px; color: #ccddff; display: flex; gap: 5px; }
+  .top-hud { position: absolute; top: 5px; left: 5px; right: 5px; display: flex; justify-content: space-between; z-index: 100; gap: 5px; flex-wrap: wrap; }
+  .hud-box { background: #111122cc; backdrop-filter: blur(2px); border: 2px solid #88aaff; padding: 4px 8px; font-size: 10px; color: #ffdd99; font-weight: bold; border-radius: 4px; }
 
-  /* FLOOR */
-  #game-screen { background: #4a5a6a; }
-  .floor-bg { position: absolute; bottom: 0; width: 100%; height: 130px; background: #3a3a4a; border-top: 4px solid #6a6a8a; }
-  .wall-bg { position: absolute; top: 0; width: 100%; height: calc(100% - 130px); background: #6a7a8a; }
-
-  /* CONVEYOR */
-  .conveyor { position: absolute; bottom: 130px; left: 160px; width: 560px; height: 24px; background: #4a3a2a; border-top: 3px solid #8a6a4a; border-bottom: 3px solid #2a1a0a; overflow: hidden; }
-  .conveyor-stripes { width: 200%; height: 100%; background: repeating-linear-gradient(90deg, #6a5a3a 0px, #6a5a3a 18px, #4a3a1a 18px, #4a3a1a 22px); animation: conveyorMove 1.2s linear infinite; }
-  @keyframes conveyorMove { from{transform:translateX(0)} to{transform:translateX(-22px)} }
-
-  .part-on-conveyor { position: absolute; bottom: 146px; width: 28px; height: 18px; background: #b8a878; border: 2px solid #6a5a3a; cursor: pointer; z-index: 10; transition: 0.02s linear; }
-  .part-on-conveyor.good { background: #c8b878; border-color: #8a7a4a; }
-  .part-on-conveyor.bad { background: #c86a6a; border-color: #a22; }
+  /* FACTORY FLOOR */
+  #game-screen { position: relative; background: #5a6e7a; }
+  .floor { position: absolute; bottom: 0; width: 100%; height: 100px; background: #4a5a4a; border-top: 3px solid #8a9a6a; }
+  .wall { position: absolute; top: 0; width: 100%; height: calc(100% - 100px); background: #7a8e9a; }
 
   /* ENGEL MACHINE */
-  .engel-machine { position: absolute; bottom: 130px; left: 20px; width: 120px; height: 85px; background: #5a7a4a; border: 3px solid #2a4a1a; }
-  .engel-top { width: 100px; height: 20px; background: #7a9a5a; margin: -3px auto 0; border: 2px solid #2a4a1a; }
-  .engel-light { position: absolute; top: 8px; right: 8px; width: 10px; height: 10px; border-radius: 50%; background: #0f0; border: 2px solid #0a0; }
-  .engel-light.yellow { background: #ff0; animation: blink 0.5s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+  .engel { position: absolute; bottom: 100px; left: 15px; width: 100px; height: 80px; background: #5a8a4a; border: 3px solid #2a5a1a; border-radius: 8px; }
+  .engel-light { width: 12px; height: 12px; border-radius: 50%; background: #0f0; position: absolute; top: 5px; right: 5px; }
+  .engel-light.red { background: #f00; animation: blink 0.3s infinite; }
 
-  /* ROLLER CART */
-  .roller-cart { position: absolute; bottom: 130px; right: 15px; width: 85px; height: 48px; background: #8a7a5a; border: 2px solid #5a4a2a; }
-  .cart-body { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 3px; padding: 4px; height: 100%; }
-  .cart-slot { background: #5a4a2a; border: 1px solid #2a1a0a; display: flex; align-items: center; justify-content: center; font-size: 10px; cursor: pointer; color: #ffdd99; }
-  .cart-slot.filled { background: #4a8a3a; color: #ffcc66; }
+  /* CONVEYOR */
+  .conveyor { position: absolute; bottom: 100px; left: 130px; right: 150px; height: 28px; background: #4a3a2a; border-top: 3px solid #8a6a3a; border-bottom: 3px solid #2a1a0a; overflow: hidden; }
+  .conveyor-stripes { width: 200%; height: 100%; background: repeating-linear-gradient(90deg, #6a5a3a 0px, #6a5a3a 20px, #4a3a1a 20px, #4a3a1a 24px); animation: moveStripes 1s linear infinite; }
+  @keyframes moveStripes { from { transform: translateX(0); } to { transform: translateX(-24px); } }
 
-  /* TASK PANEL */
-  #task-panel { position: absolute; top: 50px; right: 6px; background: #111122cc; backdrop-filter: blur(2px); border: 2px solid #88aaff; padding: 8px; width: 145px; z-index: 30; }
-  #task-panel h3 { font-size: 7px; color: #ffcc66; margin-bottom: 6px; }
-  .task-item { font-size: 6px; color: #aaa; margin: 4px 0; padding: 2px; border-left: 2px solid #88aaff; }
+  /* PARTS (kusy) */
+  .part { position: absolute; bottom: 112px; width: 24px; height: 18px; background: #c0a86a; border: 2px solid #8a6a3a; cursor: pointer; z-index: 20; }
+  .part.bad { background: #c86a6a; border-color: #a22; }
+
+  /* BOX (krabica na 20 kusov) */
+  .box { position: absolute; bottom: 100px; width: 40px; height: 32px; background: #c8b87a; border: 2px solid #8a6a2a; display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: bold; color: #2a1a0a; cursor: pointer; z-index: 15; }
+  .box-full { background: #e8d89a; border: 3px solid #ffcc44; }
+
+  /* ROLLER CART (vozík) */
+  .roller-cart { position: absolute; bottom: 100px; right: 10px; width: 140px; height: 55px; background: #8a7a5a; border: 3px solid #5a4a2a; border-radius: 6px; transition: left 0.2s; z-index: 25; }
+  .cart-slots { display: flex; height: 100%; padding: 5px; gap: 5px; overflow-x: auto; }
+  .cart-slot { min-width: 45px; background: #5a4a2a; border: 2px solid #2a1a0a; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8px; color: #ffdd99; }
+  .cart-slot.filled { background: #6a8a3a; color: #fff; }
+
+  /* NPCs - pixel style */
+  .npc { position: absolute; bottom: 100px; width: 32px; height: 52px; z-index: 30; }
+  .npc-sprite { width: 32px; height: 52px; position: relative; background: #ddbb88; border-radius: 4px; }
+  .npc-shirt { width: 28px; height: 20px; position: absolute; bottom: 20px; left: 2px; background: #444; }
+  .npc-head { width: 24px; height: 20px; background: #f5d8a0; position: absolute; top: 2px; left: 4px; border-radius: 4px; }
+
+  /* colors */
+  .shirt-orange { background: #e07a2a; }
+  .shirt-red-stripe { background: #c82222; background-image: linear-gradient(90deg, #c82222 0%, #c82222 40%, #2a8a2a 40%, #2a8a2a 60%, #ffffff 60%, #ffffff 80%, #c82222 80%); }
+  .shirt-green { background: #3a8a3a; }
+  .shirt-black { background: #222; }
+
+  /* warehouse worker moving cart */
+  .warehouse-cart { position: absolute; bottom: 100px; width: 90px; height: 50px; background: #6a5a3a; border: 2px solid #ffaa44; transition: left 0.1s linear; z-index: 28; display: flex; align-items: center; justify-content: center; font-size: 12px; color: white; }
+
+  .speech { position: absolute; background: white; border: 2px solid black; padding: 2px 6px; font-size: 8px; white-space: nowrap; bottom: 55px; left: 50%; transform: translateX(-50%); z-index: 100; }
+
+  /* TASKS */
+  #task-panel { position: absolute; top: 45px; right: 5px; background: #111122cc; border: 2px solid #ffaa66; padding: 6px; width: 140px; font-size: 8px; z-index: 40; }
+  .task-item { margin: 3px 0; padding: 2px; border-left: 2px solid #ffaa66; color: #ccc; }
   .task-item.done { color: #8f8; border-left-color: #8f8; text-decoration: line-through; }
 
-  /* SHIFT BAR */
-  #shift-bar-container { position: absolute; bottom: 50px; left: 8px; right: 8px; height: 10px; background: #222; border: 2px solid #444; }
-  #shift-bar { height: 100%; background: #6a8a3a; width: 0%; transition: width 0.5s linear; }
-
-  /* NOTIFICATION */
-  #notification { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); background: #000000cc; border: 3px solid #ffaa44; padding: 8px 12px; font-size: 7px; color: #ffcc88; z-index: 100; display: none; white-space: nowrap; }
-
-  /* ========== PIXEL CAR RACER STYLE CHARACTERS ========== */
-  .pixel-char {
-    position: absolute;
-    bottom: 130px;
-    width: 28px;
-    height: 48px;
-    z-index: 20;
-    image-rendering: crisp-edges;
-    image-rendering: pixelated;
-  }
-
-  /* PLAYER - black shirt, white emblem, calm face */
-  .player-sprite {
-    position: relative;
-    width: 28px;
-    height: 48px;
-  }
-  /* Hair - short brown */
-  .p-hair { position: absolute; top: 0; left: 6px; width: 16px; height: 8px; background: #8b5a2b; }
-  /* Face */
-  .p-face { position: absolute; top: 7px; left: 6px; width: 16px; height: 12px; background: #ffdd99; }
-  .p-eyes { position: absolute; top: 10px; left: 8px; width: 12px; height: 3px; display: flex; gap: 5px; }
-  .p-eye { width: 3px; height: 3px; background: #1a1a2a; border-radius: 0; }
-  .p-mouth { position: absolute; top: 15px; left: 10px; width: 8px; height: 2px; background: #5a3a2a; }
-  /* Black shirt with emblem */
-  .p-shirt { position: absolute; top: 19px; left: 4px; width: 20px; height: 16px; background: #1a1a1a; border: 1px solid #3a3a3a; }
-  .p-emblem { position: absolute; top: 23px; left: 10px; width: 8px; height: 8px; background: #ffcc44; clip-path: polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%); }
-  /* Pants */
-  .p-pants { position: absolute; top: 35px; left: 4px; width: 20px; height: 13px; background: #2a2a3a; }
-  /* Shoes */
-  .p-shoes { position: absolute; bottom: 0; left: 2px; width: 24px; height: 4px; background: #6a6a7a; display: flex; gap: 10px; }
-  .p-shoe { width: 8px; height: 4px; background: #4a4a5a; }
-
-  /* NPC - NASTAVOVACH (black shirt, angry/calm) */
-  .npc-sprite {
-    position: relative;
-    width: 28px;
-    height: 48px;
-  }
-  .npc-hair { position: absolute; top: 0; left: 6px; width: 16px; height: 8px; background: #5a3a1a; }
-  .npc-face { position: absolute; top: 7px; left: 6px; width: 16px; height: 12px; background: #eec88a; }
-  .npc-eyes { position: absolute; top: 10px; left: 8px; width: 12px; display: flex; gap: 5px; }
-  .npc-eye { width: 3px; height: 3px; background: #1a1a2a; }
-  .npc-mouth { position: absolute; top: 15px; left: 9px; width: 10px; height: 2px; background: #8a4a2a; }
-  /* Shirt colors */
-  .shirt-black { background: #1a1a1a !important; border: 1px solid #4a4a4a; }
-  .shirt-orange { background: #d97c2a !important; border: 1px solid #aa5a1a; }
-  .shirt-green { background: #3a8a3a !important; border: 1px solid #1a6a1a; }
-  .npc-shirt { position: absolute; top: 19px; left: 4px; width: 20px; height: 16px; }
-  .npc-pants { position: absolute; top: 35px; left: 4px; width: 20px; height: 13px; background: #2a2a3a; }
-  .npc-shoes { position: absolute; bottom: 0; left: 2px; width: 24px; height: 4px; background: #5a5a6a; }
-
-  /* SPEECH BUBBLE */
-  .speech-bubble {
-    position: absolute;
-    background: white;
-    border: 3px solid black;
-    padding: 4px 6px;
-    font-size: 6px;
-    white-space: nowrap;
-    bottom: 48px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 60;
-    font-family: 'Press Start 2P', monospace;
-  }
-
   /* CONTROLS */
-  #controls {
-    position: absolute;
-    bottom: 8px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: center;
-    gap: 12px;
-    z-index: 40;
-  }
-  .ctrl-btn, .action-btn {
-    padding: 10px 16px;
-    background: #2a2a3e;
-    border: 3px solid #88aaff;
-    color: #ffdd99;
-    font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-  .ctrl-btn:active, .action-btn:active { background: #4a4a6e; transform: scale(0.96); }
-  .action-btn { background: #2a4a2a; border-color: #8acc88; }
+  #controls { position: absolute; bottom: 5px; left: 5px; right: 5px; display: flex; justify-content: center; gap: 10px; z-index: 50; flex-wrap: wrap; }
+  .ctrl-btn { padding: 8px 16px; background: #2a2a3e; border: 2px solid #ffaa66; color: #ffdd99; font-size: 12px; font-weight: bold; cursor: pointer; min-width: 60px; }
+  .ctrl-btn:active { background: #4a4a6e; }
 
-  /* OVERLAYS */
-  .overlay-screen {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.85); display: none; flex-direction: column;
-    align-items: center; justify-content: center; z-index: 200;
-  }
-  .overlay-screen.visible { display: flex; }
-  .overlay-btn {
-    margin-top: 15px; padding: 10px 20px; background: #2a2a3e;
-    border: 3px solid #ffaa44; color: #ffaa44; font-family: monospace;
-    font-size: 10px; cursor: pointer;
-  }
-  #porucha-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: #aa3333cc; display: none; align-items: center;
-    justify-content: center; flex-direction: column; z-index: 150;
-  }
-  #porucha-overlay.visible { display: flex; }
-  .fix-btn { margin-top: 12px; padding: 8px 18px; background: #ffaa44; border: none; font-family: monospace; font-weight: bold; cursor: pointer; }
-  #stats-screen { background: #0f0f23; }
-  .stats-inner { padding: 20px; color: white; }
-  .stat-row { display: flex; justify-content: space-between; font-size: 8px; margin: 8px 0; border-bottom: 1px solid #444; }
+  .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000000cc; display: none; flex-direction: column; align-items: center; justify-content: center; z-index: 200; }
+  .overlay.visible { display: flex; }
+  .overlay-btn { padding: 12px 24px; background: #ffaa44; border: none; margin: 10px; font-size: 14px; cursor: pointer; }
+
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  .notification { position: absolute; top: 80px; left: 50%; transform: translateX(-50%); background: black; border: 2px solid gold; padding: 6px 12px; color: gold; font-size: 10px; z-index: 150; display: none; white-space: nowrap; }
 </style>
 </head>
 <body>
-
+<div class="game-wrapper">
 <div id="game-container">
 
   <!-- MENU -->
   <div id="menu-screen" class="screen active">
-    <div class="top-hud"><div class="hud-box">📦 <span id="menu-boxes">0</span></div><div class="hud-box">💎 10</div><div class="hud-box">$ <span id="menu-money">0</span></div></div>
-    <div class="title-area"><div class="factory-icon">🏭</div><h1>PIXEL</h1><div class="subtitle">FABRIKA — Magna Edícia</div></div>
-    <div class="menu-buttons"><button class="menu-btn" onclick="startShift()">▶ ZAČAŤ ZMENU</button><button class="menu-btn" onclick="showStats()">📊 ŠTATISTIKA</button></div>
+    <div class="menu-card">
+      <h1>🏭 MAGNA</h1>
+      <p style="color:#ffcc88; margin:10px;">LISY & KUSY</p>
+      <button class="menu-btn" onclick="startGame()">▶ ZAČAŤ ZMENU</button>
+      <button class="menu-btn" onclick="showStats()">📊 ŠTATISTIKA</button>
+    </div>
   </div>
 
-  <!-- GAME SCREEN -->
+  <!-- GAME -->
   <div id="game-screen" class="screen">
-    <div class="wall-bg"></div><div class="floor-bg"></div>
-    <div class="engel-machine"><div class="engel-top"></div><div class="engel-light green" id="engel-light"></div><div style="font-size:5px; text-align:center; margin-top:30px;">ENGEL</div></div>
+    <div class="wall"></div><div class="floor"></div>
+    
+    <!-- Engel machine -->
+    <div class="engel" id="engel"><div class="engel-light green" id="engelLight"></div><div style="font-size:8px; text-align:center; margin-top:30px;">ENGEL</div></div>
+    
+    <!-- Conveyor -->
     <div class="conveyor"><div class="conveyor-stripes"></div></div>
-    <div class="roller-cart"><div class="cart-body" id="cart-body"><div class="cart-slot" id="slot0" onclick="placeInCart(0)"></div><div class="cart-slot" id="slot1" onclick="placeInCart(1)"></div><div class="cart-slot" id="slot2" onclick="placeInCart(2)"></div><div class="cart-slot" id="slot3" onclick="placeInCart(3)"></div></div></div>
-
-    <!-- PLAYER - pixel car racer style -->
-    <div id="player" class="pixel-char" style="left:350px">
-      <div class="player-sprite">
-        <div class="p-hair"></div><div class="p-face"></div>
-        <div class="p-eyes"><div class="p-eye"></div><div class="p-eye"></div></div>
-        <div class="p-mouth"></div>
-        <div class="p-shirt"></div><div class="p-emblem"></div>
-        <div class="p-pants"></div><div class="p-shoes"><div class="p-shoe"></div><div class="p-shoe"></div></div>
-      </div>
-    </div>
-
-    <!-- NPC PREDACKA (orange shirt) -->
-    <div id="npc-predachka" class="pixel-char" style="left:570px">
-      <div class="npc-sprite">
-        <div class="npc-hair"></div><div class="npc-face"></div>
-        <div class="npc-eyes"><div class="npc-eye"></div><div class="npc-eye"></div></div>
-        <div class="npc-mouth" style="width:6px;"></div>
-        <div class="npc-shirt shirt-orange"></div><div class="npc-pants"></div><div class="npc-shoes"></div>
-        <div id="predachka-bubble"></div>
-      </div>
-    </div>
-
-    <!-- NPC NASTAVOVACH (black shirt, moves) -->
-    <div id="npc-nastavovach" class="pixel-char" style="left:120px">
-      <div class="npc-sprite">
-        <div class="npc-hair" style="background:#4a2a1a;"></div><div class="npc-face"></div>
-        <div class="npc-eyes"><div class="npc-eye"></div><div class="npc-eye"></div></div>
-        <div class="npc-mouth" style="width:8px;"></div>
-        <div class="npc-shirt shirt-black"></div><div class="npc-pants"></div><div class="npc-shoes"></div>
-        <div id="nastavovach-bubble"></div>
-      </div>
-    </div>
-
-    <!-- NPC KVALITAR (green shirt) -->
-    <div id="npc-kvalitar" class="pixel-char" style="left:690px">
-      <div class="npc-sprite">
-        <div class="npc-hair" style="background:#6a4a2a;"></div><div class="npc-face"></div>
-        <div class="npc-eyes"><div class="npc-eye"></div><div class="npc-eye"></div></div>
-        <div class="npc-mouth" style="width:7px;"></div>
-        <div class="npc-shirt shirt-green"></div><div class="npc-pants"></div><div class="npc-shoes"></div>
-        <div id="kvalitar-bubble"></div>
-      </div>
-    </div>
-
-    <div class="top-hud"><div class="hud-box">📦 <span id="hud-collected">0</span></div><div class="hud-box">⚠️ <span id="hud-bad">0</span></div><div class="hud-box">$ <span id="hud-money">0</span></div></div>
-    <div id="task-panel"><h3>⚙ ÚLOHY</h3><div class="task-item active" id="task1">📦 Zozbieraj 10 lisov</div><div class="task-item" id="task2">🚫 Neprepusti závadu</div><div class="task-item" id="task3">⚡ Bez poruchy: 60s</div></div>
-    <div id="shift-bar-container"><div id="shift-label">ZMENA</div><div id="shift-bar"></div></div>
-    <div id="controls"><button class="ctrl-btn" id="btn-left" ontouchstart="startMove('left')" ontouchend="stopMove()" onmousedown="startMove('left')" onmouseup="stopMove()">◀</button><button class="action-btn" onclick="pickupPart()">ZOBRAŤ LIS</button><button class="action-btn" onclick="deliverCart()" style="background:#2a4a6a;">ODOVZDAŤ</button><button class="ctrl-btn" id="btn-right" ontouchstart="startMove('right')" ontouchend="stopMove()" onmousedown="startMove('right')" onmouseup="stopMove()">▶</button></div>
-    <div id="porucha-overlay"><h2>⚠ PORUCHA FORMY!</h2><p>Stroj je pokazený!</p><button class="fix-btn" onclick="fixPorucha()">🔧 OPRAVIŤ</button></div>
-    <div id="pause-overlay" class="overlay-screen"><h2>PAUZA</h2><button class="overlay-btn" onclick="resumeGame()">▶ POKRAČOVAŤ</button><button class="overlay-btn" onclick="goToMenu()">↩ MENU</button></div>
-    <div id="end-overlay" class="overlay-screen"><h2>ZMENA SKONČILA!</h2><p id="end-collected"></p><p id="end-bad"></p><p id="end-money"></p><button class="overlay-btn" onclick="goToMenu()">↩ MENU</button></div>
-    <div id="notification"></div>
+    
+    <!-- Roller cart (vozík) -->
+    <div class="roller-cart" id="rollerCart"><div class="cart-slots" id="cartSlots"></div></div>
+    
+    <!-- Warehouse worker cart (skladník vozíky) -->
+    <div id="warehouseCart" class="warehouse-cart" style="left:-100px;">🛒</div>
+    
+    <!-- NPCs -->
+    <div id="predacka" class="npc" style="left: 550px;"><div class="npc-sprite"><div class="npc-head"></div><div class="npc-shirt shirt-orange"></div></div><div id="predackaSpeech"></div></div>
+    <div id="skladnik" class="npc" style="left: 700px;"><div class="npc-sprite"><div class="npc-head"></div><div class="npc-shirt shirt-red-stripe"></div></div><div id="skladnikSpeech"></div></div>
+    <div id="kvalitar" class="npc" style="left: 400px;"><div class="npc-sprite"><div class="npc-head"></div><div class="npc-shirt shirt-green"></div></div><div id="kvalitarSpeech"></div></div>
+    <div id="nastavovach" class="npc" style="left: 200px;"><div class="npc-sprite"><div class="npc-head"></div><div class="npc-shirt shirt-black"></div></div><div id="nastavovachSpeech"></div></div>
+    
+    <!-- HUD -->
+    <div class="top-hud"><div class="hud-box">📦 KUSY: <span id="hudParts">0</span></div><div class="hud-box">📦 BOXY: <span id="hudBoxes">0</span></div><div class="hud-box">🛒 VOZÍKY: <span id="hudCarts">0/6</span></div><div class="hud-box">💰 €: <span id="hudMoney">0</span></div></div>
+    
+    <div id="task-panel"><h3>⚙ ÚLOHY</h3><div class="task-item" id="task1">📦 20 kusov = 1 box</div><div class="task-item" id="task2">🏭 6 boxov = vozík</div><div class="task-item" id="task3">🏷️ Predačka: etiketa</div><div class="task-item" id="task4">🚛 Skladník odvoz</div></div>
+    
+    <div id="controls"><button class="ctrl-btn" ontouchstart="moveLeft=true" ontouchend="moveLeft=false" onmousedown="moveLeft=true" onmouseup="moveLeft=false">◀ LIS</button><button class="ctrl-btn" onclick="pickupPart()">✋ ZOBRAŤ KUS</button><button class="ctrl-btn" onclick="placeToBox()">📦 DO BOXA</button><button class="ctrl-btn" onclick="loadBoxToCart()">📦→VOZÍK</button><button class="ctrl-btn" onclick="callPredacka()">🏷️ ETIKETA</button><button class="ctrl-btn" ontouchstart="moveRight=true" ontouchend="moveRight=false" onmousedown="moveRight=true" onmouseup="moveRight=false">LIS ▶</button></div>
+    
+    <div id="poruchaOverlay" class="overlay"><h2 style="color:red">⚠ PORUCHA FORMY!</h2><p>Prvé kusy sú chybné!</p><button class="overlay-btn" onclick="fixPorucha()">🔧 OPRAVIŤ</button></div>
+    <div id="endOverlay" class="overlay"><h2>ZMENA SKONČILA</h2><p id="endText"></p><button class="overlay-btn" onclick="backToMenu()">MENU</button></div>
+    <div id="notification" class="notification"></div>
+    
+    <!-- Player indicator -->
+    <div id="player" style="position:absolute; bottom:102px; width:28px; height:48px; background:#4466aa; border:2px solid #ffcc88; left:300px; z-index:35; transition:left 0.05s linear;"></div>
   </div>
-
+  
   <!-- STATS -->
-  <div id="stats-screen" class="screen"><div class="stats-inner"><h2>📊 ŠTATISTIKA</h2><div class="stat-row"><span>Celkom zmien</span><span id="s-shifts">0</span></div><div class="stat-row"><span>Lisov zozbieraných</span><span id="s-total-parts">0</span></div><div class="stat-row"><span>Závada prepustená</span><span id="s-bad-passed">0</span></div><div class="stat-row"><span>Porúch foriem</span><span id="s-poruchas">0</span></div><div class="stat-row"><span>Zarobené</span><span id="s-money">$0</span></div><button class="overlay-btn" onclick="goToMenu()">↩ MENU</button></div></div>
+  <div id="stats-screen" class="screen"><div style="padding:30px; color:white;"><h2>📊 ŠTATISTIKA</h2><div id="statsContent"></div><button class="menu-btn" onclick="backToMenu()">SPÄŤ</button></div></div>
+</div>
 </div>
 
 <script>
-const STATE = {
-  money: 0, totalParts: 0, shiftParts: 0, badPassed: 0, poruchas: 0, shifts: 0,
-  playerX: 350, moving: null, moveInterval: null, shiftDuration: 90, shiftTime: 0, shiftTimer: null,
-  parts: [], partIdCounter: 0, cartSlots: [null,null,null,null], heldPart: null,
-  poruchaActive: false, poruchaTimer: null, nastavovachDir: 1, nastavovachX: 120, nastavovachMoveInterval: null,
-  noPoruchaTimer: 0, noPoruchaGoal: false, task1done: false, task2done: false, task3done: false, partSpawnInterval: null
-};
+// GAME STATE
+let money = 0, totalPartsMade = 0, shiftParts = 0, badPassed = 0, poruchaActive = false, poruchaTimer = null;
+let boxes = []; // array of {full: false, count:0}
+let currentBoxIndex = 0;
+let cartBoxes = []; // max 6 boxes in cart
+let heldPart = null; // {bad: false}
+let playerX = 300;
+let moveLeft = false, moveRight = false;
+let shiftTime = 0, shiftDuration = 180; // 3 minuty = cca 65€
+let shiftInterval = null;
+let partsOnConveyor = [];
+let partId = 0;
+let warehouseCartX = -100, warehouseTarget = false;
+let labelPrinted = false; // predačka must print label before skladník takes
+let gameRunning = true;
 
-const CONVEYOR_LEFT = 160, CONVEYOR_RIGHT = 720;
-function $(id) { return document.getElementById(id); }
-function showScreen(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
+// DOM elements
+const gameScreen = document.getElementById('game-screen');
+const playerEl = document.getElementById('player');
+const hudParts = document.getElementById('hudParts');
+const hudBoxes = document.getElementById('hudBoxes');
+const hudCarts = document.getElementById('hudCarts');
+const hudMoney = document.getElementById('hudMoney');
+const cartSlotsDiv = document.getElementById('cartSlots');
+const notification = document.getElementById('notification');
+const poruchaOverlay = document.getElementById('poruchaOverlay');
 
-function startShift() { showScreen('game-screen'); resetShift(); startGameLoop(); }
-function showStats() { showScreen('stats-screen'); $('s-shifts').textContent=STATE.shifts; $('s-total-parts').textContent=STATE.totalParts; $('s-bad-passed').textContent=STATE.badPassed; $('s-poruchas').textContent=STATE.poruchas; $('s-money').textContent='$'+STATE.money; }
-function goToMenu() { stopGameLoop(); $('pause-overlay').classList.remove('visible'); $('end-overlay').classList.remove('visible'); updateMenuHUD(); showScreen('menu-screen'); }
-function resumeGame() { $('pause-overlay').classList.remove('visible'); startShiftTimer(); }
-function updateMenuHUD() { $('menu-money').textContent=STATE.money; $('menu-boxes').textContent=STATE.totalParts; }
-
-function resetShift() {
-  STATE.shiftParts=0; STATE.shiftTime=0; STATE.parts=[]; STATE.cartSlots=[null,null,null,null]; STATE.heldPart=null;
-  STATE.poruchaActive=false; STATE.task1done=false; STATE.task2done=false; STATE.task3done=false;
-  STATE.noPoruchaTimer=0; STATE.noPoruchaGoal=false; STATE.playerX=350; STATE.badPassed=0;
-  $('player').style.left=STATE.playerX+'px'; $('hud-collected').textContent=0; $('hud-bad').textContent=0; $('hud-money').textContent=STATE.money;
-  $('shift-bar').style.width='0%'; $('task1').className='task-item active'; $('task2').className='task-item'; $('task3').className='task-item';
-  $('porucha-overlay').classList.remove('visible'); document.querySelectorAll('.part-on-conveyor').forEach(p=>p.remove());
-  updateCartDOM(); startShiftTimer(); schedulePorucha(); startNastavovach();
-  setTimeout(()=>showNotif('🔔 ZMENA ZAČALA! Zbieraj lisy!',2000),500);
-  setInterval(()=>{ if(Math.random()<0.04 && !STATE.poruchaActive) { $('predachka-bubble').innerHTML='<div class="speech-bubble">Viac lisov!</div>'; setTimeout(()=>$('predachka-bubble').innerHTML='',1400); } }, 9000);
+function showNotif(msg, time=1500) {
+  notification.innerText = msg;
+  notification.style.display = 'block';
+  setTimeout(() => notification.style.display = 'none', time);
 }
 
-function startShiftTimer() {
-  clearInterval(STATE.shiftTimer);
-  STATE.shiftTimer = setInterval(()=>{
-    STATE.shiftTime++; STATE.noPoruchaTimer++;
-    let pct = (STATE.shiftTime/STATE.shiftDuration)*100;
-    $('shift-bar').style.width = Math.min(pct,100)+'%';
-    if(!STATE.noPoruchaGoal && STATE.noPoruchaTimer>=60 && !STATE.task3done) {
-      STATE.noPoruchaGoal=true; STATE.task3done=true; $('task3').className='task-item done';
-      showNotif('✅ Bez poruchy 60 sekúnd!',1500);
-    }
-    if(STATE.shiftTime>=STATE.shiftDuration) endShift();
-  },1000);
+function updateUI() {
+  hudParts.innerText = shiftParts;
+  hudBoxes.innerText = boxes.filter(b => b.full).length;
+  hudCarts.innerText = cartBoxes.length + "/6";
+  hudMoney.innerText = money;
+  // update cart slots visual
+  cartSlotsDiv.innerHTML = '';
+  for(let i=0;i<6;i++){
+    let slot = document.createElement('div');
+    slot.className = 'cart-slot' + (cartBoxes[i] ? ' filled' : '');
+    slot.innerText = cartBoxes[i] ? '📦' : '□';
+    cartSlotsDiv.appendChild(slot);
+  }
 }
 
-function stopGameLoop() { clearInterval(STATE.shiftTimer); clearInterval(STATE.moveInterval); clearTimeout(STATE.poruchaTimer); clearInterval(STATE.nastavovachMoveInterval); clearInterval(STATE.partSpawnInterval); }
-function endShift() { stopGameLoop(); STATE.shifts++; let earned = STATE.shiftParts*150 - STATE.badPassed*300; let earnedFinal=Math.max(earned,0); STATE.money+=earnedFinal; STATE.totalParts+=STATE.shiftParts; $('end-collected').textContent='📦 Lisov: '+STATE.shiftParts; $('end-bad').textContent='❌ Závad: '+STATE.badPassed; $('end-money').textContent='💰 Zarobené: $'+earnedFinal; $('end-overlay').classList.add('visible'); }
-function startGameLoop() { STATE.partSpawnInterval = setInterval(spawnPart, 2100); }
-
+// Spawn part (kus) from Engel
 function spawnPart() {
-  if(STATE.poruchaActive) return;
-  let id='part-'+ (STATE.partIdCounter++); let isBad=Math.random()<0.2;
-  let el=document.createElement('div'); el.className='part-on-conveyor '+(isBad?'bad':'good'); el.id=id; el.style.left=CONVEYOR_LEFT+'px';
-  el.onclick=(e)=>{ e.stopPropagation(); inspectPart(id); };
-  document.getElementById('game-screen').appendChild(el);
-  let part={id,el,x:CONVEYOR_LEFT,bad:isBad,picked:false}; STATE.parts.push(part); animatePart(part);
+  if(!gameRunning || poruchaActive) return;
+  let isBad = false;
+  if(poruchaActive && shiftParts < 10) isBad = true; // first parts after porucha are bad
+  else isBad = Math.random() < 0.15;
+  
+  let el = document.createElement('div');
+  el.className = 'part' + (isBad ? ' bad' : '');
+  el.id = 'part'+partId++;
+  el.style.left = '140px';
+  el.onclick = () => pickupSpecificPart(el.id);
+  gameScreen.appendChild(el);
+  partsOnConveyor.push({id:el.id, el:el, x:140, bad:isBad});
+  animatePart(el.id);
 }
 
-function animatePart(part) {
-  let speed=1.15; let interval=setInterval(()=>{
-    if(part.picked){clearInterval(interval);return;}
-    part.x+=speed; part.el.style.left=part.x+'px';
-    if(part.x>CONVEYOR_RIGHT){
-      if(part.bad){ STATE.badPassed++; $('hud-bad').textContent=STATE.badPassed; showNotif('❌ ZÁVADA PREPUSTENÁ!',1000); }
-      part.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==part.id); clearInterval(interval);
+function animatePart(pid) {
+  let interval = setInterval(() => {
+    let p = partsOnConveyor.find(pp => pp.id === pid);
+    if(!p) { clearInterval(interval); return; }
+    p.x += 1.2;
+    p.el.style.left = p.x + 'px';
+    if(p.x > 780) {
+      if(p.bad) badPassed++;
+      p.el.remove();
+      partsOnConveyor = partsOnConveyor.filter(pp => pp.id !== pid);
+      clearInterval(interval);
     }
-  },20);
+  }, 20);
 }
 
-function inspectPart(id) {
-  let part=STATE.parts.find(p=>p.id===id); if(!part||part.picked) return;
-  let bubble=$('kvalitar-bubble');
-  if(part.bad){ bubble.innerHTML='<div class="speech-bubble">❌ ZÁVADA!</div>'; showNotif('⚠ Kvalitár: ZÁVADA! Vyhoď to!',1200); part.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==part.id); }
-  else { bubble.innerHTML='<div class="speech-bubble">✅ OK!</div>'; }
-  setTimeout(()=>bubble.innerHTML='',1200);
+function pickupSpecificPart(pid) {
+  if(heldPart) { showNotif('Už držíš kus!'); return; }
+  let part = partsOnConveyor.find(p => p.id === pid);
+  if(!part) return;
+  let playerRect = {x: playerX, width:28};
+  let partX = part.x;
+  if(Math.abs(playerX - partX) < 45) {
+    heldPart = {bad: part.bad};
+    part.el.remove();
+    partsOnConveyor = partsOnConveyor.filter(p => p.id !== pid);
+    if(heldPart.bad) showNotif('⚠️ CHYBNÝ KUS! Nechaj ho!', 800);
+    else showNotif('✅ Kus v ruke', 600);
+  } else showNotif('❌ Si príďaleko!', 500);
 }
 
 function pickupPart() {
-  if(STATE.heldPart) return;
-  let playerCenter=STATE.playerX+14; let nearest=null, minDist=70;
-  for(let p of STATE.parts){ if(p.picked) continue; let d=Math.abs(p.x-playerCenter); if(d<minDist){ minDist=d; nearest=p; } }
-  if(!nearest){ showNotif('Žiadne lisy nablízku!',800); return; }
-  if(nearest.bad){ showNotif('❌ TO JE ZÁVADA! Nedávaj do vozíka!',1200); nearest.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==nearest.id); return; }
-  nearest.picked=true; nearest.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==nearest.id);
-  STATE.heldPart=nearest; showNotif('📦 Lis zobratý!',600);
-  placeHeldInCart();
+  if(heldPart) { showNotif('Už držíš kus!'); return; }
+  let nearest = null, minDist = 70;
+  for(let p of partsOnConveyor) {
+    let dist = Math.abs(p.x - playerX);
+    if(dist < minDist) { minDist = dist; nearest = p; }
+  }
+  if(nearest) {
+    heldPart = {bad: nearest.bad};
+    nearest.el.remove();
+    partsOnConveyor = partsOnConveyor.filter(p => p.id !== nearest.id);
+    if(heldPart.bad) showNotif('⚠️ CHYBNÝ KUS!', 800);
+    else showNotif('✅ Kus v ruke', 600);
+  } else showNotif('Žiadny kus nablízku', 500);
 }
 
-function placeHeldInCart() {
-  if(!STATE.heldPart) return;
-  let freeSlot=STATE.cartSlots.indexOf(null);
-  if(freeSlot===-1){ showNotif('Vozík je plný! Odovzdaj ho!',1000); return; }
-  STATE.cartSlots[freeSlot]='good'; STATE.heldPart=null; STATE.shiftParts++;
-  $('hud-collected').textContent=STATE.shiftParts; updateCartDOM();
-  if(!STATE.task1done && STATE.shiftParts>=10){ STATE.task1done=true; $('task1').className='task-item done'; showNotif('✅ Úloha 1 splnená!',1500); }
+function placeToBox() {
+  if(!heldPart) { showNotif('Nemáš nič v ruke!'); return; }
+  if(heldPart.bad) { showNotif('❌ Chybný kus nemôžeš dať do boxu!', 1000); heldPart = null; return; }
+  // find or create current box
+  let currentBox = boxes.find(b => !b.full);
+  if(!currentBox) {
+    currentBox = {full: false, count:0};
+    boxes.push(currentBox);
+  }
+  currentBox.count++;
+  shiftParts++;
+  totalPartsMade++;
+  if(currentBox.count >= 20) {
+    currentBox.full = true;
+    showNotif('📦 Box naplnený! (20 kusov)', 1200);
+  }
+  heldPart = null;
+  updateUI();
+  // kvalitar reaction
+  let kvalitarSpeech = document.getElementById('kvalitarSpeech');
+  kvalitarSpeech.innerHTML = '<div class="speech">✅ OK</div>';
+  setTimeout(() => kvalitarSpeech.innerHTML = '', 1000);
 }
 
-function placeInCart(slot){ if(!STATE.heldPart) return; if(STATE.cartSlots[slot]!==null) return; STATE.cartSlots[slot]='good'; STATE.heldPart=null; STATE.shiftParts++; $('hud-collected').textContent=STATE.shiftParts; updateCartDOM(); }
-function deliverCart(){ let filled=STATE.cartSlots.filter(s=>s!==null).length; if(filled===0){ showNotif('Vozík je prázdny!',800); return; } let bonus=filled*150; STATE.money+=bonus; $('hud-money').textContent=STATE.money; STATE.cartSlots=[null,null,null,null]; updateCartDOM(); showNotif('✅ Vozík odovzdaný! +$'+bonus,1500); $('predachka-bubble').innerHTML='<div class="speech-bubble">Ešte daj!</div>'; setTimeout(()=>$('predachka-bubble').innerHTML='',1800); }
-function updateCartDOM(){ for(let i=0;i<4;i++){ let slot=$('slot'+i); if(STATE.cartSlots[i]==='good'){ slot.className='cart-slot filled'; slot.textContent='■'; } else { slot.className='cart-slot'; slot.textContent=''; } } }
-function schedulePorucha(){ let delay=15000+Math.random()*20000; STATE.poruchaTimer=setTimeout(triggerPorucha,delay); }
-function triggerPorucha(){ STATE.poruchaActive=true; STATE.poruchas++; STATE.noPoruchaTimer=0; STATE.noPoruchaGoal=false; $('task3').className='task-item'; $('porucha-overlay').classList.add('visible'); $('engel-light').className='engel-light yellow'; $('nastavovach-bubble').innerHTML='<div class="speech-bubble">PORUCHA FORMY!!!</div>'; setTimeout(()=>$('nastavovach-bubble').innerHTML='',1500); }
-function fixPorucha(){ STATE.poruchaActive=false; $('porucha-overlay').classList.remove('visible'); $('engel-light').className='engel-light green'; $('nastavovach-bubble').innerHTML='<div class="speech-bubble">Opravené!</div>'; setTimeout(()=>$('nastavovach-bubble').innerHTML='',1500); showNotif('🔧 Stroj opravený! Pokračuj!',1500); schedulePorucha(); }
-function startNastavovach(){ clearInterval(STATE.nastavovachMoveInterval); STATE.nastavovachMoveInterval=setInterval(()=>{ STATE.nastavovachX+=STATE.nastavovachDir*1.2; if(STATE.nastavovachX>520) STATE.nastavovachDir=-1; if(STATE.nastavovachX<60) STATE.nastavovachDir=1; $('npc-nastavovach').style.left=STATE.nastavovachX+'px'; if(Math.abs(STATE.nastavovachX-STATE.playerX)<45 && Math.random()<0.02){ $('nastavovach-bubble').innerHTML='<div class="speech-bubble">PRACUJ!</div>'; setTimeout(()=>$('nastavovach-bubble').innerHTML='',1200); } },30); }
-function startMove(dir){ stopMove(); STATE.moving=dir; STATE.moveInterval=setInterval(()=>{ if(dir==='left') STATE.playerX=Math.max(20,STATE.playerX-6); if(dir==='right') STATE.playerX=Math.min(770,STATE.playerX+6); $('player').style.left=STATE.playerX+'px'; },16); }
-function stopMove(){ clearInterval(STATE.moveInterval); STATE.moving=null; }
-document.addEventListener('keydown',e=>{ if(e.key==='ArrowLeft'||e.key==='a') startMove('left'); if(e.key==='ArrowRight'||e.key==='d') startMove('right'); if(e.key===' '||e.key==='Enter') pickupPart(); if(e.key==='s') deliverCart(); if(e.key==='Escape'){ if($('pause-overlay').classList.contains('visible')) resumeGame(); else{ clearInterval(STATE.shiftTimer); $('pause-overlay').classList.add('visible');} } });
-document.addEventListener('keyup',e=>{ if(['ArrowLeft','ArrowRight','a','d'].includes(e.key)) stopMove(); });
-let notifTimeout; function showNotif(msg,dur){ let n=$('notification'); n.textContent=msg; n.style.display='block'; clearTimeout(notifTimeout); notifTimeout=setTimeout(()=>n.style.display='none',dur||1500); }
-updateMenuHUD();
+function loadBoxToCart() {
+  let fullBoxIndex = boxes.findIndex(b => b.full);
+  if(fullBoxIndex === -1) { showNotif('Žiadny plný box!', 800); return; }
+  if(cartBoxes.length >= 6) { showNotif('Vozík je plný (6 boxov)!', 800); return; }
+  let box = boxes[fullBoxIndex];
+  cartBoxes.push({box: box});
+  boxes.splice(fullBoxIndex,1);
+  showNotif('📦 Box naložený na vozík', 800);
+  updateUI();
+}
+
+function callPredacka() {
+  if(cartBoxes.length === 0) { showNotif('Vozík je prázdny!', 800); return; }
+  if(labelPrinted) { showNotif('Etiketa už je vytlačená! Zavolaj skladníka.', 1000); return; }
+  labelPrinted = true;
+  let predackaSpeech = document.getElementById('predackaSpeech');
+  predackaSpeech.innerHTML = '<div class="speech">🏷️ Etiketa pripravená!</div>';
+  setTimeout(() => predackaSpeech.innerHTML = '', 1500);
+  showNotif('Predačka vytlačila paletovú etiketu! Môžeš zavolať skladníka.', 2000);
+  // trigger warehouse worker
+  triggerWarehouse();
+}
+
+function triggerWarehouse() {
+  if(!labelPrinted || cartBoxes.length === 0) { showNotif('Najprv etiketa od predačky!', 1000); return; }
+  // skladnik comes to pick cart
+  let skladnikSpeech = document.getElementById('skladnikSpeech');
+  skladnikSpeech.innerHTML = '<div class="speech">🚛 Odvážam vozík!</div>';
+  setTimeout(() => skladnikSpeech.innerHTML = '', 1500);
+  // reward: 65€ per shift approximate, but per cart: ~10.8€ (6 boxes = 65€)
+  let reward = Math.floor(cartBoxes.length * 10.8);
+  money += reward;
+  showNotif(`💰 Skladník odviezol vozík! +${reward}€`, 1800);
+  cartBoxes = [];
+  labelPrinted = false;
+  updateUI();
+}
+
+// Porucha system
+function startPorucha() {
+  if(poruchaActive) return;
+  poruchaActive = true;
+  document.getElementById('engelLight').className = 'engel-light red';
+  poruchaOverlay.classList.add('visible');
+  let nastSpeech = document.getElementById('nastavovachSpeech');
+  nastSpeech.innerHTML = '<div class="speech">⚠️ PORUCHA! Oprav to!</div>';
+  setTimeout(() => nastSpeech.innerHTML = '', 2000);
+  showNotif('⚠️ PORUCHA FORMY! Prvé kusy budú chybné!', 2000);
+}
+
+function fixPorucha() {
+  poruchaActive = false;
+  poruchaOverlay.classList.remove('visible');
+  document.getElementById('engelLight').className = 'engel-light green';
+  showNotif('🔧 Porucha opravená!', 1000);
+  // schedule next porucha
+  clearTimeout(poruchaTimer);
+  poruchaTimer = setTimeout(() => startPorucha(), 25000 + Math.random() * 20000);
+}
+
+// Shift timer
+function startShiftTimer() {
+  shiftTime = 0;
+  shiftInterval = setInterval(() => {
+    if(!gameRunning) return;
+    shiftTime++;
+    if(shiftTime >= shiftDuration) {
+      endShift();
+    }
+    // every 3 seconds spawn part
+  }, 1000);
+  // spawn parts every 2 seconds
+  window.partSpawner = setInterval(() => spawnPart(), 2100);
+}
+
+function endShift() {
+  gameRunning = false;
+  clearInterval(shiftInterval);
+  clearInterval(window.partSpawner);
+  clearTimeout(poruchaTimer);
+  let finalBonus = Math.floor(totalPartsMade * 0.8) + (cartBoxes.length * 5);
+  money += finalBonus;
+  document.getElementById('endText').innerHTML = `Vyrobených kusov: ${totalPartsMade}<br>Boxov: ${boxes.filter(b=>b.full).length + cartBoxes.length}<br>Zárobok: ${money}€`;
+  document.getElementById('endOverlay').classList.add('visible');
+  updateUI();
+}
+
+// Player movement
+function moveUpdate() {
+  if(!gameRunning) return;
+  if(moveLeft) playerX = Math.max(20, playerX - 6);
+  if(moveRight) playerX = Math.min(760, playerX + 6);
+  playerEl.style.left = playerX + 'px';
+  requestAnimationFrame(moveUpdate);
+}
+setInterval(() => { if(moveLeft || moveRight) moveUpdate(); }, 16);
+
+// Warehouse cart animation (skladník s vozíkom)
+let warehouseInterval = setInterval(() => {
+  if(!gameRunning) return;
+  let cart = document.getElementById('warehouseCart');
+  if(labelPrinted && cartBoxes.length > 0) {
+    // move warehouse cart to roller cart
+    if(warehouseCartX < 650) warehouseCartX += 8;
+    else {
+      // pick cart
+      if(labelPrinted && cartBoxes.length > 0) {
+        let reward = Math.floor(cartBoxes.length * 10.8);
+        money += reward;
+        cartBoxes = [];
+        labelPrinted = false;
+        updateUI();
+        showNotif(`🚛 Skladník odviezol +${reward}€`, 1500);
+        warehouseCartX = -100;
+      }
+    }
+  } else {
+    if(warehouseCartX > -100) warehouseCartX -= 5;
+    else warehouseCartX = -100;
+  }
+  cart.style.left = warehouseCartX + 'px';
+}, 100);
+
+// Reset game
+function startGame() {
+  money = 0; totalPartsMade = 0; shiftParts = 0; badPassed = 0; poruchaActive = false;
+  boxes = []; cartBoxes = []; heldPart = null; labelPrinted = false;
+  partsOnConveyor.forEach(p => p.el.remove());
+  partsOnConveyor = [];
+  gameRunning = true;
+  playerX = 300;
+  playerEl.style.left = '300px';
+  poruchaOverlay.classList.remove('visible');
+  document.getElementById('engelLight').className = 'engel-light green';
+  clearInterval(shiftInterval);
+  clearInterval(window.partSpawner);
+  clearTimeout(poruchaTimer);
+  startShiftTimer();
+  poruchaTimer = setTimeout(() => startPorucha(), 20000);
+  updateUI();
+  document.getElementById('endOverlay').classList.remove('visible');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  gameScreen.classList.add('active');
+  showNotif('🔧 ZMENA ZAČALA! Lisuj kusy, plň boxy, volaj predačku a skladníka!', 3000);
+}
+
+function showStats() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('stats-screen').classList.add('active');
+  document.getElementById('statsContent').innerHTML = `
+    <div>💰 Celkom zarobené: ${money}€</div>
+    <div>📦 Vyrobených kusov: ${totalPartsMade}</div>
+    <div>🏭 Dokončených boxov: ${boxes.filter(b=>b.full).length}</div>
+    <div>⚠️ Chybných kusov: ${badPassed}</div>
+  `;
+}
+
+function backToMenu() {
+  gameRunning = false;
+  clearInterval(shiftInterval);
+  clearInterval(window.partSpawner);
+  clearTimeout(poruchaTimer);
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('menu-screen').classList.add('active');
+  document.getElementById('endOverlay').classList.remove('visible');
+}
+
+// Touch/mouse movement
+document.addEventListener('mousemove', (e) => {});
+window.moveLeft = false; window.moveRight = false;
 </script>
 </body>
 </html>
