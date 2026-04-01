@@ -1,13 +1,16 @@
+Вот обновлённая версия игры, полностью переведённая на словацкий язык и оптимизированная для мобильных устройств.
+
+```html
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PIXEL FACTORY - Magna Lissovna</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>PIXEL FABRIKA - Magna Lissovna</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
 
-  * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; }
+  * { margin: 0; padding: 0; box-sizing: border-box; image-rendering: pixelated; user-select: none; -webkit-tap-highlight-color: transparent; }
 
   body {
     background: #1a1a2e;
@@ -19,19 +22,35 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
+    touch-action: pan-x pan-y; /* prevent zoom on double-tap but allow scrolling? We'll lock */
   }
 
   #game-container {
-    width: 800px;
-    height: 600px;
+    width: 100%;
+    height: 100%;
+    max-width: 800px;
+    max-height: 600px;
     position: relative;
     background: #0f0f23;
     border: 4px solid #444;
     overflow: hidden;
+    margin: auto;
+    box-shadow: 0 0 0 2px #000;
+  }
+
+  /* Responsive scaling: keep 800x600 aspect */
+  @media (max-width: 800px) and (max-height: 600px) {
+    #game-container { width: 100vw; height: 100vh; max-width: none; max-height: none; }
+  }
+  @media (max-aspect-ratio: 4/3) {
+    #game-container { width: 100vw; height: calc(100vw * 0.75); max-height: 100vh; }
+  }
+  @media (min-aspect-ratio: 4/3) {
+    #game-container { height: 100vh; width: calc(100vh * 1.333); max-width: 100vw; }
   }
 
   /* ===== SCREENS ===== */
-  .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; }
+  .screen { display: none; width: 100%; height: 100%; position: absolute; top: 0; left: 0; overflow: hidden; }
   .screen.active { display: block; }
 
   /* ===== MAIN MENU ===== */
@@ -40,45 +59,41 @@
   }
   #menu-screen .title-area {
     text-align: center;
-    padding-top: 40px;
+    padding-top: 30px;
   }
   #menu-screen .title-area h1 {
-    font-size: 42px;
+    font-size: 32px;
     color: #fff;
-    text-shadow: 4px 4px 0 #000, -2px -2px 0 #000;
-    letter-spacing: 4px;
+    text-shadow: 4px 4px 0 #000;
+    letter-spacing: 2px;
   }
   #menu-screen .subtitle {
-    font-size: 10px;
+    font-size: 8px;
     color: #ffd700;
     margin-top: 4px;
     text-shadow: 2px 2px 0 #000;
-  }
-  #menu-screen .factory-icon {
-    font-size: 60px;
-    margin-top: -10px;
   }
   .menu-buttons {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 12px;
     margin-top: 20px;
   }
   .menu-btn {
-    width: 260px;
-    padding: 14px 20px;
+    width: 220px;
+    padding: 12px 16px;
     background: #2a2a3e;
     color: #fff;
     border: 3px solid #555;
     font-family: 'Press Start 2P', monospace;
-    font-size: 13px;
+    font-size: 11px;
     cursor: pointer;
-    text-align: left;
+    text-align: center;
     transition: background 0.1s;
-    letter-spacing: 1px;
   }
   .menu-btn:hover { background: #3a3a5e; border-color: #ffd700; color: #ffd700; }
+  .menu-btn:active { transform: scale(0.98); }
 
   /* Top HUD */
   .top-hud {
@@ -92,283 +107,177 @@
   .hud-box {
     background: #111;
     border: 2px solid #444;
-    padding: 5px 10px;
-    font-size: 11px;
+    padding: 4px 8px;
+    font-size: 9px;
     color: #fff;
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
   }
-  .hud-box .icon { font-size: 14px; }
+  .hud-box .icon { font-size: 12px; }
 
   /* ===== FACTORY FLOOR ===== */
   #game-screen {
     background: #c8c8c8;
   }
 
-  /* Floor */
   .floor-bg {
     position: absolute;
     bottom: 0;
     width: 100%;
-    height: 140px;
-    background: repeating-linear-gradient(
-      90deg,
-      #aaa 0px, #aaa 59px,
-      #999 59px, #999 60px
-    );
+    height: 130px;
+    background: repeating-linear-gradient(90deg, #aaa 0px, #aaa 59px, #999 59px, #999 60px);
     border-top: 3px solid #888;
   }
   .ceiling-bg {
     position: absolute;
     top: 0;
     width: 100%;
-    height: 50px;
+    height: 45px;
     background: #bbb;
     border-bottom: 3px solid #999;
   }
   .wall-bg {
     position: absolute;
-    top: 50px;
+    top: 45px;
     width: 100%;
-    height: calc(100% - 190px);
+    height: calc(100% - 175px);
     background: #d4d4d4;
   }
 
   /* Engel Machine */
   .engel-machine {
     position: absolute;
-    bottom: 140px;
-    left: 30px;
-    width: 180px;
-    height: 110px;
+    bottom: 130px;
+    left: 15px;
+    width: 160px;
+    height: 100px;
+    transform: scale(0.9);
+    transform-origin: bottom left;
   }
   .engel-body {
-    width: 180px;
-    height: 80px;
+    width: 160px;
+    height: 70px;
     background: #5a9a3a;
     border: 3px solid #3a7a1a;
     position: absolute;
     bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
-  .engel-label {
-    font-size: 7px;
-    color: #fff;
-    text-shadow: 1px 1px 0 #000;
-    text-align: center;
-  }
+  .engel-label { font-size: 6px; color: #fff; text-align: center; padding-top: 8px; }
   .engel-top {
-    width: 140px;
-    height: 32px;
+    width: 120px;
+    height: 28px;
     background: #4a8a2a;
     border: 3px solid #3a7a1a;
     position: absolute;
     top: 0;
     left: 20px;
   }
-  .engel-nozzle {
-    position: absolute;
-    right: -18px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 20px;
-    height: 16px;
-    background: #666;
-    border: 2px solid #444;
-  }
   .engel-light {
     position: absolute;
-    top: 8px;
-    right: 10px;
-    width: 10px;
-    height: 10px;
+    top: 6px;
+    right: 8px;
+    width: 8px;
+    height: 8px;
     border-radius: 50%;
-    background: #f00;
-    border: 2px solid #900;
+    background: #0f0;
+    border: 2px solid #090;
   }
-  .engel-light.green { background: #0f0; border-color: #090; }
   .engel-light.yellow { background: #ff0; border-color: #990; animation: blink 0.6s infinite; }
-  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   /* Conveyor */
   .conveyor {
     position: absolute;
-    bottom: 140px;
-    left: 210px;
-    width: 460px;
-    height: 28px;
+    bottom: 130px;
+    left: 180px;
+    width: 480px;
+    height: 26px;
     background: #555;
-    border-top: 4px solid #333;
-    border-bottom: 4px solid #333;
+    border-top: 3px solid #333;
+    border-bottom: 3px solid #333;
     overflow: hidden;
   }
   .conveyor-stripes {
     width: 200%;
     height: 100%;
-    background: repeating-linear-gradient(
-      90deg,
-      #555 0px, #555 18px,
-      #444 18px, #444 20px
-    );
+    background: repeating-linear-gradient(90deg, #555 0px, #555 18px, #444 18px, #444 20px);
     animation: conveyorMove 1.5s linear infinite;
   }
   @keyframes conveyorMove { from{transform:translateX(0)} to{transform:translateX(-20px)} }
-  .conveyor-legs {
-    position: absolute;
-    bottom: -20px;
-    width: 100%;
-    display: flex;
-    justify-content: space-around;
-  }
-  .conveyor-leg {
-    width: 8px;
-    height: 20px;
-    background: #444;
-  }
 
   /* Parts on conveyor */
   .part-on-conveyor {
     position: absolute;
-    bottom: 158px;
-    width: 28px;
-    height: 18px;
+    bottom: 148px;
+    width: 26px;
+    height: 16px;
     background: #888;
     border: 2px solid #555;
     cursor: pointer;
-    transition: transform 0.1s;
     z-index: 10;
+    touch-action: manipulation;
   }
-  .part-on-conveyor:hover { transform: scale(1.2); border-color: #ffd700; }
   .part-on-conveyor.good { background: #aaa; border-color: #666; }
   .part-on-conveyor.bad { background: #c44; border-color: #922; }
-  .part-on-conveyor.checked { background: #4a4; border-color: #292; }
 
   /* Player */
   #player {
     position: absolute;
-    bottom: 140px;
+    bottom: 130px;
     width: 24px;
     height: 48px;
     z-index: 20;
-    cursor: default;
-    transition: left 0.15s;
+    transition: left 0.08s linear;
   }
-  /* Pixel art player - dark grey shirt */
-  .player-sprite {
-    width: 24px;
-    height: 48px;
-    position: relative;
-  }
-  .p-head {
-    position: absolute;
-    top: 0;
-    left: 4px;
-    width: 16px;
-    height: 14px;
-    background: #f5c8a0;
-    border: 2px solid #c8986a;
-  }
-  .p-hair {
-    position: absolute;
-    top: 0;
-    left: 4px;
-    width: 16px;
-    height: 5px;
-    background: #3a2a1a;
-  }
-  .p-body {
-    position: absolute;
-    top: 14px;
-    left: 2px;
-    width: 20px;
-    height: 18px;
-    background: #444;
-    border: 2px solid #222;
-  }
-  .p-legs {
-    position: absolute;
-    top: 32px;
-    left: 2px;
-    width: 20px;
-    height: 16px;
-    background: #1a1a3a;
-    border: 2px solid #111;
-  }
-  .p-feet {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 10px;
-    height: 6px;
-    background: #333;
-  }
-  .p-feet.right { left: 14px; }
+  .player-sprite { width: 24px; height: 48px; position: relative; }
+  .p-head { position: absolute; top: 0; left: 4px; width: 16px; height: 14px; background: #f5c8a0; border: 2px solid #c8986a; }
+  .p-body { position: absolute; top: 14px; left: 2px; width: 20px; height: 18px; background: #444; border: 2px solid #222; }
+  .p-legs { position: absolute; top: 32px; left: 2px; width: 20px; height: 16px; background: #1a1a3a; border: 2px solid #111; }
 
-  /* NPC Characters */
+  /* NPCs */
   .npc {
     position: absolute;
-    bottom: 140px;
+    bottom: 130px;
     width: 24px;
     height: 48px;
     z-index: 15;
   }
   .npc-head { position:absolute;top:0;left:4px;width:16px;height:14px;background:#f5c8a0;border:2px solid #c8986a; }
-  .npc-hair { position:absolute;top:0;left:4px;width:16px;height:5px;background:#2a1a0a; }
   .npc-body { position:absolute;top:14px;left:2px;width:20px;height:18px;border:2px solid #222; }
-  .npc-legs { position:absolute;top:32px;left:2px;width:20px;height:16px;background:#1a1a3a;border:2px solid #111; }
-
-  /* Shirt colors */
   .shirt-orange { background: #e06b10 !important; }
   .shirt-black  { background: #1a1a1a !important; }
   .shirt-green  { background: #2a7a2a !important; }
-  .shirt-red-stripe { 
-    background: #cc2222 !important;
-    background-image: repeating-linear-gradient(0deg, transparent, transparent 4px, rgba(255,255,255,0.4) 4px, rgba(255,255,255,0.4) 6px) !important;
-  }
 
   /* Speech bubble */
   .speech-bubble {
     position: absolute;
     background: #fff;
     border: 3px solid #000;
-    padding: 5px 8px;
-    font-size: 7px;
+    padding: 4px 6px;
+    font-size: 6px;
     color: #000;
     white-space: nowrap;
     z-index: 50;
-    bottom: calc(100% + 6px);
+    bottom: calc(100% + 5px);
     left: 50%;
     transform: translateX(-50%);
-    min-width: 80px;
+    min-width: 70px;
     text-align: center;
-    animation: popIn 0.2s ease;
   }
-  .speech-bubble::after {
-    content: '';
-    position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    border: 6px solid transparent;
-    border-top-color: #000;
-  }
-  @keyframes popIn { from{transform:translateX(-50%) scale(0)} to{transform:translateX(-50%) scale(1)} }
 
-  /* Roller / cart */
+  /* Roller cart */
   .roller-cart {
     position: absolute;
-    bottom: 140px;
-    right: 40px;
-    width: 60px;
-    height: 50px;
+    bottom: 130px;
+    right: 20px;
+    width: 70px;
+    height: 48px;
   }
   .cart-body {
     position: absolute;
     top: 0;
-    width: 60px;
+    width: 70px;
     height: 38px;
     background: #888;
     border: 2px solid #555;
@@ -376,7 +285,7 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: 1fr 1fr;
     gap: 2px;
-    padding: 3px;
+    padding: 2px;
   }
   .cart-slot {
     background: #aaa;
@@ -384,109 +293,94 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 7px;
+    font-size: 8px;
     cursor: pointer;
+    touch-action: manipulation;
   }
   .cart-slot.filled { background: #4a4; border-color: #292; }
   .cart-slot.filled-bad { background: #c44; border-color: #822; }
-  .cart-wheels {
-    position: absolute;
-    bottom: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-  }
-  .cart-wheel {
-    width: 12px;
-    height: 12px;
-    border-radius: 50%;
-    background: #333;
-    border: 2px solid #111;
-  }
 
   /* Task panel */
   #task-panel {
     position: absolute;
-    top: 55px;
-    right: 8px;
+    top: 50px;
+    right: 5px;
     background: #1a1a2e;
-    border: 3px solid #444;
-    padding: 10px;
-    width: 180px;
+    border: 2px solid #444;
+    padding: 6px;
+    width: 150px;
     z-index: 30;
+    font-size: 6px;
   }
-  #task-panel h3 { font-size: 8px; color: #ffd700; margin-bottom: 8px; }
-  .task-item {
-    font-size: 7px;
-    color: #aaa;
-    margin: 4px 0;
-    padding: 3px;
-    border-left: 3px solid #444;
-    line-height: 1.5;
-  }
+  #task-panel h3 { font-size: 7px; color: #ffd700; margin-bottom: 5px; }
+  .task-item { font-size: 6px; color: #aaa; margin: 3px 0; padding: 2px; border-left: 2px solid #444; }
   .task-item.done { color: #4f4; border-left-color: #4f4; text-decoration: line-through; }
   .task-item.active { color: #fff; border-left-color: #ffd700; }
 
   /* Notification */
   #notification {
     position: absolute;
-    top: 60px;
+    top: 55px;
     left: 50%;
     transform: translateX(-50%);
     background: #1a1a2e;
     border: 3px solid #ffd700;
-    padding: 10px 16px;
-    font-size: 9px;
+    padding: 8px 12px;
+    font-size: 7px;
     color: #ffd700;
     z-index: 100;
     display: none;
     text-align: center;
-    min-width: 200px;
+    white-space: nowrap;
   }
 
-  /* Bottom controls */
+  /* Controls - mobile optimized */
   #controls {
     position: absolute;
     bottom: 8px;
-    left: 50%;
-    transform: translateX(-50%);
+    left: 0;
+    right: 0;
     display: flex;
-    gap: 8px;
+    justify-content: center;
+    gap: 12px;
     z-index: 30;
+    padding: 0 8px;
   }
   .ctrl-btn {
-    width: 48px;
-    height: 42px;
+    width: 55px;
+    height: 48px;
     background: #2a2a3e;
     border: 3px solid #555;
     color: #fff;
     font-family: 'Press Start 2P', monospace;
-    font-size: 16px;
+    font-size: 22px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
+    touch-action: manipulation;
   }
   .ctrl-btn:active { background: #4a4a6e; border-color: #ffd700; }
   .action-btn {
     width: 90px;
-    height: 42px;
+    height: 48px;
     background: #2a4a2a;
     border: 3px solid #4a8a4a;
     color: #4f4;
     font-family: 'Press Start 2P', monospace;
     font-size: 8px;
     cursor: pointer;
+    touch-action: manipulation;
   }
   .action-btn:active { background: #3a6a3a; }
 
-  /* Shift progress bar */
+  /* Shift bar */
   #shift-bar-container {
     position: absolute;
-    bottom: 56px;
+    bottom: 52px;
     left: 8px;
     right: 8px;
-    height: 12px;
+    height: 10px;
     background: #111;
     border: 2px solid #333;
     z-index: 30;
@@ -501,15 +395,15 @@
     position: absolute;
     top: -14px;
     left: 0;
-    font-size: 6px;
+    font-size: 5px;
     color: #888;
   }
 
-  /* ===== PAUSE / GAME OVER ===== */
+  /* Overlays */
   .overlay-screen {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.85);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -518,91 +412,61 @@
     display: none;
   }
   .overlay-screen.visible { display: flex; }
-  .overlay-screen h2 { font-size: 22px; color: #ffd700; margin-bottom: 20px; text-shadow: 3px 3px 0 #000; }
-  .overlay-screen p { font-size: 9px; color: #aaa; margin: 5px 0; }
+  .overlay-screen h2 { font-size: 18px; color: #ffd700; margin-bottom: 16px; }
   .overlay-btn {
-    margin-top: 20px;
-    padding: 12px 24px;
+    margin-top: 12px;
+    padding: 10px 20px;
     background: #2a2a3e;
     border: 3px solid #ffd700;
     color: #ffd700;
     font-family: 'Press Start 2P', monospace;
-    font-size: 11px;
+    font-size: 9px;
     cursor: pointer;
   }
-  .overlay-btn:hover { background: #3a3a5e; }
 
-  /* Porucha overlay */
   #porucha-overlay {
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(180,0,0,0.7);
+    background: rgba(180,0,0,0.8);
     display: none;
     align-items: center;
     justify-content: center;
     z-index: 150;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
   }
   #porucha-overlay.visible { display: flex; }
-  #porucha-overlay h2 { font-size: 26px; color: #fff; text-shadow: 3px 3px 0 #000; animation: shake 0.2s infinite; }
-  #porucha-overlay p { font-size: 9px; color: #ffe; text-align: center; }
-  #porucha-overlay .fix-btn {
-    padding: 10px 20px;
+  #porucha-overlay h2 { font-size: 20px; color: #fff; animation: shake 0.2s infinite; }
+  .fix-btn {
+    padding: 10px 18px;
     background: #ffd700;
-    border: 3px solid #aa9900;
-    color: #000;
+    border: none;
     font-family: 'Press Start 2P', monospace;
-    font-size: 10px;
+    font-size: 9px;
     cursor: pointer;
-    margin-top: 8px;
   }
-  @keyframes shake {
-    0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)}
-  }
-
-  /* Foreman warning */
-  #foreman-warning {
-    position: absolute;
-    top: 55px;
-    left: 8px;
-    background: #2a0000;
-    border: 3px solid #f00;
-    padding: 8px;
-    font-size: 7px;
-    color: #f88;
-    z-index: 40;
-    display: none;
-    max-width: 180px;
-    line-height: 1.6;
-  }
+  @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-3px)} 75%{transform:translateX(3px)} }
 
   /* Stats screen */
   #stats-screen {
     background: #0f0f23;
   }
-  #stats-screen .stats-inner {
-    padding: 30px;
-    color: #fff;
-  }
-  #stats-screen h2 { font-size: 16px; color: #ffd700; margin-bottom: 24px; }
+  .stats-inner { padding: 20px; color: #fff; }
+  .stats-inner h2 { font-size: 14px; color: #ffd700; margin-bottom: 20px; }
   .stat-row {
     display: flex;
     justify-content: space-between;
-    font-size: 9px;
-    color: #aaa;
-    padding: 8px 0;
+    font-size: 8px;
+    padding: 6px 0;
     border-bottom: 1px solid #333;
   }
-  .stat-row span:last-child { color: #fff; }
-
 </style>
 </head>
 <body>
 
 <div id="game-container">
 
-  <!-- ===== MAIN MENU ===== -->
+  <!-- MAIN MENU -->
   <div id="menu-screen" class="screen active">
     <div class="top-hud">
       <div class="hud-box"><span class="icon">📦</span><span id="menu-boxes">0</span></div>
@@ -612,46 +476,30 @@
     <div class="title-area">
       <div class="factory-icon">🏭</div>
       <h1>PIXEL</h1>
-      <div class="subtitle">FACTORY WORKER — Magna Edition</div>
+      <div class="subtitle">FABRIKA — Magna Edícia</div>
     </div>
     <div class="menu-buttons">
-      <button class="menu-btn" onclick="startShift()">▶  НАЧАТЬ СМЕНУ</button>
-      <button class="menu-btn" onclick="showStats()">📊  СТАТИСТИКА</button>
-      <button class="menu-btn" disabled style="opacity:0.4">🔧  НАСТРОЙКИ</button>
+      <button class="menu-btn" onclick="startShift()">▶  ZAČAŤ ZMENU</button>
+      <button class="menu-btn" onclick="showStats()">📊  ŠTATISTIKA</button>
     </div>
   </div>
 
-  <!-- ===== FACTORY FLOOR ===== -->
+  <!-- GAME SCREEN -->
   <div id="game-screen" class="screen">
-
     <div class="ceiling-bg"></div>
     <div class="wall-bg"></div>
     <div class="floor-bg"></div>
 
-    <!-- Engel Machine -->
     <div class="engel-machine" id="engel">
       <div class="engel-top"></div>
-      <div class="engel-body">
-        <div class="engel-label">ENGEL<br>ES 200</div>
-        <div class="engel-nozzle"></div>
-        <div class="engel-light green" id="engel-light"></div>
-      </div>
+      <div class="engel-body"><div class="engel-label">ENGEL<br>ES 200</div></div>
+      <div class="engel-light green" id="engel-light"></div>
     </div>
 
-    <!-- Conveyor -->
     <div class="conveyor" id="conveyor">
       <div class="conveyor-stripes"></div>
-      <div class="conveyor-legs">
-        <div class="conveyor-leg"></div>
-        <div class="conveyor-leg"></div>
-        <div class="conveyor-leg"></div>
-        <div class="conveyor-leg"></div>
-        <div class="conveyor-leg"></div>
-        <div class="conveyor-leg"></div>
-      </div>
     </div>
 
-    <!-- Roller cart -->
     <div class="roller-cart" id="roller-cart">
       <div class="cart-body" id="cart-body">
         <div class="cart-slot" id="slot0" onclick="placeInCart(0)"></div>
@@ -659,178 +507,85 @@
         <div class="cart-slot" id="slot2" onclick="placeInCart(2)"></div>
         <div class="cart-slot" id="slot3" onclick="placeInCart(3)"></div>
       </div>
-      <div class="cart-wheels">
-        <div class="cart-wheel"></div>
-        <div class="cart-wheel"></div>
-        <div class="cart-wheel"></div>
-      </div>
     </div>
 
-    <!-- Player -->
-    <div id="player" style="left:350px">
-      <div class="player-sprite">
-        <div class="p-hair"></div>
-        <div class="p-head"></div>
-        <div class="p-body"></div>
-        <div class="p-legs"></div>
-        <div class="p-feet"></div>
-        <div class="p-feet right"></div>
-      </div>
-    </div>
+    <div id="player" style="left:350px"><div class="player-sprite"><div class="p-head"></div><div class="p-body"></div><div class="p-legs"></div></div></div>
 
-    <!-- NPCs -->
-    <!-- Предачка (orange) -->
-    <div class="npc" id="npc-predachka" style="left:560px">
-      <div style="position:relative">
-        <div class="npc-hair"></div>
-        <div class="npc-head"></div>
-        <div class="npc-body shirt-orange"></div>
-        <div class="npc-legs"></div>
-        <div id="predachka-bubble"></div>
-      </div>
-    </div>
+    <div class="npc" id="npc-predachka" style="left:560px"><div><div class="npc-head"></div><div class="npc-body shirt-orange"></div><div id="predachka-bubble"></div></div></div>
+    <div class="npc" id="npc-nastavovach" style="left:120px"><div><div class="npc-head"></div><div class="npc-body shirt-black"></div><div id="nastavovach-bubble"></div></div></div>
+    <div class="npc" id="npc-kvalitar" style="left:680px"><div><div class="npc-head"></div><div class="npc-body shirt-green"></div><div id="kvalitar-bubble"></div></div></div>
 
-    <!-- Наставовач (black) - движется -->
-    <div class="npc" id="npc-nastavovach" style="left:120px">
-      <div style="position:relative">
-        <div class="npc-hair"></div>
-        <div class="npc-head"></div>
-        <div class="npc-body shirt-black"></div>
-        <div class="npc-legs"></div>
-        <div id="nastavovach-bubble"></div>
-      </div>
-    </div>
-
-    <!-- Квалитар (green) -->
-    <div class="npc" id="npc-kvalitar" style="left:680px">
-      <div style="position:relative">
-        <div class="npc-hair"></div>
-        <div class="npc-head"></div>
-        <div class="npc-body shirt-green"></div>
-        <div class="npc-legs"></div>
-        <div id="kvalitar-bubble"></div>
-      </div>
-    </div>
-
-    <!-- HUD -->
     <div class="top-hud">
       <div class="hud-box"><span class="icon">📦</span><span id="hud-collected">0</span></div>
       <div class="hud-box"><span class="icon">⚠️</span><span id="hud-bad">0</span></div>
       <div class="hud-box"><span>$</span><span id="hud-money">0</span></div>
     </div>
 
-    <!-- Task panel -->
     <div id="task-panel">
-      <h3>⚙ ЗАДАНИЯ</h3>
-      <div class="task-item active" id="task1">📦 Собери 10 лисов</div>
-      <div class="task-item" id="task2">🚫 Не пропусти брак</div>
-      <div class="task-item" id="task3">⚡ Без поруч: 60сек</div>
+      <h3>⚙ ÚLOHY</h3>
+      <div class="task-item active" id="task1">📦 Zozbieraj 10 lisov</div>
+      <div class="task-item" id="task2">🚫 Neprepusti závadu</div>
+      <div class="task-item" id="task3">⚡ Bez poruchy: 60s</div>
     </div>
 
-    <!-- Foreman warning -->
-    <div id="foreman-warning">⚠ МАСТЕР:<br>"Больше лисов!</div>
+    <div id="shift-bar-container"><div id="shift-label">ZMENA</div><div id="shift-bar"></div></div>
 
-    <!-- Notification -->
-    <div id="notification"></div>
-
-    <!-- Shift bar -->
-    <div id="shift-bar-container">
-      <div id="shift-label">СМЕНА</div>
-      <div id="shift-bar"></div>
-    </div>
-
-    <!-- Controls -->
     <div id="controls">
-      <button class="ctrl-btn" id="btn-left" onmousedown="startMove('left')" onmouseup="stopMove()" ontouchstart="startMove('left')" ontouchend="stopMove()">◀</button>
-      <button class="action-btn" onclick="pickupPart()">ВЗЯТЬ<br>ЛИС</button>
-      <button class="action-btn" onclick="deliverCart()" style="background:#2a2a4a;border-color:#4a4aaa;color:#aaf;">СДАТЬ<br>РОЛЕР</button>
-      <button class="ctrl-btn" id="btn-right" onmousedown="startMove('right')" onmouseup="stopMove()" ontouchstart="startMove('right')" ontouchend="stopMove()">▶</button>
+      <button class="ctrl-btn" id="btn-left" ontouchstart="startMove('left')" ontouchend="stopMove()" onmousedown="startMove('left')" onmouseup="stopMove()">◀</button>
+      <button class="action-btn" onclick="pickupPart()">ZOBRAŤ<br>LIS</button>
+      <button class="action-btn" onclick="deliverCart()" style="background:#2a2a4a;border-color:#4a4aaa;">ODOVZDAŤ<br>VOZÍK</button>
+      <button class="ctrl-btn" id="btn-right" ontouchstart="startMove('right')" ontouchend="stopMove()" onmousedown="startMove('right')" onmouseup="stopMove()">▶</button>
     </div>
 
-    <!-- Porucha overlay -->
     <div id="porucha-overlay">
       <h2>⚠ PORUCHA FORMY! ⚠</h2>
-      <p>Машина сломалась!<br>Вызови техника!</p>
-      <button class="fix-btn" onclick="fixPorucha()">🔧 ПОЧИНИТЬ</button>
+      <p>Stroj je pokazený!<br>Zavolaj technika!</p>
+      <button class="fix-btn" onclick="fixPorucha()">🔧 OPRAVIŤ</button>
     </div>
 
-    <!-- Pause overlay -->
     <div id="pause-overlay" class="overlay-screen">
-      <h2>ПАУЗА</h2>
-      <button class="overlay-btn" onclick="resumeGame()">▶ ПРОДОЛЖИТЬ</button>
-      <button class="overlay-btn" onclick="goToMenu()" style="margin-top:8px;border-color:#888;color:#888">↩ МЕНЮ</button>
+      <h2>PAUZA</h2>
+      <button class="overlay-btn" onclick="resumeGame()">▶ POKRAČOVAŤ</button>
+      <button class="overlay-btn" onclick="goToMenu()" style="border-color:#888;color:#888">↩ MENU</button>
     </div>
 
-    <!-- End overlay -->
     <div id="end-overlay" class="overlay-screen">
-      <h2>СМЕНА ЗАКОНЧЕНА!</h2>
+      <h2>ZMENA SKONČILA!</h2>
       <p id="end-collected"></p>
       <p id="end-bad"></p>
       <p id="end-money"></p>
-      <button class="overlay-btn" onclick="goToMenu()">↩ МЕНЮ</button>
+      <button class="overlay-btn" onclick="goToMenu()">↩ MENU</button>
     </div>
-
+    <div id="notification"></div>
   </div>
 
-  <!-- ===== STATS SCREEN ===== -->
+  <!-- STATS SCREEN -->
   <div id="stats-screen" class="screen">
     <div class="stats-inner">
-      <h2>📊 СТАТИСТИКА</h2>
-      <div class="stat-row"><span>Всего смен</span><span id="s-shifts">0</span></div>
-      <div class="stat-row"><span>Лисов собрано</span><span id="s-total-parts">0</span></div>
-      <div class="stat-row"><span>Брак пропущен</span><span id="s-bad-passed">0</span></div>
-      <div class="stat-row"><span>Поруч форм</span><span id="s-poruchas">0</span></div>
-      <div class="stat-row"><span>Заработано</span><span id="s-money">$0</span></div>
-      <button class="overlay-btn" onclick="goToMenu()" style="margin-top:30px">↩ МЕНЮ</button>
+      <h2>📊 ŠTATISTIKA</h2>
+      <div class="stat-row"><span>Celkom zmien</span><span id="s-shifts">0</span></div>
+      <div class="stat-row"><span>Lisov zozbieraných</span><span id="s-total-parts">0</span></div>
+      <div class="stat-row"><span>Závada prepustená</span><span id="s-bad-passed">0</span></div>
+      <div class="stat-row"><span>Porúch foriem</span><span id="s-poruchas">0</span></div>
+      <div class="stat-row"><span>Zarobené</span><span id="s-money">$0</span></div>
+      <button class="overlay-btn" onclick="goToMenu()" style="margin-top:20px">↩ MENU</button>
     </div>
   </div>
-
 </div>
 
 <script>
-// ===== GAME STATE =====
 const STATE = {
-  money: 0,
-  totalParts: 0,
-  shiftParts: 0,
-  badPassed: 0,
-  poruchas: 0,
-  shifts: 0,
-  playerX: 350,
-  moving: null,
-  moveInterval: null,
-  shiftDuration: 90, // seconds
-  shiftTime: 0,
-  shiftTimer: null,
-  parts: [], // parts on conveyor
-  partIdCounter: 0,
-  cartSlots: [null, null, null, null],
-  heldPart: null,
-  poruchaActive: false,
-  poruchaTimer: null,
-  nastavovachDir: 1,
-  nastavovachX: 120,
-  nastavovachMoveInterval: null,
-  foremanWarningTimer: null,
-  noPoruchaTimer: 0,
-  noPoruchaGoal: false,
-  task1done: false,
-  task2done: false,
-  task3done: false,
+  money: 0, totalParts: 0, shiftParts: 0, badPassed: 0, poruchas: 0, shifts: 0,
+  playerX: 350, moving: null, moveInterval: null, shiftDuration: 90, shiftTime: 0, shiftTimer: null,
+  parts: [], partIdCounter: 0, cartSlots: [null,null,null,null], heldPart: null,
+  poruchaActive: false, poruchaTimer: null, nastavovachDir: 1, nastavovachX: 120, nastavovachMoveInterval: null,
+  noPoruchaTimer: 0, noPoruchaGoal: false, task1done: false, task2done: false, task3done: false, partSpawnInterval: null
 };
 
-const CONVEYOR_LEFT = 210;
-const CONVEYOR_RIGHT = 670;
-const CART_X = 640;
-const ENGEL_X = 30;
-
+const CONVEYOR_LEFT = 180, CONVEYOR_RIGHT = 660;
 function $(id) { return document.getElementById(id); }
 
-// ===== SCREENS =====
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $(id).classList.add('active');
-}
+function showScreen(id) { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); $(id).classList.add('active'); }
 
 function startShift() {
   showScreen('game-screen');
@@ -855,222 +610,135 @@ function goToMenu() {
   showScreen('menu-screen');
 }
 
-function resumeGame() {
-  $('pause-overlay').classList.remove('visible');
-  startShiftTimer();
-}
+function resumeGame() { $('pause-overlay').classList.remove('visible'); startShiftTimer(); }
+function updateMenuHUD() { $('menu-money').textContent = STATE.money; $('menu-boxes').textContent = STATE.totalParts; }
 
-function updateMenuHUD() {
-  $('menu-money').textContent = STATE.money;
-  $('menu-boxes').textContent = STATE.totalParts;
-}
-
-// ===== SHIFT =====
 function resetShift() {
-  STATE.shiftParts = 0;
-  STATE.shiftTime = 0;
-  STATE.parts = [];
-  STATE.cartSlots = [null, null, null, null];
-  STATE.heldPart = null;
-  STATE.poruchaActive = false;
-  STATE.task1done = false;
-  STATE.task2done = false;
-  STATE.task3done = false;
-  STATE.noPoruchaTimer = 0;
-  STATE.noPoruchaGoal = false;
-  STATE.playerX = 350;
-
+  STATE.shiftParts = 0; STATE.shiftTime = 0; STATE.parts = []; STATE.cartSlots = [null,null,null,null]; STATE.heldPart = null;
+  STATE.poruchaActive = false; STATE.task1done = false; STATE.task2done = false; STATE.task3done = false;
+  STATE.noPoruchaTimer = 0; STATE.noPoruchaGoal = false; STATE.playerX = 350; STATE.badPassed = 0;
   $('player').style.left = STATE.playerX + 'px';
-  $('hud-collected').textContent = 0;
-  $('hud-bad').textContent = 0;
-  $('hud-money').textContent = STATE.money;
+  $('hud-collected').textContent = 0; $('hud-bad').textContent = 0; $('hud-money').textContent = STATE.money;
   $('shift-bar').style.width = '0%';
-  $('task1').className = 'task-item active';
-  $('task2').className = 'task-item';
-  $('task3').className = 'task-item';
-  $('porucha-overlay').classList.remove('visible');
-  $('end-overlay').classList.remove('visible');
-  $('foreman-warning').style.display = 'none';
-
-  // Clear parts from DOM
+  $('task1').className = 'task-item active'; $('task2').className = 'task-item'; $('task3').className = 'task-item';
+  $('porucha-overlay').classList.remove('visible'); $('end-overlay').classList.remove('visible');
   document.querySelectorAll('.part-on-conveyor').forEach(p => p.remove());
-
   updateCartDOM();
   startShiftTimer();
   schedulePorucha();
   startNastavovach();
-  setTimeout(() => showNotif('🔔 СМЕНА НАЧАЛАСЬ!\nСобирай лисы!', 2000), 500);
-  setTimeout(() => schedulePredachka(), 3000);
+  setTimeout(() => showNotif('🔔 ZMENA ZAČALA! Zbieraj lisy!', 2000), 500);
+  setTimeout(() => setInterval(() => { if(Math.random()<0.03) $('predachka-bubble').innerHTML='<div class="speech-bubble">Viac lisov!</div>'; setTimeout(()=>$('predachka-bubble').innerHTML='',1500); }, 10000), 3000);
 }
 
 function startShiftTimer() {
   clearInterval(STATE.shiftTimer);
   STATE.shiftTimer = setInterval(() => {
-    STATE.shiftTime++;
-    STATE.noPoruchaTimer++;
+    STATE.shiftTime++; STATE.noPoruchaTimer++;
     const pct = (STATE.shiftTime / STATE.shiftDuration) * 100;
-    $('shift-bar').style.width = Math.min(pct, 100) + '%';
-
-    // Task 3: 60s without porucha
-    if (!STATE.noPoruchaGoal && STATE.noPoruchaTimer >= 60) {
-      STATE.noPoruchaGoal = true;
-      if (!STATE.task3done) {
-        STATE.task3done = true;
-        $('task3').className = 'task-item done';
-        showNotif('✅ Без поруч 60 сек!', 1500);
-      }
+    $('shift-bar').style.width = Math.min(pct,100)+'%';
+    if(!STATE.noPoruchaGoal && STATE.noPoruchaTimer>=60 && !STATE.task3done) {
+      STATE.noPoruchaGoal=true; STATE.task3done=true;
+      $('task3').className='task-item done';
+      showNotif('✅ Bez poruchy 60 sekúnd!',1500);
     }
-
-    if (STATE.shiftTime >= STATE.shiftDuration) {
-      endShift();
-    }
-  }, 1000);
+    if(STATE.shiftTime>=STATE.shiftDuration) endShift();
+  },1000);
 }
 
 function stopGameLoop() {
-  clearInterval(STATE.shiftTimer);
-  clearInterval(STATE.moveInterval);
-  clearTimeout(STATE.poruchaTimer);
-  clearInterval(STATE.nastavovachMoveInterval);
-  clearInterval(STATE.partSpawnInterval);
+  clearInterval(STATE.shiftTimer); clearInterval(STATE.moveInterval); clearTimeout(STATE.poruchaTimer);
+  clearInterval(STATE.nastavovachMoveInterval); clearInterval(STATE.partSpawnInterval);
 }
 
 function endShift() {
-  stopGameLoop();
-  STATE.shifts++;
+  stopGameLoop(); STATE.shifts++;
   const earned = STATE.shiftParts * 150 - STATE.badPassed * 300;
-  const earnedFinal = Math.max(earned, 0);
-  STATE.money += earnedFinal;
-  STATE.totalParts += STATE.shiftParts;
-
-  $('end-collected').textContent = '📦 Лисов: ' + STATE.shiftParts;
-  $('end-bad').textContent = '❌ Брак: ' + STATE.badPassed;
-  $('end-money').textContent = '💰 Заработано: $' + earnedFinal;
+  const earnedFinal = Math.max(earned,0);
+  STATE.money += earnedFinal; STATE.totalParts += STATE.shiftParts;
+  $('end-collected').textContent = '📦 Lisov: ' + STATE.shiftParts;
+  $('end-bad').textContent = '❌ Závad: ' + STATE.badPassed;
+  $('end-money').textContent = '💰 Zarobené: $' + earnedFinal;
   $('end-overlay').classList.add('visible');
 }
 
-// ===== PARTS SPAWN =====
-function startGameLoop() {
-  STATE.partSpawnInterval = setInterval(spawnPart, 2200);
-}
+function startGameLoop() { STATE.partSpawnInterval = setInterval(spawnPart, 2200); }
 
 function spawnPart() {
-  if (STATE.poruchaActive) return;
-  const id = 'part-' + (STATE.partIdCounter++);
+  if(STATE.poruchaActive) return;
+  const id = 'part-'+ (STATE.partIdCounter++);
   const isBad = Math.random() < 0.2;
   const el = document.createElement('div');
   el.className = 'part-on-conveyor ' + (isBad ? 'bad' : 'good');
-  el.id = id;
-  el.style.left = CONVEYOR_LEFT + 'px';
-  el.title = isBad ? '⚠ БРАК' : '✅ ОК';
-  el.onclick = () => inspectPart(id);
-
+  el.id = id; el.style.left = CONVEYOR_LEFT + 'px';
+  el.onclick = (e) => { e.stopPropagation(); inspectPart(id); };
   document.getElementById('game-screen').appendChild(el);
-
   const part = { id, el, x: CONVEYOR_LEFT, bad: isBad, picked: false };
   STATE.parts.push(part);
   animatePart(part);
 }
 
 function animatePart(part) {
-  const speed = 1.2;
+  const speed = 1.1;
   const interval = setInterval(() => {
-    if (part.picked) { clearInterval(interval); return; }
+    if(part.picked) { clearInterval(interval); return; }
     part.x += speed;
     part.el.style.left = part.x + 'px';
-    if (part.x > CONVEYOR_RIGHT) {
-      // Part fell off
-      if (part.bad) {
-        STATE.badPassed++;
-        $('hud-bad').textContent = STATE.badPassed;
-        showNotif('❌ БРАК ПРОПУЩЕН!', 1000);
-        if (!STATE.task2done) {
-          // task 2 fails if bad passed
-        }
-      }
-      part.el.remove();
-      STATE.parts = STATE.parts.filter(p => p.id !== part.id);
+    if(part.x > CONVEYOR_RIGHT) {
+      if(part.bad) { STATE.badPassed++; $('hud-bad').textContent = STATE.badPassed; showNotif('❌ ZÁVADA PREPUSTENÁ!',1000); }
+      part.el.remove(); STATE.parts = STATE.parts.filter(p=>p.id!==part.id);
       clearInterval(interval);
     }
-  }, 20);
+  },20);
 }
 
 function inspectPart(id) {
-  const part = STATE.parts.find(p => p.id === id);
-  if (!part || part.picked) return;
-  // Kvalitar check effect
+  const part = STATE.parts.find(p=>p.id===id);
+  if(!part || part.picked) return;
   const bubble = $('kvalitar-bubble');
-  if (part.bad) {
-    bubble.innerHTML = '<div class="speech-bubble">❌ BRAKT!</div>';
-    part.el.style.borderColor = '#f00';
-    showNotif('⚠ Квалитар: БРАК!\nВыброси эту деталь!', 1500);
+  if(part.bad) {
+    bubble.innerHTML = '<div class="speech-bubble">❌ ZÁVADA!</div>';
+    showNotif('⚠ Kvalitár: ZÁVADA! Vyhoď to!', 1200);
     part.el.style.background = '#c44';
+    setTimeout(()=>{ part.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==part.id); },400);
   } else {
     bubble.innerHTML = '<div class="speech-bubble">✅ OK!</div>';
   }
-  setTimeout(() => bubble.innerHTML = '', 1500);
+  setTimeout(()=>bubble.innerHTML='',1200);
 }
 
 function pickupPart() {
-  if (STATE.heldPart) return;
-  // Find nearest good part to player
+  if(STATE.heldPart) return;
   const playerCenter = STATE.playerX + 12;
-  let nearest = null;
-  let minDist = 70;
-  for (const part of STATE.parts) {
-    if (part.picked) continue;
+  let nearest=null, minDist=70;
+  for(const part of STATE.parts) {
+    if(part.picked) continue;
     const dist = Math.abs(part.x - playerCenter);
-    if (dist < minDist) { minDist = dist; nearest = part; }
+    if(dist<minDist) { minDist=dist; nearest=part; }
   }
-  if (!nearest) {
-    showNotif('Нет лисов рядом!', 800);
-    return;
-  }
-  if (nearest.bad) {
-    showNotif('❌ ЭТО БРАК!\nНе бери в ролер!', 1500);
-    nearest.el.style.background = '#f44';
-    setTimeout(() => {
-      nearest.el.remove();
-      STATE.parts = STATE.parts.filter(p => p.id !== nearest.id);
-    }, 500);
-    return;
-  }
-  nearest.picked = true;
-  nearest.el.remove();
-  STATE.parts = STATE.parts.filter(p => p.id !== nearest.id);
+  if(!nearest) { showNotif('Žiadne lisy nablízku!',800); return; }
+  if(nearest.bad) { showNotif('❌ TO JE ZÁVADA! Nedávaj do vozíka!',1200); nearest.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==nearest.id); return; }
+  nearest.picked=true; nearest.el.remove(); STATE.parts=STATE.parts.filter(p=>p.id!==nearest.id);
   STATE.heldPart = nearest;
-  showNotif('📦 Лис взят!', 600);
-  // Auto place in cart
+  showNotif('📦 Lis zobratý!',600);
   placeHeldInCart();
 }
 
 function placeHeldInCart() {
-  if (!STATE.heldPart) return;
+  if(!STATE.heldPart) return;
   const freeSlot = STATE.cartSlots.indexOf(null);
-  if (freeSlot === -1) {
-    showNotif('Ролер полный!\nСдай его сначала!', 1200);
-    return;
-  }
+  if(freeSlot===-1) { showNotif('Vozík je plný! Odovzdaj ho!',1000); return; }
   STATE.cartSlots[freeSlot] = 'good';
   STATE.heldPart = null;
   STATE.shiftParts++;
   $('hud-collected').textContent = STATE.shiftParts;
   updateCartDOM();
-
-  if (!STATE.task1done && STATE.shiftParts >= 10) {
-    STATE.task1done = true;
-    $('task1').className = 'task-item done';
-    showNotif('✅ Задание 1 выполнено!', 1500);
-  }
-
-  if (STATE.cartSlots.indexOf(null) === -1) {
-    showNotif('🚗 Ролер полный!\nСдавай!', 1200);
-  }
+  if(!STATE.task1done && STATE.shiftParts>=10) { STATE.task1done=true; $('task1').className='task-item done'; showNotif('✅ Úloha 1 splnená!',1500); }
 }
 
 function placeInCart(slot) {
-  if (!STATE.heldPart) return;
-  if (STATE.cartSlots[slot] !== null) return;
+  if(!STATE.heldPart) return;
+  if(STATE.cartSlots[slot]!==null) return;
   STATE.cartSlots[slot] = 'good';
   STATE.heldPart = null;
   STATE.shiftParts++;
@@ -1079,136 +747,66 @@ function placeInCart(slot) {
 }
 
 function deliverCart() {
-  const filled = STATE.cartSlots.filter(s => s !== null).length;
-  if (filled === 0) { showNotif('Ролер пустой!', 800); return; }
+  const filled = STATE.cartSlots.filter(s=>s!==null).length;
+  if(filled===0) { showNotif('Vozík je prázdny!',800); return; }
   const bonus = filled * 150;
   STATE.money += bonus;
   $('hud-money').textContent = STATE.money;
-  STATE.cartSlots = [null, null, null, null];
+  STATE.cartSlots = [null,null,null,null];
   updateCartDOM();
-  showNotif('✅ Ролер сдан!\n+$' + bonus, 1500);
-
-  // Predachka reacts
-  $('predachka-bubble').innerHTML = '<div class="speech-bubble">Ещё давай!</div>';
-  setTimeout(() => $('predachka-bubble').innerHTML = '', 2000);
+  showNotif('✅ Vozík odovzdaný! +$'+bonus,1500);
+  $('predachka-bubble').innerHTML='<div class="speech-bubble">Ešte daj!</div>';
+  setTimeout(()=>$('predachka-bubble').innerHTML='',2000);
 }
 
 function updateCartDOM() {
-  for (let i = 0; i < 4; i++) {
-    const slot = $('slot' + i);
-    if (STATE.cartSlots[i] === 'good') {
-      slot.className = 'cart-slot filled';
-      slot.textContent = '■';
-    } else if (STATE.cartSlots[i] === 'bad') {
-      slot.className = 'cart-slot filled-bad';
-      slot.textContent = '✗';
-    } else {
-      slot.className = 'cart-slot';
-      slot.textContent = '';
-    }
+  for(let i=0;i<4;i++) {
+    const slot = $('slot'+i);
+    if(STATE.cartSlots[i]==='good') { slot.className='cart-slot filled'; slot.textContent='■'; }
+    else { slot.className='cart-slot'; slot.textContent=''; }
   }
 }
 
-// ===== PORUCHA =====
-function schedulePorucha() {
-  const delay = 15000 + Math.random() * 20000;
-  STATE.poruchaTimer = setTimeout(triggerPorucha, delay);
-}
-
+function schedulePorucha() { const delay = 15000 + Math.random()*20000; STATE.poruchaTimer = setTimeout(triggerPorucha, delay); }
 function triggerPorucha() {
-  STATE.poruchaActive = true;
-  STATE.poruchas++;
-  STATE.noPoruchaTimer = 0;
-  STATE.noPoruchaGoal = false;
-  $('task3').className = 'task-item';
-  $('porucha-overlay').classList.add('visible');
-  $('engel-light').className = 'engel-light yellow';
-
-  // Наставовач кричит
-  $('nastavovach-bubble').innerHTML = '<div class="speech-bubble">PORUCHA FORMY!!!</div>';
-  setTimeout(() => {
-    $('nastavovach-bubble').innerHTML = '<div class="speech-bubble">PORUCHA FORMY!!!</div>';
-  }, 1000);
+  STATE.poruchaActive=true; STATE.poruchas++; STATE.noPoruchaTimer=0; STATE.noPoruchaGoal=false;
+  $('task3').className='task-item'; $('porucha-overlay').classList.add('visible'); $('engel-light').className='engel-light yellow';
+  $('nastavovach-bubble').innerHTML='<div class="speech-bubble">PORUCHA FORMY!!!</div>';
+  setTimeout(()=>$('nastavovach-bubble').innerHTML='',1500);
 }
-
 function fixPorucha() {
-  STATE.poruchaActive = false;
-  $('porucha-overlay').classList.remove('visible');
-  $('engel-light').className = 'engel-light green';
-  $('nastavovach-bubble').innerHTML = '<div class="speech-bubble">Починено!</div>';
-  setTimeout(() => $('nastavovach-bubble').innerHTML = '', 1500);
-  showNotif('🔧 Машина починена!\nПродолжай!', 1500);
+  STATE.poruchaActive=false; $('porucha-overlay').classList.remove('visible'); $('engel-light').className='engel-light green';
+  $('nastavovach-bubble').innerHTML='<div class="speech-bubble">Opravené!</div>';
+  setTimeout(()=>$('nastavovach-bubble').innerHTML='',1500);
+  showNotif('🔧 Stroj opravený! Pokračuj!',1500);
   schedulePorucha();
 }
 
-// ===== PREDACHKA =====
-function schedulePredachka() {
-  setInterval(() => {
-    $('predachka-bubble').innerHTML = '<div class="speech-bubble">Больше лисов!</div>';
-    setTimeout(() => $('predachka-bubble').innerHTML = '', 2000);
-  }, 12000);
-}
-
-// ===== NASTAVOVACH MOVEMENT =====
 function startNastavovach() {
   clearInterval(STATE.nastavovachMoveInterval);
   STATE.nastavovachMoveInterval = setInterval(() => {
-    STATE.nastavovachX += STATE.nastavovachDir * 1.5;
-    if (STATE.nastavovachX > 500) STATE.nastavovachDir = -1;
-    if (STATE.nastavovachX < 60) STATE.nastavovachDir = 1;
+    STATE.nastavovachX += STATE.nastavovachDir * 1.3;
+    if(STATE.nastavovachX>500) STATE.nastavovachDir=-1;
+    if(STATE.nastavovachX<60) STATE.nastavovachDir=1;
     $('npc-nastavovach').style.left = STATE.nastavovachX + 'px';
-
-    // If near player, shout
-    if (Math.abs(STATE.nastavovachX - STATE.playerX) < 50 && Math.random() < 0.02) {
-      $('nastavovach-bubble').innerHTML = '<div class="speech-bubble">РАБОТАЙ!</div>';
-      setTimeout(() => $('nastavovach-bubble').innerHTML = '', 1500);
+    if(Math.abs(STATE.nastavovachX - STATE.playerX)<50 && Math.random()<0.02) {
+      $('nastavovach-bubble').innerHTML='<div class="speech-bubble">PRACUJ!</div>';
+      setTimeout(()=>$('nastavovach-bubble').innerHTML='',1200);
     }
-  }, 30);
+  },30);
 }
 
-// ===== PLAYER MOVEMENT =====
-function startMove(dir) {
-  stopMove();
-  STATE.moving = dir;
-  STATE.moveInterval = setInterval(() => {
-    if (dir === 'left') STATE.playerX = Math.max(10, STATE.playerX - 4);
-    if (dir === 'right') STATE.playerX = Math.min(760, STATE.playerX + 4);
-    $('player').style.left = STATE.playerX + 'px';
-  }, 20);
-}
+function startMove(dir) { stopMove(); STATE.moving=dir; STATE.moveInterval = setInterval(()=>{ if(dir==='left') STATE.playerX=Math.max(10,STATE.playerX-5); if(dir==='right') STATE.playerX=Math.min(760,STATE.playerX+5); $('player').style.left=STATE.playerX+'px'; },16); }
+function stopMove() { clearInterval(STATE.moveInterval); STATE.moving=null; }
 
-function stopMove() {
-  clearInterval(STATE.moveInterval);
-  STATE.moving = null;
-}
+document.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft'||e.key==='a') startMove('left'); if(e.key==='ArrowRight'||e.key==='d') startMove('right'); if(e.key===' '||e.key==='Enter') pickupPart(); if(e.key==='s') deliverCart(); if(e.key==='Escape'){ if($('pause-overlay').classList.contains('visible')) resumeGame(); else{ clearInterval(STATE.shiftTimer); $('pause-overlay').classList.add('visible');} } });
+document.addEventListener('keyup', e=>{ if(['ArrowLeft','ArrowRight','a','d'].includes(e.key)) stopMove(); });
 
-// Keyboard
-document.addEventListener('keydown', e => {
-  if (e.key === 'ArrowLeft' || e.key === 'a') startMove('left');
-  if (e.key === 'ArrowRight' || e.key === 'd') startMove('right');
-  if (e.key === ' ' || e.key === 'Enter') pickupPart();
-  if (e.key === 's') deliverCart();
-  if (e.key === 'Escape') {
-    if (document.getElementById('pause-overlay').classList.contains('visible')) resumeGame();
-    else { clearInterval(STATE.shiftTimer); $('pause-overlay').classList.add('visible'); }
-  }
-});
-document.addEventListener('keyup', e => {
-  if (['ArrowLeft','ArrowRight','a','d'].includes(e.key)) stopMove();
-});
-
-// ===== NOTIFICATION =====
 let notifTimeout;
-function showNotif(msg, duration) {
-  const n = $('notification');
-  n.textContent = msg;
-  n.style.display = 'block';
-  clearTimeout(notifTimeout);
-  notifTimeout = setTimeout(() => n.style.display = 'none', duration || 1500);
-}
+function showNotif(msg, dur) { const n=$('notification'); n.textContent=msg; n.style.display='block'; clearTimeout(notifTimeout); notifTimeout=setTimeout(()=>n.style.display='none',dur||1500); }
 
-// ===== INIT =====
 updateMenuHUD();
 </script>
 </body>
 </html>
+```
