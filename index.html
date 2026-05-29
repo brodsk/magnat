@@ -3,37 +3,32 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MAGNA QC — Triedenie dielov</title>
+<title>MAGNA — Triedenie dielov</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
-:root{--g:#00ff88;--r:#ff3344;--y:#ffcc00;--dk:#0a0e14;--pn:#111820;--bd:#1e3a4a;--bt:#2d7a4a;--cw:clamp(130px,34vw,230px)}
+:root{
+  --g:#00ff88;--r:#ff3344;--y:#ffcc00;
+  --dk:#0a0e14;--pn:#111820;--bd:#1e3a4a;--bt:#2d7a4a;
+  --cw:clamp(130px,34vw,230px);
+}
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;touch-action:none}
 body{background:var(--dk);font-family:'Share Tech Mono',monospace;color:#cde;display:flex;flex-direction:column}
 body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:998}
 
 /* ── HEADER ── */
-header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:5px 10px;flex-shrink:0}
-.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(.6rem,2.5vw,.9rem);color:#fff;letter-spacing:2px}
+header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:5px 10px;flex-shrink:0;gap:6px}
+.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(.58rem,2.3vw,.88rem);color:#fff;letter-spacing:2px;white-space:nowrap}
 .logo span{color:var(--y)}
-.hud{display:flex;gap:clamp(4px,1.8vw,13px);align-items:center}
+.hud{display:flex;gap:clamp(4px,1.6vw,12px);align-items:center}
 .hi{display:flex;flex-direction:column;align-items:center;gap:1px}
-.hl{font-size:clamp(.36rem,.75vw,.48rem);color:#789;letter-spacing:1px;text-transform:uppercase}
-.hv{font-family:'Orbitron',monospace;font-size:clamp(.72rem,1.9vw,.92rem);font-weight:700;color:var(--g)}
+.hl{font-size:clamp(.34rem,.72vw,.47rem);color:#789;letter-spacing:1px;text-transform:uppercase}
+.hv{font-family:'Orbitron',monospace;font-size:clamp(.7rem,1.85vw,.9rem);font-weight:700;color:var(--g)}
 .hv.r{color:var(--r)}.hv.y{color:var(--y)}
-
-/* Кнопка паузы */
-#btnPause{
-  background:none;border:2px solid var(--bd);border-radius:5px;
-  color:#cde;font-family:'Orbitron',monospace;font-weight:700;
-  font-size:clamp(.6rem,2vw,.85rem);
-  padding:4px 10px;cursor:pointer;letter-spacing:1px;
-  transition:border-color .15s,color .15s;
-  flex-shrink:0;
-}
+#btnPause{background:none;border:2px solid var(--bd);border-radius:5px;color:#cde;font-family:'Orbitron',monospace;font-weight:700;font-size:clamp(.55rem,1.8vw,.8rem);padding:4px 9px;cursor:pointer;letter-spacing:1px;flex-shrink:0;white-space:nowrap;transition:border-color .15s,color .15s}
 #btnPause:active{border-color:var(--y);color:var(--y)}
 
-/* ── GAME WRAP ── */
+/* ── GAME AREA ── */
 #gw{position:relative;flex:1;overflow:hidden}
 #tb-w{position:absolute;top:0;left:0;right:0;height:4px;background:#1a2a35;z-index:20}
 #tb{height:100%;background:var(--g);transition:width .1s linear,background .3s}
@@ -48,17 +43,25 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 }
 .belt-stripe{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(0,0,0,.15) 10px,rgba(0,0,0,.15) 20px);animation:belt .8s linear infinite}
 @keyframes belt{to{background-position:40px 0}}
-#conv-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.32rem,.65vw,.44rem);color:var(--y);letter-spacing:1px;z-index:5;white-space:nowrap;pointer-events:none}
+#conv-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.3rem,.62vw,.42rem);color:var(--y);letter-spacing:1px;z-index:5;white-space:nowrap;pointer-events:none}
 
 /* ── БОКСЫ ── */
-#box-L{position:absolute;left:0;top:4px;bottom:100px;right:calc(50% + var(--cw)/2 + 5px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:3px solid var(--g);border-left:none;background:rgba(0,255,136,.06);color:var(--g);cursor:pointer;z-index:5;-webkit-user-select:none;user-select:none;transition:background .12s}
-#box-R{position:absolute;right:0;top:4px;bottom:100px;left:calc(50% + var(--cw)/2 + 5px);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:3px solid var(--g);border-right:none;background:rgba(0,255,136,.06);color:var(--g);cursor:pointer;z-index:5;-webkit-user-select:none;user-select:none;transition:background .12s}
-#box-L:active{background:rgba(0,255,136,.22)}
-#box-R:active{background:rgba(0,255,136,.22)}
+.box{
+  position:absolute;top:4px;bottom:100px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+  border:3px solid var(--g);
+  background:rgba(0,255,136,.06);color:var(--g);
+  cursor:pointer;z-index:5;
+  -webkit-user-select:none;user-select:none;
+  transition:background .12s,box-shadow .15s;
+}
+.box:active{background:rgba(0,255,136,.22)}
+#box-L{left:0;right:calc(50% + var(--cw)/2 + 5px);border-left:none}
+#box-R{right:0;left:calc(50% + var(--cw)/2 + 5px);border-right:none}
 .box-icon{font-size:clamp(1.3rem,4.5vw,2.2rem);line-height:1}
-.box-lbl{font-family:'Orbitron',monospace;font-size:clamp(.36rem,1.1vw,.52rem);font-weight:700;letter-spacing:.5px;text-align:center;line-height:1.5}
+.box-lbl{font-family:'Orbitron',monospace;font-size:clamp(.34rem,1.1vw,.5rem);font-weight:700;letter-spacing:.5px;text-align:center;line-height:1.5}
 .box-cnt{font-family:'Orbitron',monospace;font-size:clamp(1rem,3.8vw,1.7rem);font-weight:900}
-.box-hint{font-size:clamp(.28rem,.65vw,.4rem);color:rgba(255,255,255,.22);letter-spacing:.5px;text-align:center}
+.box-hint{font-size:clamp(.26rem,.6vw,.38rem);color:rgba(255,255,255,.22);letter-spacing:.5px;text-align:center}
 
 /* ── БЕДНИЧКА ── */
 #trash{
@@ -67,70 +70,67 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
   background:rgba(160,10,20,.18);border:3px solid var(--r);border-bottom:none;
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
   color:var(--r);cursor:pointer;z-index:11;
-  -webkit-user-select:none;user-select:none;transition:background .12s;
+  -webkit-user-select:none;user-select:none;
+  transition:background .12s,box-shadow .15s;
 }
 #trash:active{background:rgba(255,30,50,.35)}
 .t-icon{font-size:clamp(1.2rem,4vw,1.9rem);line-height:1}
-.t-lbl{font-family:'Orbitron',monospace;font-size:clamp(.4rem,1.1vw,.55rem);font-weight:700;letter-spacing:1px}
-.t-cnt{font-family:'Orbitron',monospace;font-size:clamp(.85rem,2.8vw,1.15rem);font-weight:900}
+.t-lbl{font-family:'Orbitron',monospace;font-size:clamp(.38rem,1.1vw,.53rem);font-weight:700;letter-spacing:1px}
+.t-cnt{font-family:'Orbitron',monospace;font-size:clamp(.82rem,2.8vw,1.1rem);font-weight:900}
 
 /* ── ДЕТАЛИ ── */
-.part{position:absolute;touch-action:none;-webkit-user-select:none;user-select:none;z-index:30;width:clamp(42px,10.5vw,66px);height:clamp(36px,9.5vw,56px)}
+.part{position:absolute;touch-action:none;-webkit-user-select:none;user-select:none;z-index:30;width:clamp(40px,10.5vw,65px);height:clamp(35px,9.5vw,55px)}
 .part svg{width:100%;height:100%}
 .pL{left:6%}.pR{right:6%}
-.defect-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--r);color:#fff;font-size:clamp(.28rem,.6vw,.4rem);font-family:'Orbitron',monospace;padding:2px 5px;border-radius:3px;font-weight:700;animation:blink .55s ease-in-out infinite;white-space:nowrap}
+.defect-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--r);color:#fff;font-size:clamp(.27rem,.58vw,.39rem);font-family:'Orbitron',monospace;padding:2px 5px;border-radius:3px;font-weight:700;animation:blink .55s ease-in-out infinite;white-space:nowrap}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.side-tag{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.26rem,.55vw,.36rem);background:rgba(0,0,0,.7);color:var(--y);padding:1px 4px;border-radius:2px;white-space:nowrap}
+.side-tag{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.25rem,.52vw,.35rem);background:rgba(0,0,0,.75);color:var(--y);padding:1px 4px;border-radius:2px;white-space:nowrap}
 
 /* ── FLASH ── */
-#flash{position:fixed;top:36%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Orbitron',monospace;font-size:clamp(.82rem,3.2vw,1.25rem);font-weight:900;padding:10px 18px;border-radius:6px;z-index:500;pointer-events:none;transition:transform .1s,opacity .3s;opacity:0;text-align:center;max-width:85vw}
+#flash{position:fixed;top:36%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Orbitron',monospace;font-size:clamp(.8rem,3.2vw,1.22rem);font-weight:900;padding:10px 18px;border-radius:6px;z-index:500;pointer-events:none;transition:transform .1s,opacity .28s;opacity:0;text-align:center;max-width:85vw}
 #flash.show{transform:translate(-50%,-50%) scale(1);opacity:1}
 #flash.good{background:var(--g);color:#000}
 #flash.wrong{background:var(--y);color:#000}
 #flash.bad{background:var(--r);color:#fff}
 
-/* ── ОБЩИЙ СТИЛЬ ОВЕРЛЕЕВ ── */
-.overlay{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.88);
-  display:none;flex-direction:column;align-items:center;justify-content:center;
-  z-index:900;gap:16px;
-  backdrop-filter:blur(8px);padding:24px;
-}
+/* ── ОВЕРЛЕИ ── */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:900;gap:14px;backdrop-filter:blur(8px);padding:22px;text-align:center}
 .overlay.active{display:flex}
-.ov-title{font-size:.58rem;letter-spacing:4px;color:#567;text-transform:uppercase}
-.ov-h1{font-family:'Orbitron',monospace;font-size:clamp(1.2rem,5vw,2rem);font-weight:900;color:var(--y);letter-spacing:3px;text-align:center}
+.ov-sub{font-size:.56rem;letter-spacing:4px;color:#567;text-transform:uppercase}
+.ov-h1{font-family:'Orbitron',monospace;font-size:clamp(1.15rem,4.8vw,1.9rem);font-weight:900;color:var(--y);letter-spacing:3px}
 .grade{font-family:'Orbitron',monospace;font-size:clamp(3rem,12vw,5rem);font-weight:900;line-height:1}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 20px;text-align:center;width:100%;max-width:280px}
-.sv{font-family:'Orbitron',monospace;font-size:clamp(1.1rem,4.5vw,1.7rem);font-weight:700}
-.sl{font-size:.54rem;letter-spacing:2px;color:#789}
-.ov-btn{
-  font-family:'Orbitron',monospace;font-size:clamp(.72rem,2.4vw,.88rem);
-  font-weight:700;letter-spacing:2px;
-  padding:14px 36px;border:none;border-radius:4px;
-  cursor:pointer;min-width:180px;
-  -webkit-user-select:none;user-select:none;
-}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;width:100%;max-width:270px}
+.sv{font-family:'Orbitron',monospace;font-size:clamp(1.05rem,4.2vw,1.65rem);font-weight:700}
+.sl{font-size:.52rem;letter-spacing:2px;color:#789}
+.ov-sep{width:100%;height:1px;background:var(--bd);max-width:250px}
+
+/* Кнопки оверлея */
+.ov-btn{font-family:'Orbitron',monospace;font-size:clamp(.68rem,2.3vw,.85rem);font-weight:700;letter-spacing:2px;padding:13px 34px;border:none;border-radius:4px;cursor:pointer;min-width:175px;-webkit-user-select:none;user-select:none;transition:transform .1s,box-shadow .1s}
 .ov-btn:active{transform:scale(.95)}
-.btn-green{background:var(--g);color:#000}
-.btn-red{background:var(--r);color:#fff;margin-top:4px}
-.btn-gray{background:#2a3a4a;color:#cde;border:2px solid var(--bd)}
+.btn-g{background:var(--g);color:#000}
+.btn-r{background:var(--r);color:#fff}
+.btn-d{background:#1e2e3e;color:#cde;border:2px solid var(--bd)}
+.btn-g:active{box-shadow:0 0 20px rgba(0,255,136,.4)}
+.btn-r:active{box-shadow:0 0 20px rgba(255,51,68,.4)}
 
-/* Пауза — разделитель */
-.ov-sep{width:100%;height:1px;background:var(--bd);max-width:260px}
-
-/* Звук тогл */
-.sound-row{display:flex;align-items:center;gap:12px;font-size:.62rem;letter-spacing:1px;color:#789}
-.toggle{width:40px;height:22px;background:#1a2a35;border:2px solid var(--bd);border-radius:11px;position:relative;cursor:pointer;transition:background .2s}
+/* Переключатель звука */
+.sound-row{display:flex;align-items:center;gap:14px;font-size:.62rem;letter-spacing:1px;color:#789;cursor:pointer;padding:4px 0}
+.toggle{width:42px;height:24px;background:#1a2a35;border:2px solid var(--bd);border-radius:12px;position:relative;transition:background .22s;flex-shrink:0}
 .toggle.on{background:var(--g)}
-.toggle::after{content:'';position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .2s}
-.toggle.on::after{left:20px}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .22s}
+.toggle.on::after{left:21px}
+
+/* Шкала уровня на паузе */
+.level-row{display:flex;align-items:center;gap:10px;font-size:.58rem;color:#567;letter-spacing:1px}
+.level-dots{display:flex;gap:4px}
+.ld{width:10px;height:10px;border-radius:50%;background:#1e2e3e;border:1px solid var(--bd);transition:background .2s}
+.ld.on{background:var(--y);border-color:var(--y)}
 </style>
 </head>
 <body>
 
 <header>
-  <div class="logo">▲ <span>MAGNA</span> QC</div>
+  <div class="logo">▲ <span>MAGNA</span></div>
   <div class="hud">
     <div class="hi"><div class="hl">Skóre</div><div class="hv" id="hScore">0</div></div>
     <div class="hi"><div class="hl">Dobré</div><div class="hv" id="hGood">0</div></div>
@@ -145,14 +145,14 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 <div id="gw">
   <div id="tb-w"><div id="tb" style="width:100%"></div></div>
 
-  <div id="box-L" onclick="sendGood('L')">
+  <div id="box-L" class="box" onclick="sendGood('L')">
     <div class="box-icon">📦</div>
     <div class="box-lbl">ĽAVÁ<br>STRANA</div>
     <div class="box-cnt" id="cntGL">0</div>
     <div class="box-hint">← tap / A</div>
   </div>
 
-  <div id="box-R" onclick="sendGood('R')">
+  <div id="box-R" class="box" onclick="sendGood('R')">
     <div class="box-icon">📦</div>
     <div class="box-lbl">PRAVÁ<br>STRANA</div>
     <div class="box-cnt" id="cntGR">0</div>
@@ -166,31 +166,46 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 
   <div id="trash" onclick="sendTrash()">
     <div class="t-icon">🗑</div>
-    <div class="t-lbl">ZMÄTOK ↓</div>
+    <div class="t-lbl">KOŠ NA ZMÄTKY</div>
     <div class="t-cnt" id="cntT">0</div>
   </div>
 </div>
 
 <div id="flash"></div>
 
-<!-- ── МЕНЮ ПАУЗЫ ── -->
+<!-- ══ МЕНЮ ПАУЗЫ ══ -->
 <div class="overlay" id="ovPause">
-  <div class="ov-title">Hra pozastavená</div>
+  <div class="ov-sub">Hra pozastavená</div>
   <div class="ov-h1">⏸ PAUZA</div>
   <div class="ov-sep"></div>
-  <div class="sound-row">
-    🔊 Zvuky
-    <div class="toggle on" id="soundToggle" onclick="toggleSound()"></div>
+
+  <!-- Уровень скорости -->
+  <div class="level-row">
+    RÝCHLOSŤ
+    <div class="level-dots" id="levelDots">
+      <div class="ld" id="ld1"></div>
+      <div class="ld" id="ld2"></div>
+      <div class="ld" id="ld3"></div>
+      <div class="ld" id="ld4"></div>
+      <div class="ld" id="ld5"></div>
+    </div>
   </div>
+
+  <!-- Переключатель звука -->
+  <div class="sound-row" onclick="toggleSound()">
+    🔊 Zvukové efekty
+    <div class="toggle on" id="sndToggle"></div>
+  </div>
+
   <div class="ov-sep"></div>
-  <button class="ov-btn btn-green" onclick="togglePause()">▶ POKRAČOVAŤ</button>
-  <button class="ov-btn btn-red"   onclick="confirmRestart()">↺ REŠTARTOVAŤ</button>
+  <button class="ov-btn btn-g" onclick="togglePause()">▶ POKRAČOVAŤ</button>
+  <button class="ov-btn btn-r" onclick="restartFromPause()">↺ REŠTARTOVAŤ</button>
 </div>
 
-<!-- ── ИТОГИ ── -->
+<!-- ══ ИТОГОВЫЙ ЭКРАН ══ -->
 <div class="overlay" id="ovEnd">
-  <div class="ov-title">Zmena skončila</div>
-  <div class="ov-h1">SPRÁVA QC</div>
+  <div class="ov-sub">Zmena skončila</div>
+  <div class="ov-h1">SPRÁVA ZMENY</div>
   <div class="grade" id="gradeEl">–</div>
   <div class="stats">
     <div><div class="sv" id="fScore" style="color:var(--g)">0</div><div class="sl">SKÓRE</div></div>
@@ -198,68 +213,64 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
     <div><div class="sv" id="fTrash" style="color:var(--r)">0</div><div class="sl">ZMÄTKOV</div></div>
     <div><div class="sv" id="fAcc"   style="color:var(--y)">0%</div><div class="sl">PRESNOSŤ</div></div>
   </div>
-  <button class="ov-btn btn-green" onclick="startGame()">▶ NOVÁ ZMENA</button>
+  <button class="ov-btn btn-g" onclick="startGame()">▶ NOVÁ ZMENA</button>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════
-// AUDIO ENGINE — Web Audio API (без файлов)
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// AUDIO ENGINE — Web Audio API, без внешних файлов
+// ══════════════════════════════════════════════════════
 const AC = new (window.AudioContext || window.webkitAudioContext)();
 let soundOn = true;
 
-function resumeAC(){if(AC.state==='suspended')AC.resume();}
+function acResume(){ if(AC.state==='suspended') AC.resume(); }
 
-function beep(freq,dur,type='square',vol=.18,decay=.9){
-  if(!soundOn)return;
-  resumeAC();
-  const o=AC.createOscillator(),g=AC.createGain();
-  o.connect(g);g.connect(AC.destination);
-  o.type=type;o.frequency.setValueAtTime(freq,AC.currentTime);
-  g.gain.setValueAtTime(vol,AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(.001,AC.currentTime+dur);
-  o.start();o.stop(AC.currentTime+dur);
+function tone(freq, dur, type='sine', vol=.15, slide=0){
+  if(!soundOn) return;
+  acResume();
+  const o=AC.createOscillator(), g=AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type=type;
+  o.frequency.setValueAtTime(freq, AC.currentTime);
+  if(slide) o.frequency.linearRampToValueAtTime(slide, AC.currentTime+dur);
+  g.gain.setValueAtTime(vol, AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime+dur);
+  o.start(); o.stop(AC.currentTime+dur+.01);
 }
 
-function playGood(){
-  // Чистый двойной пип вверх
-  beep(520,.07,'sine',.15);
-  setTimeout(()=>beep(780,.09,'sine',.15),75);
-}
-function playCombo(){
-  // Фанфара
-  [440,550,660,880].forEach((f,i)=>setTimeout(()=>beep(f,.12,'sine',.18),i*55));
-}
-function playError(){
-  // Резкий низкий звук
-  beep(180,.18,'sawtooth',.22);
-  setTimeout(()=>beep(130,.22,'sawtooth',.15),80);
-}
-function playMiss(){
-  beep(220,.3,'sawtooth',.2);
-}
-function playLevelUp(){
-  [330,440,550,660].forEach((f,i)=>setTimeout(()=>beep(f,.1,'sine',.14),i*45));
-}
-function playPause(){beep(350,.1,'sine',.1);setTimeout(()=>beep(280,.12,'sine',.1),110);}
-function playEnd(){
-  [660,550,440,330,220].forEach((f,i)=>setTimeout(()=>beep(f,.14,'sine',.16),i*70));
-}
-function playClick(){beep(600,.04,'sine',.08);}
+function seq(notes, gap=55){ notes.forEach(([f,d,t,v,s],i)=>setTimeout(()=>tone(f,d,t,v,s),i*gap)); }
+
+// Звуки
+const SFX = {
+  good:    ()=>{ tone(520,.06,'sine',.13); setTimeout(()=>tone(800,.09,'sine',.13),70); },
+  combo:   ()=>seq([[440,.1,'sine',.16],[550,.1,'sine',.16],[700,.1,'sine',.16],[900,.15,'sine',.18]],55),
+  error:   ()=>{ tone(200,.15,'sawtooth',.2); setTimeout(()=>tone(140,.2,'sawtooth',.15),90); },
+  miss:    ()=>tone(180,.35,'sawtooth',.18,80),
+  trash:   ()=>{ tone(350,.05,'square',.1); setTimeout(()=>tone(220,.1,'sawtooth',.12),55); },
+  levelup: ()=>seq([[330,.08,'sine',.13],[440,.08,'sine',.13],[560,.08,'sine',.13],[700,.12,'sine',.15]],48),
+  pause:   ()=>{ tone(400,.08,'sine',.1); setTimeout(()=>tone(300,.1,'sine',.08),100); },
+  resume:  ()=>{ tone(300,.07,'sine',.09); setTimeout(()=>tone(450,.09,'sine',.12),90); },
+  end:     ()=>seq([[600,.12,'sine',.15],[500,.12,'sine',.15],[380,.12,'sine',.15],[260,.18,'sine',.13],[180,.25,'sine',.12]],75),
+  click:   ()=>tone(650,.04,'sine',.07),
+};
+
+function play(name){ SFX[name]?.(); }
 
 function toggleSound(){
   soundOn=!soundOn;
-  document.getElementById('soundToggle').classList.toggle('on',soundOn);
-  if(soundOn)beep(440,.08,'sine',.1);
+  acResume();
+  document.getElementById('sndToggle').classList.toggle('on',soundOn);
+  if(soundOn) tone(500,.08,'sine',.1);
 }
 
-// ═══════════════════════════════════════════════
-// STAV
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// СТЕЙТ
+// ══════════════════════════════════════════════════════
 let score=0,cntGL=0,cntGR=0,cntT=0,errors=0;
 let lives=3,timeLeft=60,timerInt=null;
 let gameActive=false,paused=false,combo=0,level=1;
-let partL=null,partR=null;
+// Детали хранятся в объекте parts
+const parts={L:null,R:null};
 
 const DEFECTS=['TRHLINA','ODLOMENIE','DEFORMÁCIA','ZNEČISTENIE','OTREPA'];
 const OVL={
@@ -270,12 +281,12 @@ const OVL={
   ODLOMENIE:  `<polygon points="22,51 29,41 19,39" fill="#181818" stroke="#666" stroke-width=".5"/>`
 };
 
-// ═══════════════════════════════════════════════
-// ГЕНЕРАЦИЯ
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
+// ГЕНЕРАЦИЯ ДЕТАЛЕЙ
+// ══════════════════════════════════════════════════════
 function mkData(side){
   const bad=Math.random()<(.28+level*.03);
-  return{side,bad,
+  return{ side, bad,
     defect:bad?DEFECTS[Math.random()*DEFECTS.length|0]:null,
     tilt:(Math.random()-.5)*14,
     shade:bad?`hsl(${Math.random()>.5?'0,10%,15%':'30,20%,12%'})`:'hsl(220,5%,10%)'
@@ -285,8 +296,7 @@ function mkData(side){
 function mkEl(d){
   const el=document.createElement('div');
   el.className='part p'+d.side;
-  el.style.top='-80px';
-  el.style.transform=`rotate(${d.tilt}deg)`;
+  el.style.cssText=`top:-80px;transform:rotate(${d.tilt}deg)`;
   el.innerHTML=`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
     <ellipse cx="50" cy="75" rx="38" ry="5" fill="rgba(0,0,0,.4)"/>
     <path d="M15 55Q10 40 20 28Q30 15 50 12Q70 15 80 28Q90 40 85 55Q75 65 50 68Q25 65 15 55Z" fill="${d.shade}" stroke="#333" stroke-width="1"/>
@@ -296,44 +306,59 @@ function mkEl(d){
     <circle cx="50" cy="42" r="3" fill="#111" stroke="#333" stroke-width=".5"/>
     ${d.bad?(OVL[d.defect]||''):'<path d="M25 38Q35 30 45 34" stroke="rgba(100,180,255,.18)" stroke-width="2" fill="none"/>'}
   </svg>`;
-  if(d.bad){const b=document.createElement('div');b.className='defect-badge';b.textContent=d.defect;el.appendChild(b);}
-  const t=document.createElement('div');t.className='side-tag';t.textContent=d.side==='L'?'ĽAVÁ':'PRAVÁ';el.appendChild(t);
+  if(d.bad){ const b=document.createElement('div'); b.className='defect-badge'; b.textContent=d.defect; el.appendChild(b); }
+  const t=document.createElement('div'); t.className='side-tag'; t.textContent=d.side==='L'?'ĽAVÁ':'PRAVÁ'; el.appendChild(t);
   return el;
 }
 
-// ═══════════════════════════════════════════════
-// СПАВН / ДВИЖЕНИЕ
-// ═══════════════════════════════════════════════
-function getPRef(s){return s==='L'?'partL':'partR';}
-
+// ══════════════════════════════════════════════════════
+// СПАВН И ДВИЖЕНИЕ
+// ══════════════════════════════════════════════════════
 function spawnPart(side){
-  const ref=getPRef(side);
-  const cur=window[ref];
-  if(cur){clearTimeout(cur.mt);cur.el.remove();window[ref]=null;}
+  const p=parts[side];
+  if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; }
+
   const data=mkData(side);
   const el=mkEl(data);
   document.getElementById('conv').appendChild(el);
+
   const dur=Math.max(600,2800-level*220);
   const targetY=document.getElementById('conv').offsetHeight-40;
+
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     el.style.transition=`top ${dur}ms linear`;
     el.style.top=targetY+'px';
   }));
+
   const mt=setTimeout(()=>{
-    const p=window[ref];
-    if(p&&p.el===el&&el.parentNode){
-      window[ref]=null;el.remove();
-      penalize('DIEL PREŠIEL!');
-      if(gameActive&&!paused)setTimeout(()=>spawnPart(side),300);
+    if(parts[side]?.el===el && el.parentNode){
+      parts[side]=null; el.remove();
+      if(data.bad){
+        // Бракованная деталь упала в бедничку сама — зачёт!
+        combo++;
+        const pts=10+(combo>2?combo>>1:0);
+        score+=pts; cntT++;
+        if(combo>2){ play('combo'); flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good'); }
+        else        { play('trash'); flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good'); }
+        glowEl('trash',true);
+        updateHUD();
+      } else {
+        // Годная деталь пропущена — штраф
+        penalize('DIEL PREŠIEL!');
+      }
+      if(gameActive&&!paused) setTimeout(()=>spawnPart(side),300);
     }
-  },dur+150);
-  window[ref]={el,data,mt};
+  }, dur+150);
+
+  parts[side]={el,data,mt};
   attachSwipe(el,data,side);
 }
 
 function attachSwipe(el,data,side){
   let sx=0,sy=0;
-  el.addEventListener('touchstart',e=>{const t=e.touches[0];sx=t.clientX;sy=t.clientY;},{passive:true});
+  el.addEventListener('touchstart',e=>{
+    const t=e.touches[0]; sx=t.clientX; sy=t.clientY;
+  },{passive:true});
   el.addEventListener('touchmove',e=>{
     const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
     el.style.transform=`translateX(${dx*.4}px) translateY(${Math.max(0,dy*.3)}px) rotate(${data.tilt+dx*.03}deg)`;
@@ -341,129 +366,151 @@ function attachSwipe(el,data,side){
   el.addEventListener('touchend',e=>{
     const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
     el.style.transform=`rotate(${data.tilt}deg)`;
-    if(dy>50&&Math.abs(dx)<80){doAction(side,'trash');return;}
-    if(Math.abs(dx)>50&&Math.abs(dy)<90)doAction(dx<0?'L':'R','good');
+    // Свайп вниз — только для брака (ускорить падение в бедничку)
+    if(dy>50&&Math.abs(dx)<80){ if(data.bad) doAction(side,'trash'); return; }
+    if(Math.abs(dx)>50&&Math.abs(dy)<90) doAction(dx<0?'L':'R','good');
   },{passive:true});
 }
 
-// ═══════════════════════════════════════════════
-// ЛОГИКА
-// ═══════════════════════════════════════════════
-function sendGood(side){if(gameActive&&!paused){resumeAC();doAction(side,'good');}}
+// ══════════════════════════════════════════════════════
+// ЛОГИКА СОРТИРОВКИ
+// ══════════════════════════════════════════════════════
+function sendGood(side){ if(gameActive&&!paused){ acResume(); doAction(side,'good'); } }
+
 function sendTrash(){
-  if(!gameActive||paused)return;
-  resumeAC();
-  const L=window.partL,R=window.partR;
+  if(!gameActive||paused) return;
+  acResume();
+  const {L,R}=parts;
+  // Найти бракованную деталь, которая ближе к низу
   let side=null;
-  if(L&&R){const lY=parseInt(L.el.style.top)||0,rY=parseInt(R.el.style.top)||0;side=lY>=rY?'L':'R';}
-  else if(L)side='L';else if(R)side='R';
-  if(side)doAction(side,'trash');
+  const candidates=[];
+  if(L?.data.bad) candidates.push({side:'L',y:parseInt(L.el.style.top)||0});
+  if(R?.data.bad) candidates.push({side:'R',y:parseInt(R.el.style.top)||0});
+  if(candidates.length) side=candidates.sort((a,b)=>b.y-a.y)[0].side;
+  if(side) doAction(side,'trash');
 }
 
 function doAction(side,choice){
-  if(!gameActive||paused)return;
-  const ref=getPRef(side);
-  const p=window[ref];if(!p)return;
+  if(!gameActive||paused) return;
+  const p=parts[side]; if(!p) return;
+  // Не давать отправить годную деталь в бедничку через кнопку
+  if(choice==='trash'&&!p.data.bad) return;
   clearTimeout(p.mt);
   const d=p.data;
-  p.el.remove();window[ref]=null;
+  p.el.remove(); parts[side]=null;
+
   const correct=(!d.bad&&choice==='good')||(d.bad&&choice==='trash');
+
   if(correct){
     combo++;
     const pts=10+(combo>2?combo>>1:0);
     score+=pts;
-    choice==='good'?(side==='L'?cntGL++:cntGR++):cntT++;
-    if(combo>2){playCombo();flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good');}
-    else{playGood();flash(`✓ ${d.bad?'ZMÄTOK':'DOBRÝ'}! +${pts}`,'good');}
+    if(choice==='good') d.side==='L'?cntGL++:cntGR++;
+    else cntT++;
+    if(combo>2){ play('combo'); flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good'); }
+    else        { play(choice==='trash'?'trash':'good'); flash(`✓ ${d.bad?'ZMÄTOK':'DOBRÝ'}! +${pts}`,'good'); }
     glowEl(choice==='good'?'box-'+side:'trash',true);
-  }else{
-    combo=0;errors++;lives--;
+  } else {
+    combo=0; errors++; lives--;
     score=Math.max(0,score-5);
-    playError();
+    play('error');
     flash(`✗ CHYBA! ${d.bad?'TO JE ZMÄTOK':'DIEL JE DOBRÝ'}`,'wrong');
     glowEl(choice==='good'?'box-'+side:'trash',false);
     updateLives();
-    if(lives<=0){endGame();return;}
+    if(lives<=0){ endGame(); return; }
   }
   updateHUD();
-  if(gameActive&&!paused)setTimeout(()=>spawnPart(side),150);
+  if(gameActive&&!paused) setTimeout(()=>spawnPart(side),150);
 }
 
 function penalize(msg){
-  if(!gameActive)return;
-  combo=0;lives--;errors++;
-  playMiss();
+  if(!gameActive) return;
+  combo=0; lives--; errors++;
+  play('miss');
   flash('⚠ '+msg,'bad');
   updateLives();
-  if(lives<=0)endGame();else updateHUD();
+  if(lives<=0) endGame(); else updateHUD();
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // ПАУЗА
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function togglePause(){
-  if(!gameActive)return;
-  resumeAC();
+  if(!gameActive) return;
+  acResume();
   paused=!paused;
   document.getElementById('ovPause').classList.toggle('active',paused);
   document.getElementById('btnPause').textContent=paused?'▶ ĎALEJ':'⏸ PAUZA';
+
   if(paused){
-    playPause();
+    play('pause');
     clearInterval(timerInt);
-    // Заморозить детали — убрать transition
-    ['partL','partR'].forEach(r=>{
-      if(window[r]){
-        const el=window[r].el;
-        const cur=parseInt(el.style.top)||0;
-        clearTimeout(window[r].mt);
-        el.style.transition='none';
-        el.style.top=cur+'px';
-        window[r]._frozenTop=cur;
-      }
+    // Заморозить детали — зафиксировать текущую позицию
+    Object.values(parts).forEach(p=>{
+      if(!p) return;
+      const cur=parseInt(p.el.style.top)||0;
+      clearTimeout(p.mt);
+      p.el.style.transition='none';
+      p.el.style.top=cur+'px';
+      p._frozen=cur;
     });
-  }else{
-    // Возобновить — перезапустить детали с текущей позиции
+    updateLevelDots();
+  } else {
+    play('resume');
     startTimer();
+    // Возобновить движение деталей с текущей позиции
     ['L','R'].forEach(side=>{
-      const ref=getPRef(side);
-      const p=window[ref];
-      if(p){
-        const convH=document.getElementById('conv').offsetHeight;
-        const targetY=convH-40;
-        const remaining=targetY-(p._frozenTop||0);
-        const dur=Math.max(300,remaining*(2800-level*220)/(document.getElementById('conv').offsetHeight));
-        p.el.style.transition=`top ${dur}ms linear`;
-        p.el.style.top=targetY+'px';
-        const mt=setTimeout(()=>{
-          if(window[ref]?.el===p.el&&p.el.parentNode){
-            window[ref]=null;p.el.remove();
+      const p=parts[side];
+      if(!p){ setTimeout(()=>spawnPart(side),200); return; }
+      const convH=document.getElementById('conv').offsetHeight;
+      const targetY=convH-40;
+      const remaining=targetY-(p._frozen||0);
+      const totalDur=2800-level*220;
+      const dur=Math.max(200, remaining/convH*totalDur);
+      p.el.style.transition=`top ${dur}ms linear`;
+      p.el.style.top=targetY+'px';
+      const mt=setTimeout(()=>{
+        if(parts[side]?.el===p.el&&p.el.parentNode){
+          parts[side]=null; p.el.remove();
+          if(p.data.bad){
+            combo++;
+            const pts=10+(combo>2?combo>>1:0);
+            score+=pts; cntT++;
+            if(combo>2){ play('combo'); flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good'); }
+            else        { play('trash'); flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good'); }
+            glowEl('trash',true);
+            updateHUD();
+          } else {
             penalize('DIEL PREŠIEL!');
-            if(gameActive&&!paused)setTimeout(()=>spawnPart(side),300);
           }
-        },dur+150);
-        p.mt=mt;
-      }else{
-        setTimeout(()=>spawnPart(side),200);
-      }
+          if(gameActive&&!paused) setTimeout(()=>spawnPart(side),300);
+        }
+      },dur+150);
+      p.mt=mt;
     });
   }
 }
 
-function confirmRestart(){
-  playClick();
+function restartFromPause(){
+  play('click');
   startGame();
 }
 
-// ═══════════════════════════════════════════════
-// UI
-// ═══════════════════════════════════════════════
+function updateLevelDots(){
+  for(let i=1;i<=5;i++)
+    document.getElementById('ld'+i).classList.toggle('on',i<=level);
+}
+
+// ══════════════════════════════════════════════════════
+// UI HELPERS
+// ══════════════════════════════════════════════════════
 function flash(msg,type){
   const f=document.getElementById('flash');
-  f.textContent=msg;f.className=type+' show';
-  clearTimeout(f._t);f._t=setTimeout(()=>f.className='',800);
+  f.textContent=msg; f.className=type+' show';
+  clearTimeout(f._t); f._t=setTimeout(()=>f.className='',800);
 }
 function glowEl(id,ok){
-  const el=document.getElementById(id);if(!el)return;
+  const el=document.getElementById(id); if(!el) return;
   el.style.boxShadow=ok?'0 0 28px rgba(0,255,136,.65)':'0 0 28px rgba(255,51,68,.65)';
   setTimeout(()=>el.style.boxShadow='',350);
 }
@@ -480,56 +527,56 @@ function updateLives(){
   document.getElementById('hLives').textContent=['','❤','❤❤','❤❤❤'][Math.max(0,lives)];
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // ТАЙМЕР
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function startTimer(){
   clearInterval(timerInt);
   const bar=document.getElementById('tb');
   timerInt=setInterval(()=>{
-    if(paused)return;
+    if(paused) return;
     timeLeft--;
     document.getElementById('hTime').textContent=timeLeft;
     bar.style.width=(timeLeft/60*100)+'%';
     bar.style.background=timeLeft<15?'var(--r)':timeLeft<30?'var(--y)':'var(--g)';
     if(timeLeft%15===0&&timeLeft>0){
       level=Math.min(level+1,5);
-      playLevelUp();
+      play('levelup');
       flash('⚡ RÝCHLOSŤ +1','good');
     }
-    if(timeLeft<=0)endGame();
+    if(timeLeft<=0) endGame();
   },1000);
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // СТАРТ / КОНЕЦ
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 function killParts(){
-  ['L','R'].forEach(s=>{
-    const ref=getPRef(s);
-    if(window[ref]){clearTimeout(window[ref].mt);window[ref].el.remove();window[ref]=null;}
+  ['L','R'].forEach(side=>{
+    const p=parts[side];
+    if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; }
   });
 }
 
 function startGame(){
-  resumeAC();
+  acResume();
   score=cntGL=cntGR=cntT=errors=combo=0;
-  lives=3;timeLeft=60;level=1;gameActive=true;paused=false;
-  clearInterval(timerInt);killParts();
+  lives=3; timeLeft=60; level=1; gameActive=true; paused=false;
+  clearInterval(timerInt); killParts();
   document.getElementById('ovPause').classList.remove('active');
   document.getElementById('ovEnd').classList.remove('active');
   document.getElementById('btnPause').textContent='⏸ PAUZA';
   document.getElementById('tb').style.background='var(--g)';
-  updateHUD();updateLives();
+  updateHUD(); updateLives();
   startTimer();
   spawnPart('L');
   setTimeout(()=>spawnPart('R'),500);
 }
 
 function endGame(){
-  gameActive=false;paused=false;
-  clearInterval(timerInt);killParts();
-  playEnd();
+  gameActive=false; paused=false;
+  clearInterval(timerInt); killParts();
+  play('end');
   const total=cntGL+cntGR+cntT+errors;
   const acc=total>0?Math.max(0,Math.round((cntGL+cntGR+cntT-errors)/total*100)):0;
   const grade=acc>=95?'S':acc>=80?'A':acc>=65?'B':acc>=50?'C':'F';
@@ -538,20 +585,21 @@ function endGame(){
   document.getElementById('fGood').textContent=cntGL+cntGR;
   document.getElementById('fTrash').textContent=cntT;
   document.getElementById('fAcc').textContent=acc+'%';
-  const g=document.getElementById('gradeEl');g.textContent=grade;g.style.color=gc[grade];
+  const g=document.getElementById('gradeEl');
+  g.textContent=grade; g.style.color=gc[grade];
   document.getElementById('ovEnd').classList.add('active');
 }
 
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 // КЛАВИАТУРА
-// ═══════════════════════════════════════════════
+// ══════════════════════════════════════════════════════
 document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'||e.key==='p'||e.key==='P'){togglePause();return;}
-  if(!gameActive||paused)return;
+  if(e.key==='Escape'||e.key.toLowerCase()==='p'){ togglePause(); return; }
+  if(!gameActive||paused) return;
   switch(e.key){
     case 'ArrowLeft': case 'a': case 'A': sendGood('L'); break;
     case 'ArrowRight':case 'd': case 'D': sendGood('R'); break;
-    case 'ArrowDown': case 's': case 'S': sendTrash();   break;
+    case 'ArrowDown': case 's': case 'S': sendTrash(); break;
   }
 });
 
