@@ -34,27 +34,13 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 #tb{height:100%;background:var(--g);transition:width .1s linear,background .3s}
 
 /* ── КОНВЕЙЕР ── */
-#conv{
-  position:absolute;left:50%;transform:translateX(-50%);
-  width:var(--cw);top:4px;bottom:100px;
-  background:var(--bt);
-  border-left:5px solid #1a5530;border-right:5px solid #1a5530;
-  overflow:hidden;z-index:10;
-}
+#conv{position:absolute;left:50%;transform:translateX(-50%);width:var(--cw);top:4px;bottom:100px;background:var(--bt);border-left:5px solid #1a5530;border-right:5px solid #1a5530;overflow:hidden;z-index:10}
 .belt-stripe{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(0,0,0,.15) 10px,rgba(0,0,0,.15) 20px);animation:belt .8s linear infinite}
 @keyframes belt{to{background-position:40px 0}}
 #conv-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.3rem,.62vw,.42rem);color:var(--y);letter-spacing:1px;z-index:5;white-space:nowrap;pointer-events:none}
 
 /* ── БОКСЫ ── */
-.box{
-  position:absolute;top:4px;bottom:100px;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
-  border:3px solid var(--g);
-  background:rgba(0,255,136,.06);color:var(--g);
-  cursor:pointer;z-index:5;
-  -webkit-user-select:none;user-select:none;
-  transition:background .12s,box-shadow .15s;
-}
+.box{position:absolute;top:4px;bottom:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:3px solid var(--g);background:rgba(0,255,136,.06);color:var(--g);cursor:pointer;z-index:5;-webkit-user-select:none;user-select:none;transition:background .12s,box-shadow .15s}
 .box:active{background:rgba(0,255,136,.22)}
 #box-L{left:0;right:calc(50% + var(--cw)/2 + 5px);border-left:none}
 #box-R{right:0;left:calc(50% + var(--cw)/2 + 5px);border-right:none}
@@ -64,15 +50,7 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 .box-hint{font-size:clamp(.26rem,.6vw,.38rem);color:rgba(255,255,255,.22);letter-spacing:.5px;text-align:center}
 
 /* ── БЕДНИЧКА ── */
-#trash{
-  position:absolute;bottom:0;left:50%;transform:translateX(-50%);
-  width:var(--cw);height:96px;
-  background:rgba(160,10,20,.18);border:3px solid var(--r);border-bottom:none;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-  color:var(--r);cursor:pointer;z-index:11;
-  -webkit-user-select:none;user-select:none;
-  transition:background .12s,box-shadow .15s;
-}
+#trash{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:var(--cw);height:96px;background:rgba(160,10,20,.18);border:3px solid var(--r);border-bottom:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--r);cursor:pointer;z-index:11;-webkit-user-select:none;user-select:none;transition:background .12s,box-shadow .15s}
 #trash:active{background:rgba(255,30,50,.35)}
 .t-icon{font-size:clamp(1.2rem,4vw,1.9rem);line-height:1}
 .t-lbl{font-family:'Orbitron',monospace;font-size:clamp(.38rem,1.1vw,.53rem);font-weight:700;letter-spacing:1px}
@@ -94,37 +72,73 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 #flash.bad{background:var(--r);color:#fff}
 
 /* ── ОВЕРЛЕИ ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:900;gap:14px;backdrop-filter:blur(8px);padding:22px;text-align:center}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:900;gap:14px;backdrop-filter:blur(10px);padding:22px;text-align:center;overflow-y:auto}
 .overlay.active{display:flex}
-.ov-sub{font-size:.56rem;letter-spacing:4px;color:#567;text-transform:uppercase}
+.ov-sub{font-size:.54rem;letter-spacing:4px;color:#567;text-transform:uppercase}
 .ov-h1{font-family:'Orbitron',monospace;font-size:clamp(1.15rem,4.8vw,1.9rem);font-weight:900;color:var(--y);letter-spacing:3px}
-.grade{font-family:'Orbitron',monospace;font-size:clamp(3rem,12vw,5rem);font-weight:900;line-height:1}
+.grade{font-family:'Orbitron',monospace;font-size:clamp(2.8rem,11vw,4.5rem);font-weight:900;line-height:1}
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;width:100%;max-width:270px}
 .sv{font-family:'Orbitron',monospace;font-size:clamp(1.05rem,4.2vw,1.65rem);font-weight:700}
 .sl{font-size:.52rem;letter-spacing:2px;color:#789}
-.ov-sep{width:100%;height:1px;background:var(--bd);max-width:250px}
-
-/* Кнопки оверлея */
-.ov-btn{font-family:'Orbitron',monospace;font-size:clamp(.68rem,2.3vw,.85rem);font-weight:700;letter-spacing:2px;padding:13px 34px;border:none;border-radius:4px;cursor:pointer;min-width:175px;-webkit-user-select:none;user-select:none;transition:transform .1s,box-shadow .1s}
+.ov-sep{width:100%;height:1px;background:var(--bd);max-width:260px}
+.ov-btn{font-family:'Orbitron',monospace;font-size:clamp(.65rem,2.2vw,.82rem);font-weight:700;letter-spacing:2px;padding:13px 30px;border:none;border-radius:4px;cursor:pointer;min-width:175px;-webkit-user-select:none;user-select:none;transition:transform .1s,box-shadow .1s;touch-action:manipulation}
 .ov-btn:active{transform:scale(.95)}
-.btn-g{background:var(--g);color:#000}
-.btn-r{background:var(--r);color:#fff}
+.btn-g{background:var(--g);color:#000}.btn-g:active{box-shadow:0 0 20px rgba(0,255,136,.4)}
+.btn-r{background:var(--r);color:#fff}.btn-r:active{box-shadow:0 0 20px rgba(255,51,68,.4)}
 .btn-d{background:#1e2e3e;color:#cde;border:2px solid var(--bd)}
-.btn-g:active{box-shadow:0 0 20px rgba(0,255,136,.4)}
-.btn-r:active{box-shadow:0 0 20px rgba(255,51,68,.4)}
-
-/* Переключатель звука */
-.sound-row{display:flex;align-items:center;gap:14px;font-size:.62rem;letter-spacing:1px;color:#789;cursor:pointer;padding:4px 0}
+.sound-row{display:flex;align-items:center;gap:14px;font-size:.62rem;letter-spacing:1px;color:#789;cursor:pointer;padding:4px 0;touch-action:manipulation}
 .toggle{width:42px;height:24px;background:#1a2a35;border:2px solid var(--bd);border-radius:12px;position:relative;transition:background .22s;flex-shrink:0}
 .toggle.on{background:var(--g)}
 .toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .22s}
 .toggle.on::after{left:21px}
-
-/* Шкала уровня на паузе */
 .level-row{display:flex;align-items:center;gap:10px;font-size:.58rem;color:#567;letter-spacing:1px}
 .level-dots{display:flex;gap:4px}
 .ld{width:10px;height:10px;border-radius:50%;background:#1e2e3e;border:1px solid var(--bd);transition:background .2s}
 .ld.on{background:var(--y);border-color:var(--y)}
+
+/* ── ГЛАВНОЕ МЕНЮ ── */
+.menu-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(1.8rem,8vw,3.2rem);color:#fff;letter-spacing:4px;line-height:1}
+.menu-logo span{color:var(--y)}
+.menu-sub{font-size:clamp(.5rem,1.5vw,.7rem);letter-spacing:3px;color:#456;margin-top:4px}
+.menu-desc{font-size:clamp(.48rem,1.4vw,.65rem);color:#567;line-height:1.8;max-width:280px;letter-spacing:.5px}
+
+/* Поле ввода имени */
+.name-wrap{display:flex;flex-direction:column;gap:6px;width:100%;max-width:260px}
+.name-label{font-size:.52rem;letter-spacing:3px;color:#567;text-transform:uppercase;text-align:left}
+#playerName{
+  font-family:'Orbitron',monospace;font-size:clamp(.7rem,2vw,.9rem);font-weight:700;
+  background:#0d1a24;border:2px solid var(--bd);border-radius:4px;
+  color:var(--g);padding:10px 14px;width:100%;letter-spacing:2px;
+  outline:none;touch-action:auto;
+  transition:border-color .2s;
+}
+#playerName:focus{border-color:var(--g);box-shadow:0 0 12px rgba(0,255,136,.2)}
+#playerName::placeholder{color:#2a4a5a;font-weight:400}
+
+/* ── ТАБЛИЦА РЕКОРДОВ ── */
+.lb-wrap{width:100%;max-width:300px}
+.lb-title{font-family:'Orbitron',monospace;font-size:.62rem;font-weight:700;color:var(--y);letter-spacing:3px;margin-bottom:8px;text-align:left}
+.lb-empty{font-size:.55rem;color:#345;letter-spacing:1px;padding:12px 0;text-align:center}
+.lb-row{display:flex;align-items:center;gap:0;padding:6px 0;border-bottom:1px solid #1a2a35;font-size:clamp(.48rem,1.3vw,.6rem)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:'Orbitron',monospace;font-weight:700;width:26px;flex-shrink:0;color:#456}
+.lb-rank.gold{color:#ffd700}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
+.lb-name{flex:1;letter-spacing:1px;color:#9bc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 6px}
+.lb-name.me{color:var(--g);font-weight:700}
+.lb-score{font-family:'Orbitron',monospace;font-weight:700;color:#cde;flex-shrink:0;width:56px;text-align:right}
+.lb-grade{font-family:'Orbitron',monospace;font-weight:900;font-size:.7rem;width:22px;text-align:right;flex-shrink:0;margin-left:6px}
+.lb-date{font-size:.42rem;color:#345;flex-shrink:0;width:52px;text-align:right;margin-left:4px}
+
+/* Анимация появления меню */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+#ovMenu.active>*{animation:fadeUp .4s ease both}
+#ovMenu.active>*:nth-child(1){animation-delay:.05s}
+#ovMenu.active>*:nth-child(2){animation-delay:.1s}
+#ovMenu.active>*:nth-child(3){animation-delay:.15s}
+#ovMenu.active>*:nth-child(4){animation-delay:.2s}
+#ovMenu.active>*:nth-child(5){animation-delay:.25s}
+#ovMenu.active>*:nth-child(6){animation-delay:.3s}
+#ovMenu.active>*:nth-child(7){animation-delay:.35s}
 </style>
 </head>
 <body>
@@ -144,26 +158,22 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 
 <div id="gw">
   <div id="tb-w"><div id="tb" style="width:100%"></div></div>
-
   <div id="box-L" class="box" onclick="sendGood('L')">
     <div class="box-icon">📦</div>
     <div class="box-lbl">ĽAVÁ<br>STRANA</div>
     <div class="box-cnt" id="cntGL">0</div>
     <div class="box-hint">← tap / A</div>
   </div>
-
   <div id="box-R" class="box" onclick="sendGood('R')">
     <div class="box-icon">📦</div>
     <div class="box-lbl">PRAVÁ<br>STRANA</div>
     <div class="box-cnt" id="cntGR">0</div>
     <div class="box-hint">tap / D →</div>
   </div>
-
   <div id="conv">
     <div class="belt-stripe"></div>
     <div id="conv-lbl">▼ DOPRAVNÍK ▼</div>
   </div>
-
   <div id="trash" onclick="sendTrash()">
     <div class="t-icon">🗑</div>
     <div class="t-lbl">KOŠ NA ZMÄTKY</div>
@@ -173,36 +183,68 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
 
 <div id="flash"></div>
 
-<!-- ══ МЕНЮ ПАУЗЫ ══ -->
-<div class="overlay" id="ovPause">
-  <div class="ov-sub">Hra pozastavená</div>
-  <div class="ov-h1">⏸ PAUZA</div>
-  <div class="ov-sep"></div>
+<!-- ══ ГЛАВНОЕ МЕНЮ ══ -->
+<div class="overlay active" id="ovMenu">
+  <div class="menu-logo">▲ <span>MAGNA</span></div>
+  <div class="menu-sub">TRIEDENIE DIELOV · OMB SCUFF CAP</div>
 
-  <!-- Уровень скорости -->
-  <div class="level-row">
-    RÝCHLOSŤ
-    <div class="level-dots" id="levelDots">
-      <div class="ld" id="ld1"></div>
-      <div class="ld" id="ld2"></div>
-      <div class="ld" id="ld3"></div>
-      <div class="ld" id="ld4"></div>
-      <div class="ld" id="ld5"></div>
-    </div>
+  <div class="name-wrap">
+    <div class="name-label">Vaše meno</div>
+    <input id="playerName" type="text" maxlength="16" placeholder="OPERÁTOR..." autocomplete="off" spellcheck="false">
   </div>
 
-  <!-- Переключатель звука -->
+  <div class="ov-sep"></div>
+  <button class="ov-btn btn-g" onclick="openLeaderboard()">🏆 REBRÍČEK</button>
+  <button class="ov-btn btn-g" style="margin-top:-4px" onclick="beginGame()">▶ SPUSTIŤ HRU</button>
+
   <div class="sound-row" onclick="toggleSound()">
     🔊 Zvukové efekty
     <div class="toggle on" id="sndToggle"></div>
   </div>
 
+  <div class="menu-desc">
+    Triediť diely → ľavý / pravý box<br>
+    Zmätky → padajú samy do koša<br>
+    Chyba = strata života ❤
+  </div>
+</div>
+
+<!-- ══ ТАБЛИЦА РЕКОРДОВ ══ -->
+<div class="overlay" id="ovLB">
+  <div class="ov-sub">Najlepší operátori</div>
+  <div class="ov-h1">🏆 REBRÍČEK</div>
+  <div class="ov-sep"></div>
+  <div class="lb-wrap">
+    <div id="lbList"></div>
+  </div>
+  <div class="ov-sep"></div>
+  <button class="ov-btn btn-d" onclick="closeLB()">← SPÄŤ</button>
+</div>
+
+<!-- ══ ПАУЗА ══ -->
+<div class="overlay" id="ovPause">
+  <div class="ov-sub">Hra pozastavená</div>
+  <div class="ov-h1">⏸ PAUZA</div>
+  <div class="ov-sep"></div>
+  <div class="level-row">
+    RÝCHLOSŤ
+    <div class="level-dots">
+      <div class="ld" id="ld1"></div><div class="ld" id="ld2"></div>
+      <div class="ld" id="ld3"></div><div class="ld" id="ld4"></div>
+      <div class="ld" id="ld5"></div>
+    </div>
+  </div>
+  <div class="sound-row" onclick="toggleSound()">
+    🔊 Zvukové efekty
+    <div class="toggle on" id="sndToggle2"></div>
+  </div>
   <div class="ov-sep"></div>
   <button class="ov-btn btn-g" onclick="togglePause()">▶ POKRAČOVAŤ</button>
   <button class="ov-btn btn-r" onclick="restartFromPause()">↺ REŠTARTOVAŤ</button>
+  <button class="ov-btn btn-d" onclick="goToMenu()">⌂ MENU</button>
 </div>
 
-<!-- ══ ИТОГОВЫЙ ЭКРАН ══ -->
+<!-- ══ ИТОГИ ══ -->
 <div class="overlay" id="ovEnd">
   <div class="ov-sub">Zmena skončila</div>
   <div class="ov-h1">SPRÁVA ZMENY</div>
@@ -213,63 +255,104 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
     <div><div class="sv" id="fTrash" style="color:var(--r)">0</div><div class="sl">ZMÄTKOV</div></div>
     <div><div class="sv" id="fAcc"   style="color:var(--y)">0%</div><div class="sl">PRESNOSŤ</div></div>
   </div>
-  <button class="ov-btn btn-g" onclick="startGame()">▶ NOVÁ ZMENA</button>
+  <!-- Место в таблице рекордов -->
+  <div id="newRecordMsg" style="font-size:.6rem;color:var(--y);letter-spacing:2px;display:none">🏆 NOVÝ REKORD!</div>
+  <div class="ov-sep"></div>
+  <button class="ov-btn btn-g" onclick="playAgain()">▶ ZNOVA</button>
+  <button class="ov-btn btn-d" onclick="goToMenu()">⌂ MENU</button>
 </div>
 
 <script>
 // ══════════════════════════════════════════════════════
-// AUDIO ENGINE — Web Audio API, без внешних файлов
+// AUDIO
 // ══════════════════════════════════════════════════════
-const AC = new (window.AudioContext || window.webkitAudioContext)();
-let soundOn = true;
-
+const AC = new (window.AudioContext||window.webkitAudioContext)();
+let soundOn=true;
 function acResume(){ if(AC.state==='suspended') AC.resume(); }
-
-function tone(freq, dur, type='sine', vol=.15, slide=0){
-  if(!soundOn) return;
-  acResume();
-  const o=AC.createOscillator(), g=AC.createGain();
+function tone(f,d,t='sine',v=.15,sl=0){
+  if(!soundOn) return; acResume();
+  const o=AC.createOscillator(),g=AC.createGain();
   o.connect(g); g.connect(AC.destination);
-  o.type=type;
-  o.frequency.setValueAtTime(freq, AC.currentTime);
-  if(slide) o.frequency.linearRampToValueAtTime(slide, AC.currentTime+dur);
-  g.gain.setValueAtTime(vol, AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001, AC.currentTime+dur);
-  o.start(); o.stop(AC.currentTime+dur+.01);
+  o.type=t; o.frequency.setValueAtTime(f,AC.currentTime);
+  if(sl) o.frequency.linearRampToValueAtTime(sl,AC.currentTime+d);
+  g.gain.setValueAtTime(v,AC.currentTime);
+  g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);
+  o.start(); o.stop(AC.currentTime+d+.01);
 }
-
-function seq(notes, gap=55){ notes.forEach(([f,d,t,v,s],i)=>setTimeout(()=>tone(f,d,t,v,s),i*gap)); }
-
-// Звуки
-const SFX = {
-  good:    ()=>{ tone(520,.06,'sine',.13); setTimeout(()=>tone(800,.09,'sine',.13),70); },
-  combo:   ()=>seq([[440,.1,'sine',.16],[550,.1,'sine',.16],[700,.1,'sine',.16],[900,.15,'sine',.18]],55),
-  error:   ()=>{ tone(200,.15,'sawtooth',.2); setTimeout(()=>tone(140,.2,'sawtooth',.15),90); },
-  miss:    ()=>tone(180,.35,'sawtooth',.18,80),
-  trash:   ()=>{ tone(350,.05,'square',.1); setTimeout(()=>tone(220,.1,'sawtooth',.12),55); },
-  levelup: ()=>seq([[330,.08,'sine',.13],[440,.08,'sine',.13],[560,.08,'sine',.13],[700,.12,'sine',.15]],48),
-  pause:   ()=>{ tone(400,.08,'sine',.1); setTimeout(()=>tone(300,.1,'sine',.08),100); },
-  resume:  ()=>{ tone(300,.07,'sine',.09); setTimeout(()=>tone(450,.09,'sine',.12),90); },
-  end:     ()=>seq([[600,.12,'sine',.15],[500,.12,'sine',.15],[380,.12,'sine',.15],[260,.18,'sine',.13],[180,.25,'sine',.12]],75),
-  click:   ()=>tone(650,.04,'sine',.07),
+function seq(n,gap=55){ n.forEach(([f,d,t,v],i)=>setTimeout(()=>tone(f,d,t,v),i*gap)); }
+const SFX={
+  good:   ()=>{ tone(520,.06,'sine',.13); setTimeout(()=>tone(800,.09,'sine',.13),70); },
+  combo:  ()=>seq([[440,.1,'sine',.15],[550,.1,'sine',.15],[700,.1,'sine',.15],[900,.15,'sine',.17]],55),
+  error:  ()=>{ tone(200,.15,'sawtooth',.2); setTimeout(()=>tone(140,.2,'sawtooth',.15),90); },
+  miss:   ()=>tone(180,.35,'sawtooth',.18,80),
+  trash:  ()=>{ tone(350,.05,'square',.09); setTimeout(()=>tone(220,.1,'sawtooth',.11),55); },
+  lvlup:  ()=>seq([[330,.08,'sine',.12],[440,.08,'sine',.12],[560,.08,'sine',.12],[700,.12,'sine',.14]],48),
+  pause:  ()=>{ tone(400,.08,'sine',.1); setTimeout(()=>tone(300,.1,'sine',.08),100); },
+  resume: ()=>{ tone(300,.07,'sine',.09); setTimeout(()=>tone(450,.09,'sine',.12),90); },
+  end:    ()=>seq([[600,.12,'sine',.14],[500,.12,'sine',.14],[380,.12,'sine',.14],[260,.18,'sine',.12],[180,.25,'sine',.11]],75),
+  click:  ()=>tone(650,.04,'sine',.07),
+  start:  ()=>seq([[260,.08,'sine',.1],[330,.08,'sine',.1],[440,.08,'sine',.1],[550,.12,'sine',.14]],70),
 };
-
-function play(name){ SFX[name]?.(); }
-
+function play(n){ SFX[n]?.(); }
 function toggleSound(){
-  soundOn=!soundOn;
-  acResume();
+  soundOn=!soundOn; acResume();
   document.getElementById('sndToggle').classList.toggle('on',soundOn);
+  document.getElementById('sndToggle2').classList.toggle('on',soundOn);
   if(soundOn) tone(500,.08,'sine',.1);
 }
 
 // ══════════════════════════════════════════════════════
-// СТЕЙТ
+// LEADERBOARD (localStorage)
+// ══════════════════════════════════════════════════════
+const LB_KEY='magna_lb_v1';
+function lbLoad(){ try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch{ return []; } }
+function lbSave(data){ try{ localStorage.setItem(LB_KEY,JSON.stringify(data)); }catch{} }
+function lbAdd(name,sc,grade,acc){
+  const data=lbLoad();
+  const entry={ name:name||'ANONYM', score:sc, grade, acc, date:new Date().toLocaleDateString('sk') };
+  data.push(entry);
+  data.sort((a,b)=>b.score-a.score);
+  const trimmed=data.slice(0,20);
+  lbSave(trimmed);
+  const pos=trimmed.findIndex(e=>e===entry);
+  return pos; // -1 если не попал (не должно быть)
+}
+const GRADE_COLORS={S:'#ffd700',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
+const RANK_CLS=['gold','silver','bronze'];
+function lbRender(myName){
+  const data=lbLoad();
+  const el=document.getElementById('lbList');
+  if(!data.length){
+    el.innerHTML='<div class="lb-empty">Zatiaľ žiadne záznamy.<br>Buď prvý!</div>';
+    return;
+  }
+  el.innerHTML=data.map((e,i)=>`
+    <div class="lb-row">
+      <div class="lb-rank ${RANK_CLS[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
+      <div class="lb-name${myName&&e.name===myName?' me':''}">${e.name}</div>
+      <div class="lb-score">${e.score}</div>
+      <div class="lb-grade" style="color:${GRADE_COLORS[e.grade]||'#cde'}">${e.grade}</div>
+      <div class="lb-date">${e.date}</div>
+    </div>`).join('');
+}
+function openLeaderboard(){
+  play('click'); acResume();
+  lbRender(getPlayerName());
+  document.getElementById('ovMenu').classList.remove('active');
+  document.getElementById('ovLB').classList.add('active');
+}
+function closeLB(){
+  play('click');
+  document.getElementById('ovLB').classList.remove('active');
+  document.getElementById('ovMenu').classList.add('active');
+}
+
+// ══════════════════════════════════════════════════════
+// STAV
 // ══════════════════════════════════════════════════════
 let score=0,cntGL=0,cntGR=0,cntT=0,errors=0;
 let lives=3,timeLeft=60,timerInt=null;
 let gameActive=false,paused=false,combo=0,level=1;
-// Детали хранятся в объекте parts
 const parts={L:null,R:null};
 
 const DEFECTS=['TRHLINA','ODLOMENIE','DEFORMÁCIA','ZNEČISTENIE','OTREPA'];
@@ -281,18 +364,24 @@ const OVL={
   ODLOMENIE:  `<polygon points="22,51 29,41 19,39" fill="#181818" stroke="#666" stroke-width=".5"/>`
 };
 
+// Скорость: начинаем медленно, уровень 1 = 5500ms, каждые 15с ускоряется
+function partDur(){ return Math.max(1200, 5500-level*500); }
+
+function getPlayerName(){
+  return (document.getElementById('playerName').value.trim().toUpperCase()||'ANONYM');
+}
+
 // ══════════════════════════════════════════════════════
 // ГЕНЕРАЦИЯ ДЕТАЛЕЙ
 // ══════════════════════════════════════════════════════
 function mkData(side){
-  const bad=Math.random()<(.28+level*.03);
-  return{ side, bad,
+  const bad=Math.random()<(.22+level*.025);
+  return{ side,bad,
     defect:bad?DEFECTS[Math.random()*DEFECTS.length|0]:null,
     tilt:(Math.random()-.5)*14,
     shade:bad?`hsl(${Math.random()>.5?'0,10%,15%':'30,20%,12%'})`:'hsl(220,5%,10%)'
   };
 }
-
 function mkEl(d){
   const el=document.createElement('div');
   el.className='part p'+d.side;
@@ -317,48 +406,38 @@ function mkEl(d){
 function spawnPart(side){
   const p=parts[side];
   if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; }
-
   const data=mkData(side);
   const el=mkEl(data);
   document.getElementById('conv').appendChild(el);
-
-  const dur=Math.max(600,2800-level*220);
+  const dur=partDur();
   const targetY=document.getElementById('conv').offsetHeight-40;
-
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     el.style.transition=`top ${dur}ms linear`;
     el.style.top=targetY+'px';
   }));
-
   const mt=setTimeout(()=>{
-    if(parts[side]?.el===el && el.parentNode){
+    if(parts[side]?.el===el&&el.parentNode){
       parts[side]=null; el.remove();
       if(data.bad){
-        // Бракованная деталь упала в бедничку сама — зачёт!
         combo++;
         const pts=10+(combo>2?combo>>1:0);
         score+=pts; cntT++;
-        if(combo>2){ play('combo'); flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good'); }
-        else        { play('trash'); flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good'); }
-        glowEl('trash',true);
-        updateHUD();
+        combo>2?( play('combo'), flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good') )
+               :( play('trash'), flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good') );
+        glowEl('trash',true); updateHUD();
       } else {
-        // Годная деталь пропущена — штраф
         penalize('DIEL PREŠIEL!');
       }
       if(gameActive&&!paused) setTimeout(()=>spawnPart(side),300);
     }
-  }, dur+150);
-
+  },dur+150);
   parts[side]={el,data,mt};
   attachSwipe(el,data,side);
 }
 
 function attachSwipe(el,data,side){
   let sx=0,sy=0;
-  el.addEventListener('touchstart',e=>{
-    const t=e.touches[0]; sx=t.clientX; sy=t.clientY;
-  },{passive:true});
+  el.addEventListener('touchstart',e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; },{passive:true});
   el.addEventListener('touchmove',e=>{
     const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
     el.style.transform=`translateX(${dx*.4}px) translateY(${Math.max(0,dy*.3)}px) rotate(${data.tilt+dx*.03}deg)`;
@@ -366,53 +445,38 @@ function attachSwipe(el,data,side){
   el.addEventListener('touchend',e=>{
     const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
     el.style.transform=`rotate(${data.tilt}deg)`;
-    // Свайп вниз — только для брака (ускорить падение в бедничку)
     if(dy>50&&Math.abs(dx)<80){ if(data.bad) doAction(side,'trash'); return; }
     if(Math.abs(dx)>50&&Math.abs(dy)<90) doAction(dx<0?'L':'R','good');
   },{passive:true});
 }
 
 // ══════════════════════════════════════════════════════
-// ЛОГИКА СОРТИРОВКИ
+// ЛОГИКА
 // ══════════════════════════════════════════════════════
 function sendGood(side){ if(gameActive&&!paused){ acResume(); doAction(side,'good'); } }
-
 function sendTrash(){
-  if(!gameActive||paused) return;
-  acResume();
-  const {L,R}=parts;
-  // Найти бракованную деталь, которая ближе к низу
-  let side=null;
+  if(!gameActive||paused) return; acResume();
   const candidates=[];
-  if(L?.data.bad) candidates.push({side:'L',y:parseInt(L.el.style.top)||0});
-  if(R?.data.bad) candidates.push({side:'R',y:parseInt(R.el.style.top)||0});
-  if(candidates.length) side=candidates.sort((a,b)=>b.y-a.y)[0].side;
-  if(side) doAction(side,'trash');
+  if(parts.L?.data.bad) candidates.push({side:'L',y:parseInt(parts.L.el.style.top)||0});
+  if(parts.R?.data.bad) candidates.push({side:'R',y:parseInt(parts.R.el.style.top)||0});
+  if(candidates.length) doAction(candidates.sort((a,b)=>b.y-a.y)[0].side,'trash');
 }
-
 function doAction(side,choice){
   if(!gameActive||paused) return;
   const p=parts[side]; if(!p) return;
-  // Не давать отправить годную деталь в бедничку через кнопку
   if(choice==='trash'&&!p.data.bad) return;
   clearTimeout(p.mt);
-  const d=p.data;
-  p.el.remove(); parts[side]=null;
-
+  const d=p.data; p.el.remove(); parts[side]=null;
   const correct=(!d.bad&&choice==='good')||(d.bad&&choice==='trash');
-
   if(correct){
     combo++;
-    const pts=10+(combo>2?combo>>1:0);
-    score+=pts;
-    if(choice==='good') d.side==='L'?cntGL++:cntGR++;
-    else cntT++;
-    if(combo>2){ play('combo'); flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good'); }
-    else        { play(choice==='trash'?'trash':'good'); flash(`✓ ${d.bad?'ZMÄTOK':'DOBRÝ'}! +${pts}`,'good'); }
+    const pts=10+(combo>2?combo>>1:0); score+=pts;
+    choice==='good'?(d.side==='L'?cntGL++:cntGR++):cntT++;
+    combo>2?( play('combo'), flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good') )
+           :( play(choice==='trash'?'trash':'good'), flash(`✓ ${d.bad?'ZMÄTOK':'DOBRÝ'}! +${pts}`,'good') );
     glowEl(choice==='good'?'box-'+side:'trash',true);
   } else {
-    combo=0; errors++; lives--;
-    score=Math.max(0,score-5);
+    combo=0; errors++; lives--; score=Math.max(0,score-5);
     play('error');
     flash(`✗ CHYBA! ${d.bad?'TO JE ZMÄTOK':'DIEL JE DOBRÝ'}`,'wrong');
     glowEl(choice==='good'?'box-'+side:'trash',false);
@@ -422,12 +486,10 @@ function doAction(side,choice){
   updateHUD();
   if(gameActive&&!paused) setTimeout(()=>spawnPart(side),150);
 }
-
 function penalize(msg){
   if(!gameActive) return;
   combo=0; lives--; errors++;
-  play('miss');
-  flash('⚠ '+msg,'bad');
+  play('miss'); flash('⚠ '+msg,'bad');
   updateLives();
   if(lives<=0) endGame(); else updateHUD();
 }
@@ -436,53 +498,36 @@ function penalize(msg){
 // ПАУЗА
 // ══════════════════════════════════════════════════════
 function togglePause(){
-  if(!gameActive) return;
-  acResume();
+  if(!gameActive) return; acResume();
   paused=!paused;
   document.getElementById('ovPause').classList.toggle('active',paused);
   document.getElementById('btnPause').textContent=paused?'▶ ĎALEJ':'⏸ PAUZA';
-
   if(paused){
-    play('pause');
-    clearInterval(timerInt);
-    // Заморозить детали — зафиксировать текущую позицию
+    play('pause'); clearInterval(timerInt);
     Object.values(parts).forEach(p=>{
       if(!p) return;
       const cur=parseInt(p.el.style.top)||0;
-      clearTimeout(p.mt);
-      p.el.style.transition='none';
-      p.el.style.top=cur+'px';
-      p._frozen=cur;
+      clearTimeout(p.mt); p.el.style.transition='none'; p.el.style.top=cur+'px'; p._frozen=cur;
     });
     updateLevelDots();
   } else {
-    play('resume');
-    startTimer();
-    // Возобновить движение деталей с текущей позиции
+    play('resume'); startTimer();
     ['L','R'].forEach(side=>{
       const p=parts[side];
       if(!p){ setTimeout(()=>spawnPart(side),200); return; }
-      const convH=document.getElementById('conv').offsetHeight;
-      const targetY=convH-40;
+      const convH=document.getElementById('conv').offsetHeight, targetY=convH-40;
       const remaining=targetY-(p._frozen||0);
-      const totalDur=2800-level*220;
-      const dur=Math.max(200, remaining/convH*totalDur);
-      p.el.style.transition=`top ${dur}ms linear`;
-      p.el.style.top=targetY+'px';
+      const dur=Math.max(200, remaining/convH*partDur());
+      p.el.style.transition=`top ${dur}ms linear`; p.el.style.top=targetY+'px';
       const mt=setTimeout(()=>{
         if(parts[side]?.el===p.el&&p.el.parentNode){
           parts[side]=null; p.el.remove();
           if(p.data.bad){
-            combo++;
-            const pts=10+(combo>2?combo>>1:0);
-            score+=pts; cntT++;
-            if(combo>2){ play('combo'); flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good'); }
-            else        { play('trash'); flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good'); }
-            glowEl('trash',true);
-            updateHUD();
-          } else {
-            penalize('DIEL PREŠIEL!');
-          }
+            combo++; const pts=10+(combo>2?combo>>1:0); score+=pts; cntT++;
+            combo>2?( play('combo'), flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good') )
+                   :( play('trash'), flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good') );
+            glowEl('trash',true); updateHUD();
+          } else { penalize('DIEL PREŠIEL!'); }
           if(gameActive&&!paused) setTimeout(()=>spawnPart(side),300);
         }
       },dur+150);
@@ -490,19 +535,18 @@ function togglePause(){
     });
   }
 }
-
-function restartFromPause(){
-  play('click');
-  startGame();
-}
-
-function updateLevelDots(){
-  for(let i=1;i<=5;i++)
-    document.getElementById('ld'+i).classList.toggle('on',i<=level);
+function updateLevelDots(){ for(let i=1;i<=5;i++) document.getElementById('ld'+i).classList.toggle('on',i<=level); }
+function restartFromPause(){ play('click'); startGame(); }
+function goToMenu(){
+  play('click'); gameActive=false; paused=false;
+  clearInterval(timerInt); killParts();
+  document.getElementById('ovPause').classList.remove('active');
+  document.getElementById('ovEnd').classList.remove('active');
+  document.getElementById('ovMenu').classList.add('active');
 }
 
 // ══════════════════════════════════════════════════════
-// UI HELPERS
+// UI
 // ══════════════════════════════════════════════════════
 function flash(msg,type){
   const f=document.getElementById('flash');
@@ -540,9 +584,7 @@ function startTimer(){
     bar.style.width=(timeLeft/60*100)+'%';
     bar.style.background=timeLeft<15?'var(--r)':timeLeft<30?'var(--y)':'var(--g)';
     if(timeLeft%15===0&&timeLeft>0){
-      level=Math.min(level+1,5);
-      play('levelup');
-      flash('⚡ RÝCHLOSŤ +1','good');
+      level=Math.min(level+1,5); play('lvlup'); flash('⚡ RÝCHLOSŤ +1','good');
     }
     if(timeLeft<=0) endGame();
   },1000);
@@ -552,27 +594,27 @@ function startTimer(){
 // СТАРТ / КОНЕЦ
 // ══════════════════════════════════════════════════════
 function killParts(){
-  ['L','R'].forEach(side=>{
-    const p=parts[side];
-    if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; }
-  });
+  ['L','R'].forEach(side=>{ const p=parts[side]; if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; } });
 }
-
+function beginGame(){
+  acResume(); play('start');
+  document.getElementById('ovMenu').classList.remove('active');
+  startGame();
+}
 function startGame(){
   acResume();
   score=cntGL=cntGR=cntT=errors=combo=0;
   lives=3; timeLeft=60; level=1; gameActive=true; paused=false;
   clearInterval(timerInt); killParts();
-  document.getElementById('ovPause').classList.remove('active');
-  document.getElementById('ovEnd').classList.remove('active');
+  ['ovPause','ovEnd','ovMenu','ovLB'].forEach(id=>document.getElementById(id).classList.remove('active'));
   document.getElementById('btnPause').textContent='⏸ PAUZA';
   document.getElementById('tb').style.background='var(--g)';
   updateHUD(); updateLives();
   startTimer();
   spawnPart('L');
-  setTimeout(()=>spawnPart('R'),500);
+  setTimeout(()=>spawnPart('R'),700);
 }
-
+function playAgain(){ play('click'); startGame(); }
 function endGame(){
   gameActive=false; paused=false;
   clearInterval(timerInt); killParts();
@@ -580,13 +622,18 @@ function endGame(){
   const total=cntGL+cntGR+cntT+errors;
   const acc=total>0?Math.max(0,Math.round((cntGL+cntGR+cntT-errors)/total*100)):0;
   const grade=acc>=95?'S':acc>=80?'A':acc>=65?'B':acc>=50?'C':'F';
-  const gc={S:'#ffcc00',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
+  const gc={S:'#ffd700',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
   document.getElementById('fScore').textContent=score;
   document.getElementById('fGood').textContent=cntGL+cntGR;
   document.getElementById('fTrash').textContent=cntT;
   document.getElementById('fAcc').textContent=acc+'%';
-  const g=document.getElementById('gradeEl');
-  g.textContent=grade; g.style.color=gc[grade];
+  const g=document.getElementById('gradeEl'); g.textContent=grade; g.style.color=gc[grade];
+  // Записать в таблицу рекордов
+  const pos=lbAdd(getPlayerName(),score,grade,acc);
+  const msg=document.getElementById('newRecordMsg');
+  if(pos<=2){ msg.style.display='block'; msg.textContent=pos===0?'🥇 PRVÉ MIESTO!':pos===1?'🥈 DRUHÉ MIESTO!':'🥉 TRETIE MIESTO!'; }
+  else if(pos>=0&&pos<10){ msg.style.display='block'; msg.textContent=`🏆 TOP-${pos+1} REBRÍČKA!`; }
+  else msg.style.display='none';
   document.getElementById('ovEnd').classList.add('active');
 }
 
@@ -599,11 +646,11 @@ document.addEventListener('keydown',e=>{
   switch(e.key){
     case 'ArrowLeft': case 'a': case 'A': sendGood('L'); break;
     case 'ArrowRight':case 'd': case 'D': sendGood('R'); break;
-    case 'ArrowDown': case 's': case 'S': sendTrash(); break;
+    case 'ArrowDown': case 's': case 'S': sendTrash();   break;
   }
 });
-
-startGame();
+// Enter в поле имени = начать игру
+document.getElementById('playerName').addEventListener('keydown',e=>{ if(e.key==='Enter') beginGame(); });
 </script>
 </body>
 </html>
