@@ -218,6 +218,7 @@ header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align
     <div id="lbList"></div>
   </div>
   <div class="ov-sep"></div>
+  <button class="ov-btn btn-d" style="font-size:.65rem;padding:9px 20px;min-width:0" onclick="refreshLB()">↻ OBNOVIŤ</button>
   <button class="ov-btn btn-d" onclick="closeLB()">← SPÄŤ</button>
 </div>
 
@@ -302,25 +303,35 @@ function toggleSound(){
 }
 
 // ══════════════════════════════════════════════════════
-// LEADERBOARD (localStorage)
+// LEADERBOARD — онлайн, shared storage (общий для всех)
 // ══════════════════════════════════════════════════════
-const LB_KEY='magna_lb_v1';
-function lbLoad(){ try{ return JSON.parse(localStorage.getItem(LB_KEY))||[]; }catch{ return []; } }
-function lbSave(data){ try{ localStorage.setItem(LB_KEY,JSON.stringify(data)); }catch{} }
-function lbAdd(name,sc,grade,acc){
-  const data=lbLoad();
+const LB_KEY='magna_lb_v2';
+const GRADE_COLORS={S:'#ffd700',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
+const RANK_CLS=['gold','silver','bronze'];
+
+async function lbLoad(){
+  try{
+    const r=await window.storage.get(LB_KEY,true);
+    return r ? JSON.parse(r.value) : [];
+  } catch{ return []; }
+}
+async function lbSave(data){
+  try{ await window.storage.set(LB_KEY,JSON.stringify(data),true); } catch{}
+}
+
+// Возвращает позицию (0-based) или -1
+async function lbAdd(name,sc,grade,acc){
+  const data=await lbLoad();
   const entry={ name:name||'ANONYM', score:sc, grade, acc, date:new Date().toLocaleDateString('sk') };
   data.push(entry);
   data.sort((a,b)=>b.score-a.score);
   const trimmed=data.slice(0,20);
-  lbSave(trimmed);
-  const pos=trimmed.findIndex(e=>e===entry);
-  return pos; // -1 если не попал (не должно быть)
+  const pos=trimmed.indexOf(entry); // точная ссылка
+  await lbSave(trimmed);
+  return pos;
 }
-const GRADE_COLORS={S:'#ffd700',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
-const RANK_CLS=['gold','silver','bronze'];
-function lbRender(myName){
-  const data=lbLoad();
+
+function lbRenderData(data, myName){
   const el=document.getElementById('lbList');
   if(!data.length){
     el.innerHTML='<div class="lb-empty">Zatiaľ žiadne záznamy.<br>Buď prvý!</div>';
@@ -329,22 +340,47 @@ function lbRender(myName){
   el.innerHTML=data.map((e,i)=>`
     <div class="lb-row">
       <div class="lb-rank ${RANK_CLS[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
-      <div class="lb-name${myName&&e.name===myName?' me':''}">${e.name}</div>
+      <div class="lb-name${myName&&e.name.toUpperCase()===myName.toUpperCase()?' me':''}">${e.name}</div>
       <div class="lb-score">${e.score}</div>
       <div class="lb-grade" style="color:${GRADE_COLORS[e.grade]||'#cde'}">${e.grade}</div>
       <div class="lb-date">${e.date}</div>
     </div>`).join('');
 }
-function openLeaderboard(){
+
+function lbSetLoading(){
+  document.getElementById('lbList').innerHTML=
+    '<div class="lb-empty" id="lbStatus">⏳ Načítavam...</div>';
+}
+
+async function openLeaderboard(){
   play('click'); acResume();
-  lbRender(getPlayerName());
   document.getElementById('ovMenu').classList.remove('active');
   document.getElementById('ovLB').classList.add('active');
+  lbSetLoading();
+  try {
+    const data=await lbLoad();
+    lbRenderData(data, getPlayerName());
+  } catch {
+    document.getElementById('lbList').innerHTML=
+      '<div class="lb-empty">❌ Chyba načítania.<br>Skontroluj pripojenie.</div>';
+  }
 }
 function closeLB(){
   play('click');
   document.getElementById('ovLB').classList.remove('active');
   document.getElementById('ovMenu').classList.add('active');
+}
+
+// Кнопка обновить в таблице
+async function refreshLB(){
+  lbSetLoading();
+  try {
+    const data=await lbLoad();
+    lbRenderData(data, getPlayerName());
+  } catch {
+    document.getElementById('lbList').innerHTML=
+      '<div class="lb-empty">❌ Chyba načítania.</div>';
+  }
 }
 
 // ══════════════════════════════════════════════════════
@@ -615,7 +651,7 @@ function startGame(){
   setTimeout(()=>spawnPart('R'),700);
 }
 function playAgain(){ play('click'); startGame(); }
-function endGame(){
+async function endGame(){
   gameActive=false; paused=false;
   clearInterval(timerInt); killParts();
   play('end');
@@ -629,11 +665,18 @@ function endGame(){
   document.getElementById('fAcc').textContent=acc+'%';
   const g=document.getElementById('gradeEl'); g.textContent=grade; g.style.color=gc[grade];
   // Записать в таблицу рекордов
-  const pos=lbAdd(getPlayerName(),score,grade,acc);
   const msg=document.getElementById('newRecordMsg');
-  if(pos<=2){ msg.style.display='block'; msg.textContent=pos===0?'🥇 PRVÉ MIESTO!':pos===1?'🥈 DRUHÉ MIESTO!':'🥉 TRETIE MIESTO!'; }
-  else if(pos>=0&&pos<10){ msg.style.display='block'; msg.textContent=`🏆 TOP-${pos+1} REBRÍČKA!`; }
-  else msg.style.display='none';
+  msg.style.display='block'; msg.textContent='⏳ Ukladám skóre...';
+  try {
+    const pos=await lbAdd(getPlayerName(),score,grade,acc);
+    if(pos===0)       { msg.textContent='🥇 PRVÉ MIESTO!'; }
+    else if(pos===1)  { msg.textContent='🥈 DRUHÉ MIESTO!'; }
+    else if(pos===2)  { msg.textContent='🥉 TRETIE MIESTO!'; }
+    else if(pos<10)   { msg.textContent=`🏆 TOP-${pos+1} REBRÍČKA!`; }
+    else              { msg.style.display='none'; }
+  } catch {
+    msg.textContent='⚠ Skóre sa neuložilo (offline)'; msg.style.color='var(--r)';
+  }
   document.getElementById('ovEnd').classList.add('active');
 }
 
