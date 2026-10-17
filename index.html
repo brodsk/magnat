@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="sk">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>MAGNA — Factory Shift</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MAGNA — Simulácia výrobnej zmeny</title>
 <meta name="theme-color" content="#151b21">
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600;700&display=swap');
@@ -20,40 +20,74 @@ main{max-width:1600px;margin:auto;padding:14px}.topline{display:flex;align-items
 .bottom{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:14px}.panel{border:2px solid var(--line);background:var(--panel);padding:12px;min-width:0}.panel h2{font:10px 'Press Start 2P',monospace;color:var(--yellow);margin:0 0 12px;line-height:1.8}.roster{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.role{padding:8px;background:#182127;border:1px solid #394852;min-width:0}.role strong{display:block;font-size:15px}.role small{display:block;font-size:9px;line-height:1.5;color:var(--muted);margin-top:4px}.feed{height:178px;overflow:auto;font-size:11px;line-height:1.7;color:#b8c5cb}.feed div{border-bottom:1px dashed #394852;padding:3px 0}.feed .good{color:var(--green)}.feed .bad{color:var(--red)}.feed .notice{color:var(--orange)}
 .hint{color:var(--muted);font-size:10px;line-height:1.8;margin-top:10px}.overlay{position:fixed;inset:0;background:rgba(7,10,12,.9);display:flex;align-items:center;justify-content:center;z-index:10;padding:18px}.modal{max-width:480px;width:100%;background:#202a32;border:3px solid var(--yellow);padding:24px;box-shadow:8px 8px 0 #080b0d}.modal h1{font:18px 'Press Start 2P',monospace;line-height:1.8;margin:0 0 12px}.modal p{font-size:12px;line-height:1.8;color:#b9c6cc}.modal .btn{margin-top:8px}.hidden{display:none!important}
 @media(max-width:800px){header{align-items:flex-start;padding:10px;flex-direction:column}.stats{justify-content:flex-start;gap:12px}.stat strong{font-size:15px}.brand{font-size:11px}main{padding:8px}.bottom{grid-template-columns:1fr}.roster{grid-template-columns:repeat(3,minmax(0,1fr))}.topline{align-items:flex-start}.btn{padding:9px;font-size:10px}.factory-window{overscroll-behavior-x:contain}}
+
+/* Mobile-first controls: keep the factory map horizontally scrollable and the HUD compact. */
+.factory-window{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-color:#64737b #171f25}
+#factory{width:1500px;height:780px;max-width:none;touch-action:pan-x}
+@media(max-width:600px){
+  header{gap:10px;padding:calc(9px + env(safe-area-inset-top)) 10px 10px;position:relative}
+  .brand{font-size:10px;letter-spacing:0}
+  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:6px}
+  .stat{min-width:0;padding:7px 5px;background:#202a32;border:1px solid #394852}
+  .stat small{font-size:8px;letter-spacing:0;line-height:1.4}
+  .stat strong{font-size:14px}
+  main{padding:8px}
+  .topline{display:block}
+  .shift-title{font-size:10px;line-height:1.8;letter-spacing:.6px;margin-bottom:9px}
+  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .btn{width:100%;min-height:42px;padding:9px 6px;font-size:10px;white-space:normal}
+  .factory-window{margin:0 -1px}
+  .legend{font-size:9px;gap:9px;padding:9px}
+  .legend span:last-child{width:100%;line-height:1.6}
+  .bottom{grid-template-columns:minmax(0,1fr);gap:9px;margin-top:10px}
+  .panel{padding:10px}
+  .panel h2{font-size:9px;margin-bottom:9px}
+  .roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .role{padding:8px}
+  .role strong{font-size:16px}
+  .role small{font-size:10px}
+  .hint{font-size:10px}
+  .feed{height:155px;font-size:10px}
+  .overlay{padding:12px}
+  .modal{padding:18px;box-shadow:5px 5px 0 #080b0d}
+  .modal h1{font-size:15px}
+  .modal p{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
 <header>
   <div class="brand">MAGNA <b>///</b> FACTORY SHIFT</div>
   <div class="stats">
-    <div class="stat"><small>Выпуск</small><strong id="out">000</strong></div>
-    <div class="stat"><small>Качество</small><strong id="quality">100%</strong></div>
-    <div class="stat"><small>Простой</small><strong id="downtime">0</strong></div>
-    <div class="stat"><small>Время смены</small><strong id="clock">08:00</strong></div>
+    <div class="stat"><small>Výroba</small><strong id="out">000</strong></div>
+    <div class="stat"><small>Kvalita</small><strong id="quality">100%</strong></div>
+    <div class="stat"><small>Prestoj</small><strong id="downtime">0</strong></div>
+    <div class="stat"><small>Čas zmeny</small><strong id="clock">08:00</strong></div>
   </div>
 </header>
 <main>
   <div class="topline">
-    <div class="shift-title">Участок литья под давлением · <strong>30 ENGEL</strong> · смена 06:00–14:00</div>
+    <div class="shift-title">Vstrekolisovňa · <strong>30 strojov ENGEL</strong> · zmena 06:00–14:00</div>
     <div class="actions">
-      <button class="btn primary" id="start">▶ НАЧАТЬ СМЕНУ</button>
-      <button class="btn warn" id="repair">🔧 РЕМОНТ <span id="repairCount">0</span></button>
-      <button class="btn" id="pause" disabled>Ⅱ ПАУЗА</button>
-      <button class="btn" id="reset">↻ СБРОС</button>
+      <button class="btn primary" id="start">▶ SPUSTIŤ ZMENU</button>
+      <button class="btn warn" id="repair">🔧 OPRAVA <span id="repairCount">0</span></button>
+      <button class="btn" id="pause" disabled>Ⅱ PAUZA</button>
+      <button class="btn" id="reset">↻ RESET</button>
     </div>
   </div>
-  <div class="factory-window" id="viewport"><canvas id="factory" width="1500" height="780" aria-label="Пиксельная карта заводского участка"></canvas></div>
+  <div class="factory-window" id="viewport"><canvas id="factory" width="1500" height="780" aria-label="Pixelová mapa výrobnej haly"></canvas></div>
   <div class="legend">
-    <span><i class="dot green"></i>Работает</span><span><i class="dot red"></i>Авария / брак</span><span><i class="dot orange"></i>Материал / наладка</span><span><i class="dot blue"></i>Контроль качества</span>
-    <span>Нажми на станок, чтобы посмотреть состояние.</span>
+    <span><i class="dot green"></i>V prevádzke</span><span><i class="dot red"></i>Porucha / nepodarok</span><span><i class="dot orange"></i>Materiál / prestavenie</span><span><i class="dot blue"></i>Kontrola kvality</span>
+    <span>Ťuknutím na stroj zobrazíš jeho stav.</span>
   </div>
   <div class="bottom">
-    <section class="panel"><h2>КОМАНДА СМЕНЫ / 24 ЧЕЛОВЕКА</h2><div class="roster" id="roster"></div><div class="hint">Операторы стоят у своих машин. Передачки пополняют материал, квалита проверяют детали, складники работают с коробками, наладчики меняют формы, главный техник устраняет аварии.</div></section>
-    <section class="panel"><h2>ЖУРНАЛ УЧАСТКА</h2><div class="feed" id="feed"><div>06:00 — Смена готова к запуску. Проверь участок и нажми «Начать смену».</div></div></section>
+    <section class="panel"><h2>TÍM ZMENY / 24 ĽUDÍ</h2><div class="roster" id="roster"></div><div class="hint">Operátori стоят у своих strojov. Zásobovači materiálu пополняют materiál, квалита проверяют детали, складники работают с коробками, наладчики меняют формы, главный техник устраняет аварии.</div></section>
+    <section class="panel"><h2>PREVÁDZKOVÝ DENNÍK</h2><div class="feed" id="feed"><div>06:00 — Zmena je pripravená. Skontroluj halu a stlač „Spustiť zmenu“.</div></div></section>
   </div>
 </main>
-<div class="overlay" id="welcome"><div class="modal"><h1>FACTORY<br>SHIFT_01</h1><p>Добро пожаловать на участок литья. Здесь 30 термопластавтоматов ENGEL, конвейеры, коробки и целая смена.</p><p><b>Задача:</b> поддерживать производство, реагировать на поломки и не пропускать брак. Нажимай на станки и кнопки действий. Это игровая симуляция — время смены ускорено.</p><button class="btn primary" id="welcomeStart">▶ В ЦЕХ</button></div></div>
-<div class="overlay hidden" id="end"><div class="modal"><h1>СМЕНА<br>ЗАВЕРШЕНА</h1><p id="endText"></p><button class="btn primary" id="again">↻ НОВАЯ СМЕНА</button></div></div>
+<div class="overlay" id="welcome"><div class="modal"><h1>VÝROBNÁ<br>ZMENA_01</h1><p>Добро пожаловать на участок литья. Здесь 30 термопластавтоматов ENGEL, конвейеры, debničky и целая смена.</p><p><b>Úloha:</b> udržať výrobu v chode, riešiť poruchy a odhaľovať chybné diely. Ťukaj na stroje a ovládacie tlačidlá. Ide o hernú simuláciu so zrýchleným časom.</p><button class="btn primary" id="welcomeStart">▶ VSTÚPIŤ DO HALY</button></div></div>
+<div class="overlay hidden" id="end"><div class="modal"><h1>ZMENA<br>UKONČENÁ</h1><p id="endText"></p><button class="btn primary" id="again">↻ NOVÁ ZMENA</button></div></div>
 <script>
 (function(){
 'use strict';
@@ -63,12 +97,12 @@ const C={floor:'#252f35',tile:'#2a353b',line:'#46545b',machine:'#64737b',dark:'#
 let running=false,paused=false,elapsed=0,output=0,good=100,downtime=0,repairs=0,qualityChecks=0,rejects=0,selected=-1,lastTick=0,spawnTimer=0,events=[];
 const machines=[],workers=[];
 const roleDefs=[
- {role:'Операторы',count:15,color:'#4c5962',desc:'у станков'},
- {role:'Передачки',count:2,color:'#ff9d42',desc:'материал'},
- {role:'Квалита',count:2,color:'#78c8ff',desc:'контроль'},
- {role:'Складники',count:2,color:'#a8b4bd',desc:'коробки'},
- {role:'Наладчики',count:2,color:'#ffd45e',desc:'смена форм'},
- {role:'Главный техник',count:1,color:'#ff625c',desc:'ремонт'}
+ {role:'Operátori',count:15,color:'#4c5962',desc:'pri strojoch'},
+ {role:'Zásobovači materiálu',count:2,color:'#ff9d42',desc:'materiál'},
+ {role:'Kontrola kvality',count:2,color:'#78c8ff',desc:'kontrola'},
+ {role:'Skladníci',count:2,color:'#a8b4bd',desc:'debničky'},
+ {role:'Nastavovači',count:2,color:'#ffd45e',desc:'výmena foriem'},
+ {role:'Hlavný technik',count:1,color:'#ff625c',desc:'opravy'}
 ];
 function log(msg,type){events.unshift({msg,type:type||''});events=events.slice(0,18);document.getElementById('feed').innerHTML=events.map(e=>'<div class="'+e.type+'">'+e.msg+'</div>').join('');}
 function makeMachine(i){const row=i<15?0:1,col=i%15;return{id:i+1,row,col,x:80+col*94,y:row===0?155:465,state:'running',cycle:0,material:100,wear:0,defects:0,box:0,needsRepair:false,form:1};}
@@ -106,11 +140,11 @@ function machineDraw(m){const x=m.x,y=m.y;const stateColor=m.state==='broken'?C.
 function conveyor(y){rect(25,y,1450,24,'#141a1e');rect(25,y+3,1450,3,'#6a7b82');rect(25,y+17,1450,3,'#6a7b82');for(let x=30;x<1470;x+=24){rect(x,y+6,4,12,'#53646b');rect(x+9,y+6,4,12,'#53646b');} }
 function boxDraw(x,y,full){rect(x,y,31,25,full?'#9a6b40':'#b38b5e');rect(x+3,y+3,25,18,full?'#d7a15e':'#e5c08d');rect(x+13,y+3,4,18,'#8c643c');rect(x-2,y-3,35,4,'#d2b58a');}
 function background(){rect(0,0,W,H,C.floor);for(let y=0;y<H;y+=40)for(let x=0;x<W;x+=40){rect(x,y,39,39,((x/40+y/40)%2===0)?'#263138':'#242e34');} // aisle markings
-rect(0,0,W,48,'#182127');text('MAGNA  /  INJECTION MOULDING',28,30,13,C.yellow);text('HALL 2  •  SHIFT 01',1470,30,11,'#91a1aa','right');
+rect(0,0,W,48,'#182127');text('MAGNA / VSTREKOVANIE PLASTOV',28,30,13,C.yellow);text('HALA 2 • ZMENA 01',1470,30,11,'#91a1aa','right');
 rect(0,110,W,3,'#637078');rect(0,420,W,3,'#637078');rect(0,745,W,3,'#637078');
-text('ROW A  /  ENGEL 01–15',28,90,11,'#a8b4bd');text('ROW B  /  ENGEL 16–30',28,400,11,'#a8b4bd');
+text('RAD A / ENGEL 01–15',28,90,11,'#a8b4bd');text('RAD B / ENGEL 16–30',28,400,11,'#a8b4bd');
 conveyor(360);conveyor(680);
-text('MAIN MATERIAL / ROLLER LINE',750,353,9,'#c3d0d5','center');
+text('HLAVNÁ MATERIÁLOVÁ / VALČEKOVÁ TRAŤ',750,353,9,'#c3d0d5','center');
 for(let x=32;x<1470;x+=95){rect(x,115,2,290,'#3a464c');rect(x,425,2,310,'#3a464c');}
 }
 function draw(){ctx.clearRect(0,0,W,H);background();
@@ -125,26 +159,26 @@ function draw(){ctx.clearRect(0,0,W,H);background();
  // tiny production sparks / animated parts
  machines.forEach(m=>{if(m.state==='running'&&running&&!paused&&Math.sin(m.cycle*8)>0.93){rect(m.x+29,m.y+42,5,4,C.yellow);}});
  // bottom status strip
- rect(0,752,W,28,'#13191d');text('PRODUCTION FLOOR SIMULATION',20,770,9,'#74848c');text('ACTIVE MACHINES: '+machines.filter(m=>m.state==='running').length+'/30',1480,770,9,C.green,'right');
+ rect(0,752,W,28,'#13191d');text('SIMULÁCIA VÝROBY',20,770,9,'#74848c');text('AKTÍVNE STROJE: '+machines.filter(m=>m.state==='running').length+'/30',1480,770,9,C.green,'right');
  requestAnimationFrame(draw);
 }
 function hud(){document.getElementById('out').textContent=String(output).padStart(3,'0');document.getElementById('quality').textContent=good+'%';document.getElementById('downtime').textContent=downtime;const total=6*60+Math.floor(elapsed/2);document.getElementById('clock').textContent=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');document.getElementById('repairCount').textContent=repairs;}
 function renderRoster(){const el=document.getElementById('roster');el.innerHTML=roleDefs.map(r=>'<div class="role"><strong style="color:'+r.color+'">'+r.count+'</strong><small>'+r.role+'<br>'+r.desc+'</small></div>').join('');}
-function start(){if(running&&!paused)return;document.getElementById('welcome').classList.add('hidden');document.getElementById('end').classList.add('hidden');running=true;paused=false;lastTick=Date.now();document.getElementById('pause').disabled=false;document.getElementById('pause').textContent='Ⅱ ПАУЗА';log('06:00 — Запуск линии. Все 30 машин в работе.','good');}
+function start(){if(running&&!paused)return;document.getElementById('welcome').classList.add('hidden');document.getElementById('end').classList.add('hidden');running=true;paused=false;lastTick=Date.now();document.getElementById('pause').disabled=false;document.getElementById('pause').textContent='Ⅱ PAUZA';log('06:00 — Spustenie linky. Všetkých 30 strojov je v prevádzke.','good');}
 function tick(){if(!running||paused)return;const now=Date.now();if(now-lastTick<500)return;lastTick=now;elapsed++;spawnTimer++;
- machines.forEach(m=>{if(m.state==='running'){m.cycle++;m.wear+=Math.random()*.3;m.material-=Math.random()*.18;if(m.material<20&&m.state==='running'){m.state='material';log('ENGEL '+String(m.id).padStart(2,'0')+' — заканчивается материал. Передачка направлена к машине.','notice');moveRole('material',m);}if(Math.random()<0.0007+m.wear/200000){m.state='broken';m.needsRepair=true;downtime++;log('АВАРИЯ — ENGEL '+String(m.id).padStart(2,'0')+'. Нужен главный техник.','bad');moveRole('chief',m);}if(Math.random()<0.001){m.defects++;rejects++;good=Math.max(0,Math.round((output+1-rejects)/Math.max(1,output+1)*100));log('Квалита обнаружила дефект на ENGEL '+String(m.id).padStart(2,'0')+'. Деталь снята с линии.','bad');moveRole('quality',m);}if(m.cycle%8===0){output++;m.box++;if(m.box%6===0)moveRole('warehouse',m);}}else if(m.state==='material'&&Math.random()<.12){m.material=100;m.state='running';log('ENGEL '+String(m.id).padStart(2,'0')+' — материал пополнен, цикл восстановлен.','good');resetRole('material');}else if(m.state==='setup'&&Math.random()<.08){m.form++;m.state='running';m.wear=0;log('ENGEL '+String(m.id).padStart(2,'0')+' — форма заменена. Машина снова работает.','good');resetRole('setup');}});
- if(spawnTimer%18===0){const available=machines.filter(m=>m.state==='running');if(available.length&&Math.random()<.65){const m=available[Math.floor(Math.random()*available.length)];m.state='setup';log('Плановая переналадка ENGEL '+String(m.id).padStart(2,'0')+'. Наладчик вызван.','notice');moveRole('setup',m);}}
+ machines.forEach(m=>{if(m.state==='running'){m.cycle++;m.wear+=Math.random()*.3;m.material-=Math.random()*.18;if(m.material<20&&m.state==='running'){m.state='material';log('ENGEL '+String(m.id).padStart(2,'0')+' — заканчивается materiál. Передачка направлена к strojovе.','notice');moveRole('material',m);}if(Math.random()<0.0007+m.wear/200000){m.state='broken';m.needsRepair=true;downtime++;log('PORUCHA — ENGEL '+String(m.id).padStart(2,'0')+'. Je potrebný hlavný technik.','bad');moveRole('chief',m);}if(Math.random()<0.001){m.defects++;rejects++;good=Math.max(0,Math.round((output+1-rejects)/Math.max(1,output+1)*100));log('Kontrola kvality обнаружила дефект на ENGEL '+String(m.id).padStart(2,'0')+'. Diel bol vyradený z výroby.','bad');moveRole('quality',m);}if(m.cycle%8===0){output++;m.box++;if(m.box%6===0)moveRole('warehouse',m);}}else if(m.state==='material'&&Math.random()<.12){m.material=100;m.state='running';log('ENGEL '+String(m.id).padStart(2,'0')+' — materiál пополнен, цикл восстановлен.','good');resetRole('material');}else if(m.state==='setup'&&Math.random()<.08){m.form++;m.state='running';m.wear=0;log('ENGEL '+String(m.id).padStart(2,'0')+' — forma vymenená. Stroj opäť pracuje.','good');resetRole('setup');}});
+ if(spawnTimer%18===0){const available=machines.filter(m=>m.state==='running');if(available.length&&Math.random()<.65){const m=available[Math.floor(Math.random()*available.length)];m.state='setup';log('Plánované prestavenie stroja ENGEL '+String(m.id).padStart(2,'0')+'. Privolaný nastavovač.','notice');moveRole('setup',m);}}
  // worker movement eases toward assigned task
  workers.forEach(w=>{w.x+=(w.tx-w.x)*.08;w.y+=(w.ty-w.y)*.08;w.phase+=.18;});
  hud();if(elapsed>=960){finish();}
 }
 function moveRole(role,m){const w=workers.find(x=>x.role===role&&(!x.task||x.task===''));if(!w)return;w.task='busy';w.machine=m.id;w.tx=m.x+32;w.ty=m.y+94;}
 function resetRole(role){const w=workers.find(x=>x.role===role&&x.task==='busy');if(!w)return;w.task='';w.machine=-1;const idx=workers.indexOf(w);w.tx=role==='material'?(idx%2?1120:330):role==='quality'?(idx%2?790:710):role==='setup'?(idx%2?950:600):role==='warehouse'?(idx%2?1300:190):750;w.ty=role==='chief'?420:350;}
-function repair(){const m=machines.find(m=>m.state==='broken');if(!m){log('Ремонт не требуется — аварийных машин нет.','notice');return;}m.state='running';m.needsRepair=false;m.material=Math.max(m.material,50);m.wear=0;repairs++;downtime=Math.max(0,downtime-1);resetRole('chief');log('Главный техник устранил аварию на ENGEL '+String(m.id).padStart(2,'0')+'. Производство восстановлено.','good');hud();}
-function pause(){if(!running)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ ПРОДОЛЖИТЬ':'Ⅱ ПАУЗА';log(paused?'Смена приостановлена.':'Смена продолжена.', 'notice');}
-function finish(){running=false;paused=false;document.getElementById('pause').disabled=true;document.getElementById('endText').textContent='Выпущено деталей: '+output+'. Качество: '+good+'%. Аварии: '+downtime+'. Ремонты: '+repairs+'. '+(good>=95?'Отличная смена — качество на высоте.':good>=85?'Неплохая смена, но есть куда расти.':'Смене нужен разбор причин брака и простоев.');document.getElementById('end').classList.remove('hidden');log('14:00 — Смена завершена. Итоги зафиксированы.','good');}
-function reset(){running=false;paused=false;elapsed=output= downtime=repairs=qualityChecks=rejects=0;good=100;spawnTimer=0;machines.forEach((m,i)=>{Object.assign(m,makeMachine(i));});workers.forEach(w=>{w.task='';w.machine=-1;});workers.filter(w=>w.role==='operator').forEach((w,i)=>{w.tx=machines[i].x+26;w.ty=machines[i].y+68;});workers.filter(w=>w.role!=='operator').forEach((w,i)=>{const coords={material:[[330,350],[1120,350]],quality:[[710,350],[790,350]],warehouse:[[190,350],[1300,350]],setup:[[600,350],[950,350]],chief:[[750,420]]};const p=coords[w.role][workers.filter(x=>x.role===w.role).indexOf(w)]||[750,350];w.tx=p[0];w.ty=p[1];});events=[];document.getElementById('end').classList.add('hidden');document.getElementById('welcome').classList.remove('hidden');document.getElementById('pause').disabled=true;hud();log('06:00 — Смена готова к запуску. Проверь участок и нажми «Начать смену».');}
-canvas.addEventListener('click',function(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;const m=machines.find(m=>x>=m.x-7&&x<=m.x+68&&y>=m.y-25&&y<=m.y+85);if(m){selected=m.id;const status={running:'работает штатно',broken:'АВАРИЯ — нажми «Ремонт»',material:'ожидает материал',setup:'идёт переналадка'}[m.state];log('ENGEL '+String(m.id).padStart(2,'0')+' — '+status+'. Материал: '+Math.round(m.material)+'%, форма №'+m.form+'.',m.state==='broken'?'bad':'notice');}});
+function repair(){const m=machines.find(m=>m.state==='broken');if(!m){log('Oprava nie je potrebná — žiadny stroj nie je pokazený.','notice');return;}m.state='running';m.needsRepair=false;m.material=Math.max(m.material,50);m.wear=0;repairs++;downtime=Math.max(0,downtime-1);resetRole('chief');log('Hlavný technik устранил аварию на ENGEL '+String(m.id).padStart(2,'0')+'. Výroba bola obnovená.','good');hud();}
+function pause(){if(!running)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ ПРОДОЛЖИТЬ':'Ⅱ PAUZA';log(paused?'Zmena je pozastavená.':'Zmena pokračuje.', 'notice');}
+function finish(){running=false;paused=false;document.getElementById('pause').disabled=true;document.getElementById('endText').textContent='Vyrobené diely: '+output+'. Kvalita: '+good+' %. Poruchy: '+downtime+'. Opravy: '+repairs+'. '+(good>=95?'Výborná zmena — kvalita je na vysokej úrovni.':good>=85?'Dobrá zmena, no stále je čo zlepšovať.':'Treba analyzovať príčiny nepodarkov a prestojov.');document.getElementById('end').classList.remove('hidden');log('14:00 — Zmena sa skončila. Výsledky sú zaznamenané.','good');}
+function reset(){running=false;paused=false;elapsed=output= downtime=repairs=qualityChecks=rejects=0;good=100;spawnTimer=0;machines.forEach((m,i)=>{Object.assign(m,makeMachine(i));});workers.forEach(w=>{w.task='';w.machine=-1;});workers.filter(w=>w.role==='operator').forEach((w,i)=>{w.tx=machines[i].x+26;w.ty=machines[i].y+68;});workers.filter(w=>w.role!=='operator').forEach((w,i)=>{const coords={material:[[330,350],[1120,350]],quality:[[710,350],[790,350]],warehouse:[[190,350],[1300,350]],setup:[[600,350],[950,350]],chief:[[750,420]]};const p=coords[w.role][workers.filter(x=>x.role===w.role).indexOf(w)]||[750,350];w.tx=p[0];w.ty=p[1];});events=[];document.getElementById('end').classList.add('hidden');document.getElementById('welcome').classList.remove('hidden');document.getElementById('pause').disabled=true;hud();log('06:00 — Zmena je pripravená. Skontroluj halu a stlač „Spustiť zmenu“.');}
+canvas.addEventListener('click',function(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;const m=machines.find(m=>x>=m.x-7&&x<=m.x+68&&y>=m.y-25&&y<=m.y+85);if(m){selected=m.id;const status={running:'funguje normálne',broken:'PORUCHA — stlač „Oprava“',material:'ожидает materiál',setup:'prebieha prestavenie'}[m.state];log('ENGEL '+String(m.id).padStart(2,'0')+' — '+status+'. Materiál: '+Math.round(m.material)+' %, forma č.'+m.form+'.',m.state==='broken'?'bad':'notice');}});
 document.getElementById('start').addEventListener('click',start);document.getElementById('welcomeStart').addEventListener('click',start);document.getElementById('repair').addEventListener('click',repair);document.getElementById('pause').addEventListener('click',pause);document.getElementById('reset').addEventListener('click',reset);document.getElementById('again').addEventListener('click',reset);
 setInterval(tick,100);renderRoster();hud();draw();
 })();
