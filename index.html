@@ -1,699 +1,153 @@
 <!DOCTYPE html>
-<html lang="sk">
+<html lang="ru">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MAGNA — Triedenie dielov</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>MAGNA — Factory Shift</title>
+<meta name="theme-color" content="#151b21">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Share+Tech+Mono&display=swap');
-:root{
-  --g:#00ff88;--r:#ff3344;--y:#ffcc00;
-  --dk:#0a0e14;--pn:#111820;--bd:#1e3a4a;--bt:#2d7a4a;
-  --cw:clamp(130px,34vw,230px);
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{height:100%;overflow:hidden;touch-action:none}
-body{background:var(--dk);font-family:'Share Tech Mono',monospace;color:#cde;display:flex;flex-direction:column}
-body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.04) 2px,rgba(0,0,0,.04) 4px);pointer-events:none;z-index:998}
-
-/* ── HEADER ── */
-header{background:var(--pn);border-bottom:2px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:5px 10px;flex-shrink:0;gap:6px}
-.logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(.58rem,2.3vw,.88rem);color:#fff;letter-spacing:2px;white-space:nowrap}
-.logo span{color:var(--y)}
-.hud{display:flex;gap:clamp(4px,1.6vw,12px);align-items:center}
-.hi{display:flex;flex-direction:column;align-items:center;gap:1px}
-.hl{font-size:clamp(.34rem,.72vw,.47rem);color:#789;letter-spacing:1px;text-transform:uppercase}
-.hv{font-family:'Orbitron',monospace;font-size:clamp(.7rem,1.85vw,.9rem);font-weight:700;color:var(--g)}
-.hv.r{color:var(--r)}.hv.y{color:var(--y)}
-#btnPause{background:none;border:2px solid var(--bd);border-radius:5px;color:#cde;font-family:'Orbitron',monospace;font-weight:700;font-size:clamp(.55rem,1.8vw,.8rem);padding:4px 9px;cursor:pointer;letter-spacing:1px;flex-shrink:0;white-space:nowrap;transition:border-color .15s,color .15s}
-#btnPause:active{border-color:var(--y);color:var(--y)}
-
-/* ── GAME AREA ── */
-#gw{position:relative;flex:1;overflow:hidden}
-#tb-w{position:absolute;top:0;left:0;right:0;height:4px;background:#1a2a35;z-index:20}
-#tb{height:100%;background:var(--g);transition:width .1s linear,background .3s}
-
-/* ── КОНВЕЙЕР ── */
-#conv{position:absolute;left:50%;transform:translateX(-50%);width:var(--cw);top:4px;bottom:100px;background:var(--bt);border-left:5px solid #1a5530;border-right:5px solid #1a5530;overflow:hidden;z-index:10}
-.belt-stripe{position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 10px,rgba(0,0,0,.15) 10px,rgba(0,0,0,.15) 20px);animation:belt .8s linear infinite}
-@keyframes belt{to{background-position:40px 0}}
-#conv-lbl{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.3rem,.62vw,.42rem);color:var(--y);letter-spacing:1px;z-index:5;white-space:nowrap;pointer-events:none}
-
-/* ── БОКСЫ ── */
-.box{position:absolute;top:4px;bottom:100px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border:3px solid var(--g);background:rgba(0,255,136,.06);color:var(--g);cursor:pointer;z-index:5;-webkit-user-select:none;user-select:none;transition:background .12s,box-shadow .15s}
-.box:active{background:rgba(0,255,136,.22)}
-#box-L{left:0;right:calc(50% + var(--cw)/2 + 5px);border-left:none}
-#box-R{right:0;left:calc(50% + var(--cw)/2 + 5px);border-right:none}
-.box-icon{font-size:clamp(1.3rem,4.5vw,2.2rem);line-height:1}
-.box-lbl{font-family:'Orbitron',monospace;font-size:clamp(.34rem,1.1vw,.5rem);font-weight:700;letter-spacing:.5px;text-align:center;line-height:1.5}
-.box-cnt{font-family:'Orbitron',monospace;font-size:clamp(1rem,3.8vw,1.7rem);font-weight:900}
-.box-hint{font-size:clamp(.26rem,.6vw,.38rem);color:rgba(255,255,255,.22);letter-spacing:.5px;text-align:center}
-
-/* ── БЕДНИЧКА ── */
-#trash{position:absolute;bottom:0;left:50%;transform:translateX(-50%);width:var(--cw);height:96px;background:rgba(160,10,20,.18);border:3px solid var(--r);border-bottom:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--r);cursor:pointer;z-index:11;-webkit-user-select:none;user-select:none;transition:background .12s,box-shadow .15s}
-#trash:active{background:rgba(255,30,50,.35)}
-.t-icon{font-size:clamp(1.2rem,4vw,1.9rem);line-height:1}
-.t-lbl{font-family:'Orbitron',monospace;font-size:clamp(.38rem,1.1vw,.53rem);font-weight:700;letter-spacing:1px}
-.t-cnt{font-family:'Orbitron',monospace;font-size:clamp(.82rem,2.8vw,1.1rem);font-weight:900}
-
-/* ── ДЕТАЛИ ── */
-.part{position:absolute;touch-action:none;-webkit-user-select:none;user-select:none;z-index:30;width:clamp(40px,10.5vw,65px);height:clamp(35px,9.5vw,55px)}
-.part svg{width:100%;height:100%}
-.pL{left:6%}.pR{right:6%}
-.defect-badge{position:absolute;top:-9px;left:50%;transform:translateX(-50%);background:var(--r);color:#fff;font-size:clamp(.27rem,.58vw,.39rem);font-family:'Orbitron',monospace;padding:2px 5px;border-radius:3px;font-weight:700;animation:blink .55s ease-in-out infinite;white-space:nowrap}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.side-tag{position:absolute;bottom:-8px;left:50%;transform:translateX(-50%);font-family:'Orbitron',monospace;font-size:clamp(.25rem,.52vw,.35rem);background:rgba(0,0,0,.75);color:var(--y);padding:1px 4px;border-radius:2px;white-space:nowrap}
-
-/* ── FLASH ── */
-#flash{position:fixed;top:36%;left:50%;transform:translate(-50%,-50%) scale(0);font-family:'Orbitron',monospace;font-size:clamp(.8rem,3.2vw,1.22rem);font-weight:900;padding:10px 18px;border-radius:6px;z-index:500;pointer-events:none;transition:transform .1s,opacity .28s;opacity:0;text-align:center;max-width:85vw}
-#flash.show{transform:translate(-50%,-50%) scale(1);opacity:1}
-#flash.good{background:var(--g);color:#000}
-#flash.wrong{background:var(--y);color:#000}
-#flash.bad{background:var(--r);color:#fff}
-
-/* ── ОВЕРЛЕИ ── */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.93);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:900;gap:14px;backdrop-filter:blur(10px);padding:22px;text-align:center;overflow-y:auto}
-.overlay.active{display:flex}
-.ov-sub{font-size:.54rem;letter-spacing:4px;color:#567;text-transform:uppercase}
-.ov-h1{font-family:'Orbitron',monospace;font-size:clamp(1.15rem,4.8vw,1.9rem);font-weight:900;color:var(--y);letter-spacing:3px}
-.grade{font-family:'Orbitron',monospace;font-size:clamp(2.8rem,11vw,4.5rem);font-weight:900;line-height:1}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;width:100%;max-width:270px}
-.sv{font-family:'Orbitron',monospace;font-size:clamp(1.05rem,4.2vw,1.65rem);font-weight:700}
-.sl{font-size:.52rem;letter-spacing:2px;color:#789}
-.ov-sep{width:100%;height:1px;background:var(--bd);max-width:260px}
-.ov-btn{font-family:'Orbitron',monospace;font-size:clamp(.65rem,2.2vw,.82rem);font-weight:700;letter-spacing:2px;padding:13px 30px;border:none;border-radius:4px;cursor:pointer;min-width:175px;-webkit-user-select:none;user-select:none;transition:transform .1s,box-shadow .1s;touch-action:manipulation}
-.ov-btn:active{transform:scale(.95)}
-.btn-g{background:var(--g);color:#000}.btn-g:active{box-shadow:0 0 20px rgba(0,255,136,.4)}
-.btn-r{background:var(--r);color:#fff}.btn-r:active{box-shadow:0 0 20px rgba(255,51,68,.4)}
-.btn-d{background:#1e2e3e;color:#cde;border:2px solid var(--bd)}
-.sound-row{display:flex;align-items:center;gap:14px;font-size:.62rem;letter-spacing:1px;color:#789;cursor:pointer;padding:4px 0;touch-action:manipulation}
-.toggle{width:42px;height:24px;background:#1a2a35;border:2px solid var(--bd);border-radius:12px;position:relative;transition:background .22s;flex-shrink:0}
-.toggle.on{background:var(--g)}
-.toggle::after{content:'';position:absolute;top:3px;left:3px;width:14px;height:14px;border-radius:50%;background:#fff;transition:left .22s}
-.toggle.on::after{left:21px}
-.level-row{display:flex;align-items:center;gap:10px;font-size:.58rem;color:#567;letter-spacing:1px}
-.level-dots{display:flex;gap:4px}
-.ld{width:10px;height:10px;border-radius:50%;background:#1e2e3e;border:1px solid var(--bd);transition:background .2s}
-.ld.on{background:var(--y);border-color:var(--y)}
-
-/* ── ГЛАВНОЕ МЕНЮ ── */
-.menu-logo{font-family:'Orbitron',monospace;font-weight:900;font-size:clamp(1.8rem,8vw,3.2rem);color:#fff;letter-spacing:4px;line-height:1}
-.menu-logo span{color:var(--y)}
-.menu-sub{font-size:clamp(.5rem,1.5vw,.7rem);letter-spacing:3px;color:#456;margin-top:4px}
-.menu-desc{font-size:clamp(.48rem,1.4vw,.65rem);color:#567;line-height:1.8;max-width:280px;letter-spacing:.5px}
-
-/* Поле ввода имени */
-.name-wrap{display:flex;flex-direction:column;gap:6px;width:100%;max-width:260px}
-.name-label{font-size:.52rem;letter-spacing:3px;color:#567;text-transform:uppercase;text-align:left}
-#playerName{
-  font-family:'Orbitron',monospace;font-size:clamp(.7rem,2vw,.9rem);font-weight:700;
-  background:#0d1a24;border:2px solid var(--bd);border-radius:4px;
-  color:var(--g);padding:10px 14px;width:100%;letter-spacing:2px;
-  outline:none;touch-action:auto;
-  transition:border-color .2s;
-}
-#playerName:focus{border-color:var(--g);box-shadow:0 0 12px rgba(0,255,136,.2)}
-#playerName::placeholder{color:#2a4a5a;font-weight:400}
-
-/* ── ТАБЛИЦА РЕКОРДОВ ── */
-.lb-wrap{width:100%;max-width:300px}
-.lb-title{font-family:'Orbitron',monospace;font-size:.62rem;font-weight:700;color:var(--y);letter-spacing:3px;margin-bottom:8px;text-align:left}
-.lb-empty{font-size:.55rem;color:#345;letter-spacing:1px;padding:12px 0;text-align:center}
-.lb-row{display:flex;align-items:center;gap:0;padding:6px 0;border-bottom:1px solid #1a2a35;font-size:clamp(.48rem,1.3vw,.6rem)}
-.lb-row:last-child{border-bottom:none}
-.lb-rank{font-family:'Orbitron',monospace;font-weight:700;width:26px;flex-shrink:0;color:#456}
-.lb-rank.gold{color:#ffd700}.lb-rank.silver{color:#c0c0c0}.lb-rank.bronze{color:#cd7f32}
-.lb-name{flex:1;letter-spacing:1px;color:#9bc;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:0 6px}
-.lb-name.me{color:var(--g);font-weight:700}
-.lb-score{font-family:'Orbitron',monospace;font-weight:700;color:#cde;flex-shrink:0;width:56px;text-align:right}
-.lb-grade{font-family:'Orbitron',monospace;font-weight:900;font-size:.7rem;width:22px;text-align:right;flex-shrink:0;margin-left:6px}
-.lb-date{font-size:.42rem;color:#345;flex-shrink:0;width:52px;text-align:right;margin-left:4px}
-
-/* Анимация появления меню */
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-#ovMenu.active>*{animation:fadeUp .4s ease both}
-#ovMenu.active>*:nth-child(1){animation-delay:.05s}
-#ovMenu.active>*:nth-child(2){animation-delay:.1s}
-#ovMenu.active>*:nth-child(3){animation-delay:.15s}
-#ovMenu.active>*:nth-child(4){animation-delay:.2s}
-#ovMenu.active>*:nth-child(5){animation-delay:.25s}
-#ovMenu.active>*:nth-child(6){animation-delay:.3s}
-#ovMenu.active>*:nth-child(7){animation-delay:.35s}
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600;700&display=swap');
+:root{--bg:#151b21;--panel:#202a32;--line:#394852;--text:#e6ecef;--muted:#91a1aa;--green:#8be05a;--orange:#ff9d42;--red:#ff625c;--blue:#78c8ff;--yellow:#ffd45e}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace}body{overflow-x:hidden}
+header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 18px;background:#101519;border-bottom:3px solid #394852;position:sticky;top:0;z-index:5}
+.brand{font:14px 'Press Start 2P',monospace;letter-spacing:1px;color:#f2f4f4;white-space:nowrap}.brand b{color:var(--yellow)}
+.stats{display:flex;gap:18px;flex-wrap:wrap;justify-content:flex-end}.stat{min-width:64px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase}.stat strong{font-size:17px;color:var(--green)}
+main{max-width:1600px;margin:auto;padding:14px}.topline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}.shift-title{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}.shift-title strong{color:var(--text)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:2px solid var(--line);background:var(--panel);color:var(--text);font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.5px;padding:10px 12px;cursor:pointer;box-shadow:0 3px 0 #0b0e11;touch-action:manipulation}.btn:hover{border-color:var(--yellow)}.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0b0e11}.btn.primary{background:var(--green);color:#172018;border-color:var(--green)}.btn.warn{color:var(--orange)}.btn:disabled{opacity:.35;cursor:not-allowed}
+.factory-window{border:3px solid var(--line);background:#171f25;box-shadow:0 8px 0 #0b0e11;overflow:auto;position:relative}
+#factory{display:block;width:1500px;height:780px;image-rendering:pixelated;image-rendering:crisp-edges}
+.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 12px;border:2px solid var(--line);border-top:0;background:#202a32;color:var(--muted);font-size:10px}.legend span{display:flex;align-items:center;gap:6px}.dot{width:9px;height:9px;display:inline-block;border:1px solid #101519}.dot.green{background:var(--green)}.dot.red{background:var(--red)}.dot.orange{background:var(--orange)}.dot.blue{background:var(--blue)}
+.bottom{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:14px}.panel{border:2px solid var(--line);background:var(--panel);padding:12px;min-width:0}.panel h2{font:10px 'Press Start 2P',monospace;color:var(--yellow);margin:0 0 12px;line-height:1.8}.roster{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.role{padding:8px;background:#182127;border:1px solid #394852;min-width:0}.role strong{display:block;font-size:15px}.role small{display:block;font-size:9px;line-height:1.5;color:var(--muted);margin-top:4px}.feed{height:178px;overflow:auto;font-size:11px;line-height:1.7;color:#b8c5cb}.feed div{border-bottom:1px dashed #394852;padding:3px 0}.feed .good{color:var(--green)}.feed .bad{color:var(--red)}.feed .notice{color:var(--orange)}
+.hint{color:var(--muted);font-size:10px;line-height:1.8;margin-top:10px}.overlay{position:fixed;inset:0;background:rgba(7,10,12,.9);display:flex;align-items:center;justify-content:center;z-index:10;padding:18px}.modal{max-width:480px;width:100%;background:#202a32;border:3px solid var(--yellow);padding:24px;box-shadow:8px 8px 0 #080b0d}.modal h1{font:18px 'Press Start 2P',monospace;line-height:1.8;margin:0 0 12px}.modal p{font-size:12px;line-height:1.8;color:#b9c6cc}.modal .btn{margin-top:8px}.hidden{display:none!important}
+@media(max-width:800px){header{align-items:flex-start;padding:10px;flex-direction:column}.stats{justify-content:flex-start;gap:12px}.stat strong{font-size:15px}.brand{font-size:11px}main{padding:8px}.bottom{grid-template-columns:1fr}.roster{grid-template-columns:repeat(3,minmax(0,1fr))}.topline{align-items:flex-start}.btn{padding:9px;font-size:10px}.factory-window{overscroll-behavior-x:contain}}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="logo">▲ <span>MAGNA</span></div>
-  <div class="hud">
-    <div class="hi"><div class="hl">Skóre</div><div class="hv" id="hScore">0</div></div>
-    <div class="hi"><div class="hl">Dobré</div><div class="hv" id="hGood">0</div></div>
-    <div class="hi"><div class="hl">Zmätky</div><div class="hv r" id="hTrash">0</div></div>
-    <div class="hi"><div class="hl">Chyby</div><div class="hv r" id="hErr">0</div></div>
-    <div class="hi"><div class="hl">Životy</div><div class="hv r" id="hLives">❤❤❤</div></div>
-    <div class="hi"><div class="hl">Čas</div><div class="hv y" id="hTime">60</div></div>
+  <div class="brand">MAGNA <b>///</b> FACTORY SHIFT</div>
+  <div class="stats">
+    <div class="stat"><small>Выпуск</small><strong id="out">000</strong></div>
+    <div class="stat"><small>Качество</small><strong id="quality">100%</strong></div>
+    <div class="stat"><small>Простой</small><strong id="downtime">0</strong></div>
+    <div class="stat"><small>Время смены</small><strong id="clock">08:00</strong></div>
   </div>
-  <button id="btnPause" onclick="togglePause()">⏸ PAUZA</button>
 </header>
-
-<div id="gw">
-  <div id="tb-w"><div id="tb" style="width:100%"></div></div>
-  <div id="box-L" class="box" onclick="sendGood('L')">
-    <div class="box-icon">📦</div>
-    <div class="box-lbl">ĽAVÁ<br>STRANA</div>
-    <div class="box-cnt" id="cntGL">0</div>
-    <div class="box-hint">← tap / A</div>
-  </div>
-  <div id="box-R" class="box" onclick="sendGood('R')">
-    <div class="box-icon">📦</div>
-    <div class="box-lbl">PRAVÁ<br>STRANA</div>
-    <div class="box-cnt" id="cntGR">0</div>
-    <div class="box-hint">tap / D →</div>
-  </div>
-  <div id="conv">
-    <div class="belt-stripe"></div>
-    <div id="conv-lbl">▼ DOPRAVNÍK ▼</div>
-  </div>
-  <div id="trash" onclick="sendTrash()">
-    <div class="t-icon">🗑</div>
-    <div class="t-lbl">KOŠ NA ZMÄTKY</div>
-    <div class="t-cnt" id="cntT">0</div>
-  </div>
-</div>
-
-<div id="flash"></div>
-
-<!-- ══ ГЛАВНОЕ МЕНЮ ══ -->
-<div class="overlay active" id="ovMenu">
-  <div class="menu-logo">▲ <span>MAGNA</span></div>
-  <div class="menu-sub">TRIEDENIE DIELOV · OMB SCUFF CAP</div>
-
-  <div class="name-wrap">
-    <div class="name-label">Vaše meno</div>
-    <input id="playerName" type="text" maxlength="16" placeholder="OPERÁTOR..." autocomplete="off" spellcheck="false">
-  </div>
-
-  <div class="ov-sep"></div>
-  <button class="ov-btn btn-g" onclick="openLeaderboard()">🏆 REBRÍČEK</button>
-  <button class="ov-btn btn-g" style="margin-top:-4px" onclick="beginGame()">▶ SPUSTIŤ HRU</button>
-
-  <div class="sound-row" onclick="toggleSound()">
-    🔊 Zvukové efekty
-    <div class="toggle on" id="sndToggle"></div>
-  </div>
-
-  <div class="menu-desc">
-    Triediť diely → ľavý / pravý box<br>
-    Zmätky → padajú samy do koša<br>
-    Chyba = strata života ❤
-  </div>
-</div>
-
-<!-- ══ ТАБЛИЦА РЕКОРДОВ ══ -->
-<div class="overlay" id="ovLB">
-  <div class="ov-sub">Najlepší operátori</div>
-  <div class="ov-h1">🏆 REBRÍČEK</div>
-  <div class="ov-sep"></div>
-  <div class="lb-wrap">
-    <div id="lbList"></div>
-  </div>
-  <div class="ov-sep"></div>
-  <button class="ov-btn btn-d" style="font-size:.65rem;padding:9px 20px;min-width:0" onclick="refreshLB()">↻ OBNOVIŤ</button>
-  <button class="ov-btn btn-d" onclick="closeLB()">← SPÄŤ</button>
-</div>
-
-<!-- ══ ПАУЗА ══ -->
-<div class="overlay" id="ovPause">
-  <div class="ov-sub">Hra pozastavená</div>
-  <div class="ov-h1">⏸ PAUZA</div>
-  <div class="ov-sep"></div>
-  <div class="level-row">
-    RÝCHLOSŤ
-    <div class="level-dots">
-      <div class="ld" id="ld1"></div><div class="ld" id="ld2"></div>
-      <div class="ld" id="ld3"></div><div class="ld" id="ld4"></div>
-      <div class="ld" id="ld5"></div>
+<main>
+  <div class="topline">
+    <div class="shift-title">Участок литья под давлением · <strong>30 ENGEL</strong> · смена 06:00–14:00</div>
+    <div class="actions">
+      <button class="btn primary" id="start">▶ НАЧАТЬ СМЕНУ</button>
+      <button class="btn warn" id="repair">🔧 РЕМОНТ <span id="repairCount">0</span></button>
+      <button class="btn" id="pause" disabled>Ⅱ ПАУЗА</button>
+      <button class="btn" id="reset">↻ СБРОС</button>
     </div>
   </div>
-  <div class="sound-row" onclick="toggleSound()">
-    🔊 Zvukové efekty
-    <div class="toggle on" id="sndToggle2"></div>
+  <div class="factory-window" id="viewport"><canvas id="factory" width="1500" height="780" aria-label="Пиксельная карта заводского участка"></canvas></div>
+  <div class="legend">
+    <span><i class="dot green"></i>Работает</span><span><i class="dot red"></i>Авария / брак</span><span><i class="dot orange"></i>Материал / наладка</span><span><i class="dot blue"></i>Контроль качества</span>
+    <span>Нажми на станок, чтобы посмотреть состояние.</span>
   </div>
-  <div class="ov-sep"></div>
-  <button class="ov-btn btn-g" onclick="togglePause()">▶ POKRAČOVAŤ</button>
-  <button class="ov-btn btn-r" onclick="restartFromPause()">↺ REŠTARTOVAŤ</button>
-  <button class="ov-btn btn-d" onclick="goToMenu()">⌂ MENU</button>
-</div>
-
-<!-- ══ ИТОГИ ══ -->
-<div class="overlay" id="ovEnd">
-  <div class="ov-sub">Zmena skončila</div>
-  <div class="ov-h1">SPRÁVA ZMENY</div>
-  <div class="grade" id="gradeEl">–</div>
-  <div class="stats">
-    <div><div class="sv" id="fScore" style="color:var(--g)">0</div><div class="sl">SKÓRE</div></div>
-    <div><div class="sv" id="fGood"  style="color:var(--g)">0</div><div class="sl">DOBRÝCH</div></div>
-    <div><div class="sv" id="fTrash" style="color:var(--r)">0</div><div class="sl">ZMÄTKOV</div></div>
-    <div><div class="sv" id="fAcc"   style="color:var(--y)">0%</div><div class="sl">PRESNOSŤ</div></div>
+  <div class="bottom">
+    <section class="panel"><h2>КОМАНДА СМЕНЫ / 24 ЧЕЛОВЕКА</h2><div class="roster" id="roster"></div><div class="hint">Операторы стоят у своих машин. Передачки пополняют материал, квалита проверяют детали, складники работают с коробками, наладчики меняют формы, главный техник устраняет аварии.</div></section>
+    <section class="panel"><h2>ЖУРНАЛ УЧАСТКА</h2><div class="feed" id="feed"><div>06:00 — Смена готова к запуску. Проверь участок и нажми «Начать смену».</div></div></section>
   </div>
-  <!-- Место в таблице рекордов -->
-  <div id="newRecordMsg" style="font-size:.6rem;color:var(--y);letter-spacing:2px;display:none">🏆 NOVÝ REKORD!</div>
-  <div class="ov-sep"></div>
-  <button class="ov-btn btn-g" onclick="playAgain()">▶ ZNOVA</button>
-  <button class="ov-btn btn-d" onclick="goToMenu()">⌂ MENU</button>
-</div>
-
+</main>
+<div class="overlay" id="welcome"><div class="modal"><h1>FACTORY<br>SHIFT_01</h1><p>Добро пожаловать на участок литья. Здесь 30 термопластавтоматов ENGEL, конвейеры, коробки и целая смена.</p><p><b>Задача:</b> поддерживать производство, реагировать на поломки и не пропускать брак. Нажимай на станки и кнопки действий. Это игровая симуляция — время смены ускорено.</p><button class="btn primary" id="welcomeStart">▶ В ЦЕХ</button></div></div>
+<div class="overlay hidden" id="end"><div class="modal"><h1>СМЕНА<br>ЗАВЕРШЕНА</h1><p id="endText"></p><button class="btn primary" id="again">↻ НОВАЯ СМЕНА</button></div></div>
 <script>
-// ══════════════════════════════════════════════════════
-// AUDIO
-// ══════════════════════════════════════════════════════
-const AC = new (window.AudioContext||window.webkitAudioContext)();
-let soundOn=true;
-function acResume(){ if(AC.state==='suspended') AC.resume(); }
-function tone(f,d,t='sine',v=.15,sl=0){
-  if(!soundOn) return; acResume();
-  const o=AC.createOscillator(),g=AC.createGain();
-  o.connect(g); g.connect(AC.destination);
-  o.type=t; o.frequency.setValueAtTime(f,AC.currentTime);
-  if(sl) o.frequency.linearRampToValueAtTime(sl,AC.currentTime+d);
-  g.gain.setValueAtTime(v,AC.currentTime);
-  g.gain.exponentialRampToValueAtTime(.0001,AC.currentTime+d);
-  o.start(); o.stop(AC.currentTime+d+.01);
+(function(){
+'use strict';
+const canvas=document.getElementById('factory'),ctx=canvas.getContext('2d');
+const W=canvas.width,H=canvas.height;
+const C={floor:'#252f35',tile:'#2a353b',line:'#46545b',machine:'#64737b',dark:'#303c43',light:'#a9b5ba',green:'#8be05a',red:'#ff625c',orange:'#ff9d42',blue:'#78c8ff',yellow:'#ffd45e',skin:'#efbd91',shirt:'#56616a',white:'#e6ecef'};
+let running=false,paused=false,elapsed=0,output=0,good=100,downtime=0,repairs=0,qualityChecks=0,rejects=0,selected=-1,lastTick=0,spawnTimer=0,events=[];
+const machines=[],workers=[];
+const roleDefs=[
+ {role:'Операторы',count:15,color:'#4c5962',desc:'у станков'},
+ {role:'Передачки',count:2,color:'#ff9d42',desc:'материал'},
+ {role:'Квалита',count:2,color:'#78c8ff',desc:'контроль'},
+ {role:'Складники',count:2,color:'#a8b4bd',desc:'коробки'},
+ {role:'Наладчики',count:2,color:'#ffd45e',desc:'смена форм'},
+ {role:'Главный техник',count:1,color:'#ff625c',desc:'ремонт'}
+];
+function log(msg,type){events.unshift({msg,type:type||''});events=events.slice(0,18);document.getElementById('feed').innerHTML=events.map(e=>'<div class="'+e.type+'">'+e.msg+'</div>').join('');}
+function makeMachine(i){const row=i<15?0:1,col=i%15;return{id:i+1,row,col,x:80+col*94,y:row===0?155:465,state:'running',cycle:0,material:100,wear:0,defects:0,box:0,needsRepair:false,form:1};}
+for(let i=0;i<30;i++)machines.push(makeMachine(i));
+function makeWorker(role,id,color,x,y){return{role,id,color,x,y,tx:x,ty:y,phase:Math.random()*6.28,task:'',machine:-1};}
+for(let i=0;i<15;i++){let m=machines[i];workers.push(makeWorker('operator',i+1,'#4c5962',m.x+26,m.y+68));}
+workers.push(makeWorker('material',1,'#ff9d42',330,350),makeWorker('material',2,'#ff9d42',1120,350));
+workers.push(makeWorker('quality',1,'#78c8ff',710,350),makeWorker('quality',2,'#78c8ff',790,350));
+workers.push(makeWorker('warehouse',1,'#a8b4bd',190,350),makeWorker('warehouse',2,'#a8b4bd',1300,350));
+workers.push(makeWorker('setup',1,'#ffd45e',600,350),makeWorker('setup',2,'#ffd45e',950,350));
+workers.push(makeWorker('chief',1,'#ff625c',750,420));
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
+function text(s,x,y,size,color,align){ctx.font=size+'px "IBM Plex Mono",monospace';ctx.fillStyle=color;ctx.textAlign=align||'left';ctx.fillText(s,x,y);}
+function pixelWorker(x,y,color,phase,scale){scale=scale||1;const bob=Math.sin(phase)*1.5;rect(x-5*scale,y-19*scale+bob,10*scale,8*scale,C.skin);rect(x-6*scale,y-11*scale+bob,12*scale,12*scale,color);rect(x-5*scale,y+scale+bob,4*scale,7*scale,'#20272c');rect(x+1*scale,y+scale+bob,4*scale,7*scale,'#20272c');rect(x-7*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x+4*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x-5*scale,y-20*scale+bob,10*scale,3*scale,'#34302d');}
+function machineDraw(m){const x=m.x,y=m.y;const stateColor=m.state==='broken'?C.red:m.state==='setup'?C.orange:m.state==='material'?C.orange:C.green;
+ // floor shadow and machine base
+ rect(x-5,y+59,76,11,'#171d21');rect(x,y+13,66,47,C.dark);rect(x+5,y+8,55,48,C.machine);rect(x+10,y+14,44,29,'#29353b');
+ // safety doors and mold window
+ rect(x+13,y+17,18,22,'#52636a');rect(x+34,y+17,16,22,'#52636a');rect(x+18,y+22,24,12,'#1b262c');rect(x+23,y+25,13,6,'#83939a');
+ // top cover
+ rect(x+4,y+3,57,8,'#9aa6ab');rect(x+9,y-2,46,6,'#536169');
+ // control panel
+ rect(x+53,y+18,9,19,'#172126');rect(x+55,y+21,5,3,stateColor);rect(x+55,y+27,5,2,C.yellow);rect(x+55,y+32,5,2,C.green);
+ // clamps
+ rect(x+20,y+42,26,4,'#b3bec2');rect(x+16,y+48,34,5,'#3b474e');
+ // warning beacon
+ rect(x+58,y-8,6,6,stateColor);rect(x+59,y-12,4,4,stateColor);
+ text('ENGEL',x+32,y+57,7,'#f1f4f5','center');text(String(m.id).padStart(2,'0'),x+33,y+79,10,m.id===selected?C.yellow:'#b3c0c5','center');
+ // small status strip
+ rect(x+4,y+65,58,4,'#172126');rect(x+5,y+66,56*Math.max(0,m.material)/100,2,stateColor);
+ if(m.state==='broken'){rect(x+17,y-21,31,10,C.red);text('STOP',x+32,y-13,7,'#fff','center');}
+ if(m.state==='setup'){rect(x+12,y-21,42,10,C.orange);text('FORM',x+33,y-13,7,'#172126','center');}
+ if(m.id===selected){ctx.strokeStyle=C.yellow;ctx.lineWidth=2;ctx.strokeRect(x-7,y-24,72,108);}
 }
-function seq(n,gap=55){ n.forEach(([f,d,t,v],i)=>setTimeout(()=>tone(f,d,t,v),i*gap)); }
-const SFX={
-  good:   ()=>{ tone(520,.06,'sine',.13); setTimeout(()=>tone(800,.09,'sine',.13),70); },
-  combo:  ()=>seq([[440,.1,'sine',.15],[550,.1,'sine',.15],[700,.1,'sine',.15],[900,.15,'sine',.17]],55),
-  error:  ()=>{ tone(200,.15,'sawtooth',.2); setTimeout(()=>tone(140,.2,'sawtooth',.15),90); },
-  miss:   ()=>tone(180,.35,'sawtooth',.18,80),
-  trash:  ()=>{ tone(350,.05,'square',.09); setTimeout(()=>tone(220,.1,'sawtooth',.11),55); },
-  lvlup:  ()=>seq([[330,.08,'sine',.12],[440,.08,'sine',.12],[560,.08,'sine',.12],[700,.12,'sine',.14]],48),
-  pause:  ()=>{ tone(400,.08,'sine',.1); setTimeout(()=>tone(300,.1,'sine',.08),100); },
-  resume: ()=>{ tone(300,.07,'sine',.09); setTimeout(()=>tone(450,.09,'sine',.12),90); },
-  end:    ()=>seq([[600,.12,'sine',.14],[500,.12,'sine',.14],[380,.12,'sine',.14],[260,.18,'sine',.12],[180,.25,'sine',.11]],75),
-  click:  ()=>tone(650,.04,'sine',.07),
-  start:  ()=>seq([[260,.08,'sine',.1],[330,.08,'sine',.1],[440,.08,'sine',.1],[550,.12,'sine',.14]],70),
-};
-function play(n){ SFX[n]?.(); }
-function toggleSound(){
-  soundOn=!soundOn; acResume();
-  document.getElementById('sndToggle').classList.toggle('on',soundOn);
-  document.getElementById('sndToggle2').classList.toggle('on',soundOn);
-  if(soundOn) tone(500,.08,'sine',.1);
+function conveyor(y){rect(25,y,1450,24,'#141a1e');rect(25,y+3,1450,3,'#6a7b82');rect(25,y+17,1450,3,'#6a7b82');for(let x=30;x<1470;x+=24){rect(x,y+6,4,12,'#53646b');rect(x+9,y+6,4,12,'#53646b');} }
+function boxDraw(x,y,full){rect(x,y,31,25,full?'#9a6b40':'#b38b5e');rect(x+3,y+3,25,18,full?'#d7a15e':'#e5c08d');rect(x+13,y+3,4,18,'#8c643c');rect(x-2,y-3,35,4,'#d2b58a');}
+function background(){rect(0,0,W,H,C.floor);for(let y=0;y<H;y+=40)for(let x=0;x<W;x+=40){rect(x,y,39,39,((x/40+y/40)%2===0)?'#263138':'#242e34');} // aisle markings
+rect(0,0,W,48,'#182127');text('MAGNA  /  INJECTION MOULDING',28,30,13,C.yellow);text('HALL 2  •  SHIFT 01',1470,30,11,'#91a1aa','right');
+rect(0,110,W,3,'#637078');rect(0,420,W,3,'#637078');rect(0,745,W,3,'#637078');
+text('ROW A  /  ENGEL 01–15',28,90,11,'#a8b4bd');text('ROW B  /  ENGEL 16–30',28,400,11,'#a8b4bd');
+conveyor(360);conveyor(680);
+text('MAIN MATERIAL / ROLLER LINE',750,353,9,'#c3d0d5','center');
+for(let x=32;x<1470;x+=95){rect(x,115,2,290,'#3a464c');rect(x,425,2,310,'#3a464c');}
 }
-
-// ══════════════════════════════════════════════════════
-// LEADERBOARD — онлайн, shared storage (общий для всех)
-// ══════════════════════════════════════════════════════
-const LB_KEY='magna_lb_v2';
-const GRADE_COLORS={S:'#ffd700',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
-const RANK_CLS=['gold','silver','bronze'];
-
-async function lbLoad(){
-  try{
-    const r=await window.storage.get(LB_KEY,true);
-    return r ? JSON.parse(r.value) : [];
-  } catch{ return []; }
+function draw(){ctx.clearRect(0,0,W,H);background();
+ machines.forEach(machineDraw);
+ // roller boxes along central line
+ machines.forEach((m,i)=>{if(i%3===0)boxDraw(m.x+18,330,(m.box%3)>0);if(i%4===0)boxDraw(m.x+22,650,m.box%2===1);});
+ workers.forEach(w=>{if(w.role==='operator')return;let c=w.color;pixelWorker(w.x,w.y,c,w.phase,1);});
+ // operators on each machine
+ workers.filter(w=>w.role==='operator').forEach(w=>pixelWorker(w.x,w.y,w.color,w.phase,.85));
+ // tiny role labels for distinctive roles
+ workers.filter(w=>w.role!=='operator').forEach(w=>{let label={material:'MAT',quality:'QC',warehouse:'BOX',setup:'SET',chief:'TECH'}[w.role];text(label,w.x,w.y+13,7,w.color,'center');});
+ // tiny production sparks / animated parts
+ machines.forEach(m=>{if(m.state==='running'&&running&&!paused&&Math.sin(m.cycle*8)>0.93){rect(m.x+29,m.y+42,5,4,C.yellow);}});
+ // bottom status strip
+ rect(0,752,W,28,'#13191d');text('PRODUCTION FLOOR SIMULATION',20,770,9,'#74848c');text('ACTIVE MACHINES: '+machines.filter(m=>m.state==='running').length+'/30',1480,770,9,C.green,'right');
+ requestAnimationFrame(draw);
 }
-async function lbSave(data){
-  try{ await window.storage.set(LB_KEY,JSON.stringify(data),true); } catch{}
+function hud(){document.getElementById('out').textContent=String(output).padStart(3,'0');document.getElementById('quality').textContent=good+'%';document.getElementById('downtime').textContent=downtime;const total=6*60+Math.floor(elapsed/2);document.getElementById('clock').textContent=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');document.getElementById('repairCount').textContent=repairs;}
+function renderRoster(){const el=document.getElementById('roster');el.innerHTML=roleDefs.map(r=>'<div class="role"><strong style="color:'+r.color+'">'+r.count+'</strong><small>'+r.role+'<br>'+r.desc+'</small></div>').join('');}
+function start(){if(running&&!paused)return;document.getElementById('welcome').classList.add('hidden');document.getElementById('end').classList.add('hidden');running=true;paused=false;lastTick=Date.now();document.getElementById('pause').disabled=false;document.getElementById('pause').textContent='Ⅱ ПАУЗА';log('06:00 — Запуск линии. Все 30 машин в работе.','good');}
+function tick(){if(!running||paused)return;const now=Date.now();if(now-lastTick<500)return;lastTick=now;elapsed++;spawnTimer++;
+ machines.forEach(m=>{if(m.state==='running'){m.cycle++;m.wear+=Math.random()*.3;m.material-=Math.random()*.18;if(m.material<20&&m.state==='running'){m.state='material';log('ENGEL '+String(m.id).padStart(2,'0')+' — заканчивается материал. Передачка направлена к машине.','notice');moveRole('material',m);}if(Math.random()<0.0007+m.wear/200000){m.state='broken';m.needsRepair=true;downtime++;log('АВАРИЯ — ENGEL '+String(m.id).padStart(2,'0')+'. Нужен главный техник.','bad');moveRole('chief',m);}if(Math.random()<0.001){m.defects++;rejects++;good=Math.max(0,Math.round((output+1-rejects)/Math.max(1,output+1)*100));log('Квалита обнаружила дефект на ENGEL '+String(m.id).padStart(2,'0')+'. Деталь снята с линии.','bad');moveRole('quality',m);}if(m.cycle%8===0){output++;m.box++;if(m.box%6===0)moveRole('warehouse',m);}}else if(m.state==='material'&&Math.random()<.12){m.material=100;m.state='running';log('ENGEL '+String(m.id).padStart(2,'0')+' — материал пополнен, цикл восстановлен.','good');resetRole('material');}else if(m.state==='setup'&&Math.random()<.08){m.form++;m.state='running';m.wear=0;log('ENGEL '+String(m.id).padStart(2,'0')+' — форма заменена. Машина снова работает.','good');resetRole('setup');}});
+ if(spawnTimer%18===0){const available=machines.filter(m=>m.state==='running');if(available.length&&Math.random()<.65){const m=available[Math.floor(Math.random()*available.length)];m.state='setup';log('Плановая переналадка ENGEL '+String(m.id).padStart(2,'0')+'. Наладчик вызван.','notice');moveRole('setup',m);}}
+ // worker movement eases toward assigned task
+ workers.forEach(w=>{w.x+=(w.tx-w.x)*.08;w.y+=(w.ty-w.y)*.08;w.phase+=.18;});
+ hud();if(elapsed>=960){finish();}
 }
-
-// Возвращает позицию (0-based) или -1
-async function lbAdd(name,sc,grade,acc){
-  const data=await lbLoad();
-  const entry={ name:name||'ANONYM', score:sc, grade, acc, date:new Date().toLocaleDateString('sk') };
-  data.push(entry);
-  data.sort((a,b)=>b.score-a.score);
-  const trimmed=data.slice(0,20);
-  const pos=trimmed.indexOf(entry); // точная ссылка
-  await lbSave(trimmed);
-  return pos;
-}
-
-function lbRenderData(data, myName){
-  const el=document.getElementById('lbList');
-  if(!data.length){
-    el.innerHTML='<div class="lb-empty">Zatiaľ žiadne záznamy.<br>Buď prvý!</div>';
-    return;
-  }
-  el.innerHTML=data.map((e,i)=>`
-    <div class="lb-row">
-      <div class="lb-rank ${RANK_CLS[i]||''}">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'#'+(i+1)}</div>
-      <div class="lb-name${myName&&e.name.toUpperCase()===myName.toUpperCase()?' me':''}">${e.name}</div>
-      <div class="lb-score">${e.score}</div>
-      <div class="lb-grade" style="color:${GRADE_COLORS[e.grade]||'#cde'}">${e.grade}</div>
-      <div class="lb-date">${e.date}</div>
-    </div>`).join('');
-}
-
-function lbSetLoading(){
-  document.getElementById('lbList').innerHTML=
-    '<div class="lb-empty" id="lbStatus">⏳ Načítavam...</div>';
-}
-
-async function openLeaderboard(){
-  play('click'); acResume();
-  document.getElementById('ovMenu').classList.remove('active');
-  document.getElementById('ovLB').classList.add('active');
-  lbSetLoading();
-  try {
-    const data=await lbLoad();
-    lbRenderData(data, getPlayerName());
-  } catch {
-    document.getElementById('lbList').innerHTML=
-      '<div class="lb-empty">❌ Chyba načítania.<br>Skontroluj pripojenie.</div>';
-  }
-}
-function closeLB(){
-  play('click');
-  document.getElementById('ovLB').classList.remove('active');
-  document.getElementById('ovMenu').classList.add('active');
-}
-
-// Кнопка обновить в таблице
-async function refreshLB(){
-  lbSetLoading();
-  try {
-    const data=await lbLoad();
-    lbRenderData(data, getPlayerName());
-  } catch {
-    document.getElementById('lbList').innerHTML=
-      '<div class="lb-empty">❌ Chyba načítania.</div>';
-  }
-}
-
-// ══════════════════════════════════════════════════════
-// STAV
-// ══════════════════════════════════════════════════════
-let score=0,cntGL=0,cntGR=0,cntT=0,errors=0;
-let lives=3,timeLeft=60,timerInt=null;
-let gameActive=false,paused=false,combo=0,level=1;
-const parts={L:null,R:null};
-
-const DEFECTS=['TRHLINA','ODLOMENIE','DEFORMÁCIA','ZNEČISTENIE','OTREPA'];
-const OVL={
-  TRHLINA:    `<path d="M32 25L38 35L34 38L40 50" stroke="#ff3344" stroke-width="1.5" fill="none" opacity=".85"/>`,
-  ZNEČISTENIE:`<ellipse cx="50" cy="40" rx="9" ry="5" fill="rgba(140,70,15,.6)"/>`,
-  DEFORMÁCIA: `<path d="M55 30Q63 38 58 46" stroke="#888" stroke-width="2.5" fill="none" stroke-linecap="round"/>`,
-  OTREPA:     `<path d="M70 34L76 26L73 37L79 30L74 43" stroke="#f60" stroke-width="1.2" fill="none"/>`,
-  ODLOMENIE:  `<polygon points="22,51 29,41 19,39" fill="#181818" stroke="#666" stroke-width=".5"/>`
-};
-
-// Скорость: начинаем медленно, уровень 1 = 5500ms, каждые 15с ускоряется
-function partDur(){ return Math.max(1200, 5500-level*500); }
-
-function getPlayerName(){
-  return (document.getElementById('playerName').value.trim().toUpperCase()||'ANONYM');
-}
-
-// ══════════════════════════════════════════════════════
-// ГЕНЕРАЦИЯ ДЕТАЛЕЙ
-// ══════════════════════════════════════════════════════
-function mkData(side){
-  const bad=Math.random()<(.22+level*.025);
-  return{ side,bad,
-    defect:bad?DEFECTS[Math.random()*DEFECTS.length|0]:null,
-    tilt:(Math.random()-.5)*14,
-    shade:bad?`hsl(${Math.random()>.5?'0,10%,15%':'30,20%,12%'})`:'hsl(220,5%,10%)'
-  };
-}
-function mkEl(d){
-  const el=document.createElement('div');
-  el.className='part p'+d.side;
-  el.style.cssText=`top:-80px;transform:rotate(${d.tilt}deg)`;
-  el.innerHTML=`<svg viewBox="0 0 100 80" xmlns="http://www.w3.org/2000/svg">
-    <ellipse cx="50" cy="75" rx="38" ry="5" fill="rgba(0,0,0,.4)"/>
-    <path d="M15 55Q10 40 20 28Q30 15 50 12Q70 15 80 28Q90 40 85 55Q75 65 50 68Q25 65 15 55Z" fill="${d.shade}" stroke="#333" stroke-width="1"/>
-    <path d="M30 20Q50 14 68 22Q55 18 40 20Z" fill="rgba(255,255,255,.08)"/>
-    <ellipse cx="42" cy="28" rx="14" ry="7" fill="rgba(255,255,255,.05)" transform="rotate(-15,42,28)"/>
-    <circle cx="50" cy="42" r="6" fill="#050505" stroke="#222" stroke-width="1"/>
-    <circle cx="50" cy="42" r="3" fill="#111" stroke="#333" stroke-width=".5"/>
-    ${d.bad?(OVL[d.defect]||''):'<path d="M25 38Q35 30 45 34" stroke="rgba(100,180,255,.18)" stroke-width="2" fill="none"/>'}
-  </svg>`;
-  if(d.bad){ const b=document.createElement('div'); b.className='defect-badge'; b.textContent=d.defect; el.appendChild(b); }
-  const t=document.createElement('div'); t.className='side-tag'; t.textContent=d.side==='L'?'ĽAVÁ':'PRAVÁ'; el.appendChild(t);
-  return el;
-}
-
-// ══════════════════════════════════════════════════════
-// СПАВН И ДВИЖЕНИЕ
-// ══════════════════════════════════════════════════════
-function spawnPart(side){
-  const p=parts[side];
-  if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; }
-  const data=mkData(side);
-  const el=mkEl(data);
-  document.getElementById('conv').appendChild(el);
-  const dur=partDur();
-  const targetY=document.getElementById('conv').offsetHeight-40;
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    el.style.transition=`top ${dur}ms linear`;
-    el.style.top=targetY+'px';
-  }));
-  const mt=setTimeout(()=>{
-    if(parts[side]?.el===el&&el.parentNode){
-      parts[side]=null; el.remove();
-      if(data.bad){
-        combo++;
-        const pts=10+(combo>2?combo>>1:0);
-        score+=pts; cntT++;
-        combo>2?( play('combo'), flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good') )
-               :( play('trash'), flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good') );
-        glowEl('trash',true); updateHUD();
-      } else {
-        penalize('DIEL PREŠIEL!');
-      }
-      if(gameActive&&!paused) setTimeout(()=>spawnPart(side),300);
-    }
-  },dur+150);
-  parts[side]={el,data,mt};
-  attachSwipe(el,data,side);
-}
-
-function attachSwipe(el,data,side){
-  let sx=0,sy=0;
-  el.addEventListener('touchstart',e=>{ const t=e.touches[0]; sx=t.clientX; sy=t.clientY; },{passive:true});
-  el.addEventListener('touchmove',e=>{
-    const t=e.touches[0],dx=t.clientX-sx,dy=t.clientY-sy;
-    el.style.transform=`translateX(${dx*.4}px) translateY(${Math.max(0,dy*.3)}px) rotate(${data.tilt+dx*.03}deg)`;
-  },{passive:true});
-  el.addEventListener('touchend',e=>{
-    const t=e.changedTouches[0],dx=t.clientX-sx,dy=t.clientY-sy;
-    el.style.transform=`rotate(${data.tilt}deg)`;
-    if(dy>50&&Math.abs(dx)<80){ if(data.bad) doAction(side,'trash'); return; }
-    if(Math.abs(dx)>50&&Math.abs(dy)<90) doAction(dx<0?'L':'R','good');
-  },{passive:true});
-}
-
-// ══════════════════════════════════════════════════════
-// ЛОГИКА
-// ══════════════════════════════════════════════════════
-function sendGood(side){ if(gameActive&&!paused){ acResume(); doAction(side,'good'); } }
-function sendTrash(){
-  if(!gameActive||paused) return; acResume();
-  const candidates=[];
-  if(parts.L?.data.bad) candidates.push({side:'L',y:parseInt(parts.L.el.style.top)||0});
-  if(parts.R?.data.bad) candidates.push({side:'R',y:parseInt(parts.R.el.style.top)||0});
-  if(candidates.length) doAction(candidates.sort((a,b)=>b.y-a.y)[0].side,'trash');
-}
-function doAction(side,choice){
-  if(!gameActive||paused) return;
-  const p=parts[side]; if(!p) return;
-  if(choice==='trash'&&!p.data.bad) return;
-  clearTimeout(p.mt);
-  const d=p.data; p.el.remove(); parts[side]=null;
-  const correct=(!d.bad&&choice==='good')||(d.bad&&choice==='trash');
-  if(correct){
-    combo++;
-    const pts=10+(combo>2?combo>>1:0); score+=pts;
-    choice==='good'?(d.side==='L'?cntGL++:cntGR++):cntT++;
-    combo>2?( play('combo'), flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good') )
-           :( play(choice==='trash'?'trash':'good'), flash(`✓ ${d.bad?'ZMÄTOK':'DOBRÝ'}! +${pts}`,'good') );
-    glowEl(choice==='good'?'box-'+side:'trash',true);
-  } else {
-    combo=0; errors++; lives--; score=Math.max(0,score-5);
-    play('error');
-    flash(`✗ CHYBA! ${d.bad?'TO JE ZMÄTOK':'DIEL JE DOBRÝ'}`,'wrong');
-    glowEl(choice==='good'?'box-'+side:'trash',false);
-    updateLives();
-    if(lives<=0){ endGame(); return; }
-  }
-  updateHUD();
-  if(gameActive&&!paused) setTimeout(()=>spawnPart(side),150);
-}
-function penalize(msg){
-  if(!gameActive) return;
-  combo=0; lives--; errors++;
-  play('miss'); flash('⚠ '+msg,'bad');
-  updateLives();
-  if(lives<=0) endGame(); else updateHUD();
-}
-
-// ══════════════════════════════════════════════════════
-// ПАУЗА
-// ══════════════════════════════════════════════════════
-function togglePause(){
-  if(!gameActive) return; acResume();
-  paused=!paused;
-  document.getElementById('ovPause').classList.toggle('active',paused);
-  document.getElementById('btnPause').textContent=paused?'▶ ĎALEJ':'⏸ PAUZA';
-  if(paused){
-    play('pause'); clearInterval(timerInt);
-    Object.values(parts).forEach(p=>{
-      if(!p) return;
-      const cur=parseInt(p.el.style.top)||0;
-      clearTimeout(p.mt); p.el.style.transition='none'; p.el.style.top=cur+'px'; p._frozen=cur;
-    });
-    updateLevelDots();
-  } else {
-    play('resume'); startTimer();
-    ['L','R'].forEach(side=>{
-      const p=parts[side];
-      if(!p){ setTimeout(()=>spawnPart(side),200); return; }
-      const convH=document.getElementById('conv').offsetHeight, targetY=convH-40;
-      const remaining=targetY-(p._frozen||0);
-      const dur=Math.max(200, remaining/convH*partDur());
-      p.el.style.transition=`top ${dur}ms linear`; p.el.style.top=targetY+'px';
-      const mt=setTimeout(()=>{
-        if(parts[side]?.el===p.el&&p.el.parentNode){
-          parts[side]=null; p.el.remove();
-          if(p.data.bad){
-            combo++; const pts=10+(combo>2?combo>>1:0); score+=pts; cntT++;
-            combo>2?( play('combo'), flash(`KOMBINÁCIA ×${combo}! +${pts}`,'good') )
-                   :( play('trash'), flash('✓ ZMÄTOK DO KOŠA! +'+pts,'good') );
-            glowEl('trash',true); updateHUD();
-          } else { penalize('DIEL PREŠIEL!'); }
-          if(gameActive&&!paused) setTimeout(()=>spawnPart(side),300);
-        }
-      },dur+150);
-      p.mt=mt;
-    });
-  }
-}
-function updateLevelDots(){ for(let i=1;i<=5;i++) document.getElementById('ld'+i).classList.toggle('on',i<=level); }
-function restartFromPause(){ play('click'); startGame(); }
-function goToMenu(){
-  play('click'); gameActive=false; paused=false;
-  clearInterval(timerInt); killParts();
-  document.getElementById('ovPause').classList.remove('active');
-  document.getElementById('ovEnd').classList.remove('active');
-  document.getElementById('ovMenu').classList.add('active');
-}
-
-// ══════════════════════════════════════════════════════
-// UI
-// ══════════════════════════════════════════════════════
-function flash(msg,type){
-  const f=document.getElementById('flash');
-  f.textContent=msg; f.className=type+' show';
-  clearTimeout(f._t); f._t=setTimeout(()=>f.className='',800);
-}
-function glowEl(id,ok){
-  const el=document.getElementById(id); if(!el) return;
-  el.style.boxShadow=ok?'0 0 28px rgba(0,255,136,.65)':'0 0 28px rgba(255,51,68,.65)';
-  setTimeout(()=>el.style.boxShadow='',350);
-}
-function updateHUD(){
-  document.getElementById('hScore').textContent=score;
-  document.getElementById('hGood').textContent=cntGL+cntGR;
-  document.getElementById('hTrash').textContent=cntT;
-  document.getElementById('hErr').textContent=errors;
-  document.getElementById('cntGL').textContent=cntGL;
-  document.getElementById('cntGR').textContent=cntGR;
-  document.getElementById('cntT').textContent=cntT;
-}
-function updateLives(){
-  document.getElementById('hLives').textContent=['','❤','❤❤','❤❤❤'][Math.max(0,lives)];
-}
-
-// ══════════════════════════════════════════════════════
-// ТАЙМЕР
-// ══════════════════════════════════════════════════════
-function startTimer(){
-  clearInterval(timerInt);
-  const bar=document.getElementById('tb');
-  timerInt=setInterval(()=>{
-    if(paused) return;
-    timeLeft--;
-    document.getElementById('hTime').textContent=timeLeft;
-    bar.style.width=(timeLeft/60*100)+'%';
-    bar.style.background=timeLeft<15?'var(--r)':timeLeft<30?'var(--y)':'var(--g)';
-    if(timeLeft%15===0&&timeLeft>0){
-      level=Math.min(level+1,5); play('lvlup'); flash('⚡ RÝCHLOSŤ +1','good');
-    }
-    if(timeLeft<=0) endGame();
-  },1000);
-}
-
-// ══════════════════════════════════════════════════════
-// СТАРТ / КОНЕЦ
-// ══════════════════════════════════════════════════════
-function killParts(){
-  ['L','R'].forEach(side=>{ const p=parts[side]; if(p){ clearTimeout(p.mt); p.el.remove(); parts[side]=null; } });
-}
-function beginGame(){
-  acResume(); play('start');
-  document.getElementById('ovMenu').classList.remove('active');
-  startGame();
-}
-function startGame(){
-  acResume();
-  score=cntGL=cntGR=cntT=errors=combo=0;
-  lives=3; timeLeft=60; level=1; gameActive=true; paused=false;
-  clearInterval(timerInt); killParts();
-  ['ovPause','ovEnd','ovMenu','ovLB'].forEach(id=>document.getElementById(id).classList.remove('active'));
-  document.getElementById('btnPause').textContent='⏸ PAUZA';
-  document.getElementById('tb').style.background='var(--g)';
-  updateHUD(); updateLives();
-  startTimer();
-  spawnPart('L');
-  setTimeout(()=>spawnPart('R'),700);
-}
-function playAgain(){ play('click'); startGame(); }
-async function endGame(){
-  gameActive=false; paused=false;
-  clearInterval(timerInt); killParts();
-  play('end');
-  const total=cntGL+cntGR+cntT+errors;
-  const acc=total>0?Math.max(0,Math.round((cntGL+cntGR+cntT-errors)/total*100)):0;
-  const grade=acc>=95?'S':acc>=80?'A':acc>=65?'B':acc>=50?'C':'F';
-  const gc={S:'#ffd700',A:'#00ff88',B:'#00aaff',C:'#ffaa00',F:'#ff3344'};
-  document.getElementById('fScore').textContent=score;
-  document.getElementById('fGood').textContent=cntGL+cntGR;
-  document.getElementById('fTrash').textContent=cntT;
-  document.getElementById('fAcc').textContent=acc+'%';
-  const g=document.getElementById('gradeEl'); g.textContent=grade; g.style.color=gc[grade];
-  // Записать в таблицу рекордов
-  const msg=document.getElementById('newRecordMsg');
-  msg.style.display='block'; msg.textContent='⏳ Ukladám skóre...';
-  try {
-    const pos=await lbAdd(getPlayerName(),score,grade,acc);
-    if(pos===0)       { msg.textContent='🥇 PRVÉ MIESTO!'; }
-    else if(pos===1)  { msg.textContent='🥈 DRUHÉ MIESTO!'; }
-    else if(pos===2)  { msg.textContent='🥉 TRETIE MIESTO!'; }
-    else if(pos<10)   { msg.textContent=`🏆 TOP-${pos+1} REBRÍČKA!`; }
-    else              { msg.style.display='none'; }
-  } catch {
-    msg.textContent='⚠ Skóre sa neuložilo (offline)'; msg.style.color='var(--r)';
-  }
-  document.getElementById('ovEnd').classList.add('active');
-}
-
-// ══════════════════════════════════════════════════════
-// КЛАВИАТУРА
-// ══════════════════════════════════════════════════════
-document.addEventListener('keydown',e=>{
-  if(e.key==='Escape'||e.key.toLowerCase()==='p'){ togglePause(); return; }
-  if(!gameActive||paused) return;
-  switch(e.key){
-    case 'ArrowLeft': case 'a': case 'A': sendGood('L'); break;
-    case 'ArrowRight':case 'd': case 'D': sendGood('R'); break;
-    case 'ArrowDown': case 's': case 'S': sendTrash();   break;
-  }
-});
-// Enter в поле имени = начать игру
-document.getElementById('playerName').addEventListener('keydown',e=>{ if(e.key==='Enter') beginGame(); });
+function moveRole(role,m){const w=workers.find(x=>x.role===role&&(!x.task||x.task===''));if(!w)return;w.task='busy';w.machine=m.id;w.tx=m.x+32;w.ty=m.y+94;}
+function resetRole(role){const w=workers.find(x=>x.role===role&&x.task==='busy');if(!w)return;w.task='';w.machine=-1;const idx=workers.indexOf(w);w.tx=role==='material'?(idx%2?1120:330):role==='quality'?(idx%2?790:710):role==='setup'?(idx%2?950:600):role==='warehouse'?(idx%2?1300:190):750;w.ty=role==='chief'?420:350;}
+function repair(){const m=machines.find(m=>m.state==='broken');if(!m){log('Ремонт не требуется — аварийных машин нет.','notice');return;}m.state='running';m.needsRepair=false;m.material=Math.max(m.material,50);m.wear=0;repairs++;downtime=Math.max(0,downtime-1);resetRole('chief');log('Главный техник устранил аварию на ENGEL '+String(m.id).padStart(2,'0')+'. Производство восстановлено.','good');hud();}
+function pause(){if(!running)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ ПРОДОЛЖИТЬ':'Ⅱ ПАУЗА';log(paused?'Смена приостановлена.':'Смена продолжена.', 'notice');}
+function finish(){running=false;paused=false;document.getElementById('pause').disabled=true;document.getElementById('endText').textContent='Выпущено деталей: '+output+'. Качество: '+good+'%. Аварии: '+downtime+'. Ремонты: '+repairs+'. '+(good>=95?'Отличная смена — качество на высоте.':good>=85?'Неплохая смена, но есть куда расти.':'Смене нужен разбор причин брака и простоев.');document.getElementById('end').classList.remove('hidden');log('14:00 — Смена завершена. Итоги зафиксированы.','good');}
+function reset(){running=false;paused=false;elapsed=output= downtime=repairs=qualityChecks=rejects=0;good=100;spawnTimer=0;machines.forEach((m,i)=>{Object.assign(m,makeMachine(i));});workers.forEach(w=>{w.task='';w.machine=-1;});workers.filter(w=>w.role==='operator').forEach((w,i)=>{w.tx=machines[i].x+26;w.ty=machines[i].y+68;});workers.filter(w=>w.role!=='operator').forEach((w,i)=>{const coords={material:[[330,350],[1120,350]],quality:[[710,350],[790,350]],warehouse:[[190,350],[1300,350]],setup:[[600,350],[950,350]],chief:[[750,420]]};const p=coords[w.role][workers.filter(x=>x.role===w.role).indexOf(w)]||[750,350];w.tx=p[0];w.ty=p[1];});events=[];document.getElementById('end').classList.add('hidden');document.getElementById('welcome').classList.remove('hidden');document.getElementById('pause').disabled=true;hud();log('06:00 — Смена готова к запуску. Проверь участок и нажми «Начать смену».');}
+canvas.addEventListener('click',function(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;const m=machines.find(m=>x>=m.x-7&&x<=m.x+68&&y>=m.y-25&&y<=m.y+85);if(m){selected=m.id;const status={running:'работает штатно',broken:'АВАРИЯ — нажми «Ремонт»',material:'ожидает материал',setup:'идёт переналадка'}[m.state];log('ENGEL '+String(m.id).padStart(2,'0')+' — '+status+'. Материал: '+Math.round(m.material)+'%, форма №'+m.form+'.',m.state==='broken'?'bad':'notice');}});
+document.getElementById('start').addEventListener('click',start);document.getElementById('welcomeStart').addEventListener('click',start);document.getElementById('repair').addEventListener('click',repair);document.getElementById('pause').addEventListener('click',pause);document.getElementById('reset').addEventListener('click',reset);document.getElementById('again').addEventListener('click',reset);
+setInterval(tick,100);renderRoster();hud();draw();
+})();
 </script>
 </body>
 </html>
