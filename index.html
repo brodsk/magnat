@@ -22,8 +22,8 @@ main{max-width:1600px;margin:auto;padding:14px}.topline{display:flex;align-items
 @media(max-width:800px){header{align-items:flex-start;padding:10px;flex-direction:column}.stats{justify-content:flex-start;gap:12px}.stat strong{font-size:15px}.brand{font-size:11px}main{padding:8px}.bottom{grid-template-columns:1fr}.roster{grid-template-columns:repeat(3,minmax(0,1fr))}.topline{align-items:flex-start}.btn{padding:9px;font-size:10px}.factory-window{overscroll-behavior-x:contain}}
 
 /* Mobile-first controls: keep the factory map horizontally scrollable and the HUD compact. */
-.factory-window{width:100%;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-color:#64737b #171f25}
-#factory{width:1500px;height:780px;max-width:none;touch-action:pan-x}
+.factory-window{width:100%;overflow:auto;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;scrollbar-color:#64737b #171f25;scroll-snap-type:x proximity}
+#factory{width:1500px;height:780px;max-width:none;touch-action:pan-x;display:block}
 @media(max-width:600px){
   header{gap:10px;padding:calc(9px + env(safe-area-inset-top)) 10px 10px;position:relative}
   .brand{font-size:10px;letter-spacing:0}
@@ -36,7 +36,7 @@ main{max-width:1600px;margin:auto;padding:14px}.topline{display:flex;align-items
   .shift-title{font-size:10px;line-height:1.8;letter-spacing:.6px;margin-bottom:9px}
   .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
   .btn{width:100%;min-height:42px;padding:9px 6px;font-size:10px;white-space:normal}
-  .factory-window{margin:0 -1px}
+  .factory-window{margin:0 -1px;max-height:58vh;min-height:280px;border-width:2px;scrollbar-width:thin}\n  #factory{width:1100px;height:auto;max-width:none}\n  .factory-window:after{content:'Posúvaj mapu do strán a sleduj obe uličky';position:sticky;left:8px;bottom:6px;display:block;width:max-content;max-width:90%;padding:5px 7px;background:#101519;color:#d3dde1;font-size:9px;border:1px solid #394852}\n  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}\n  .stat{display:flex;align-items:center;justify-content:space-between;gap:6px}\n  .stat small{font-size:8px}\n  .stat strong{font-size:13px}\n  .actions{grid-template-columns:repeat(2,minmax(0,1fr))}\n  .shift-title{font-size:9px}
   .legend{font-size:9px;gap:9px;padding:9px}
   .legend span:last-child{width:100%;line-height:1.6}
   .bottom{grid-template-columns:minmax(0,1fr);gap:9px;margin-top:10px}
@@ -109,14 +109,14 @@ function makeMachine(i){const row=i<15?0:1,col=i%15;return{id:i+1,row,col,x:80+c
 for(let i=0;i<30;i++)machines.push(makeMachine(i));
 function makeWorker(role,id,color,x,y){return{role,id,color,x,y,tx:x,ty:y,phase:Math.random()*6.28,task:'',machine:-1};}
 for(let i=0;i<15;i++){let m=machines[i];workers.push(makeWorker('operator',i+1,'#4c5962',m.x+26,m.y+68));}
-workers.push(makeWorker('material',1,'#ff9d42',330,350),makeWorker('material',2,'#ff9d42',1120,350));
-workers.push(makeWorker('quality',1,'#78c8ff',710,350),makeWorker('quality',2,'#78c8ff',790,350));
-workers.push(makeWorker('warehouse',1,'#a8b4bd',190,350),makeWorker('warehouse',2,'#a8b4bd',1300,350));
-workers.push(makeWorker('setup',1,'#ffd45e',600,350),makeWorker('setup',2,'#ffd45e',950,350));
+workers.push(makeWorker('material',1,'#ff9d42',330,320),makeWorker('material',2,'#ff9d42',1120,320));
+workers.push(makeWorker('quality',1,'#78c8ff',710,375),makeWorker('quality',2,'#78c8ff',790,375));
+workers.push(makeWorker('warehouse',1,'#a8b4bd',190,320),makeWorker('warehouse',2,'#a8b4bd',1300,375));
+workers.push(makeWorker('setup',1,'#ffd45e',600,375),makeWorker('setup',2,'#ffd45e',950,375));
 workers.push(makeWorker('chief',1,'#ff625c',750,420));
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
 function text(s,x,y,size,color,align){ctx.font=size+'px "IBM Plex Mono",monospace';ctx.fillStyle=color;ctx.textAlign=align||'left';ctx.fillText(s,x,y);}
-function pixelWorker(x,y,color,phase,scale){scale=scale||1;const bob=Math.sin(phase)*1.5;rect(x-5*scale,y-19*scale+bob,10*scale,8*scale,C.skin);rect(x-6*scale,y-11*scale+bob,12*scale,12*scale,color);rect(x-5*scale,y+scale+bob,4*scale,7*scale,'#20272c');rect(x+1*scale,y+scale+bob,4*scale,7*scale,'#20272c');rect(x-7*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x+4*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x-5*scale,y-20*scale+bob,10*scale,3*scale,'#34302d');}
+function pixelWorker(x,y,color,phase,scale){scale=scale||1;const bob=Math.sin(phase)*1.5,step=Math.sin(phase*2.2)*2.2*scale;rect(x-5*scale,y-19*scale+bob,10*scale,8*scale,C.skin);rect(x-6*scale,y-11*scale+bob,12*scale,12*scale,color);rect(x-5*scale,y+scale+bob,4*scale,7*scale+Math.max(0,step),'#20272c');rect(x+1*scale,y+scale+bob,4*scale,7*scale+Math.max(0,-step),'#20272c');rect(x-7*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x+4*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x-5*scale,y-20*scale+bob,10*scale,3*scale,'#34302d');}
 function machineDraw(m){const x=m.x,y=m.y;const stateColor=m.state==='broken'?C.red:m.state==='setup'?C.orange:m.state==='material'?C.orange:C.green;
  // floor shadow and machine base
  rect(x-5,y+59,76,11,'#171d21');rect(x,y+13,66,47,C.dark);rect(x+5,y+8,55,48,C.machine);rect(x+10,y+14,44,29,'#29353b');
@@ -150,7 +150,7 @@ for(let x=32;x<1470;x+=95){rect(x,115,2,290,'#3a464c');rect(x,425,2,310,'#3a464c
 function draw(){ctx.clearRect(0,0,W,H);background();
  machines.forEach(machineDraw);
  // roller boxes along central line
- machines.forEach((m,i)=>{if(i%3===0)boxDraw(m.x+18,330,(m.box%3)>0);if(i%4===0)boxDraw(m.x+22,650,m.box%2===1);});
+ machines.forEach((m,i)=>{if(i%3===0)boxDraw(m.x+18,310,(m.box%3)>0);if(i%4===0)boxDraw(m.x+22,405,m.box%2===1);});
  workers.forEach(w=>{if(w.role==='operator')return;let c=w.color;pixelWorker(w.x,w.y,c,w.phase,1);});
  // operators on each machine
  workers.filter(w=>w.role==='operator').forEach(w=>pixelWorker(w.x,w.y,w.color,w.phase,.85));
@@ -169,15 +169,15 @@ function tick(){if(!running||paused)return;const now=Date.now();if(now-lastTick<
  machines.forEach(m=>{if(m.state==='running'){m.cycle++;m.wear+=Math.random()*.3;m.material-=Math.random()*.18;if(m.material<20&&m.state==='running'){m.state='material';log('ENGEL '+String(m.id).padStart(2,'0')+' — dochádza materiál. Zásobovač smeruje k stroju.','notice');moveRole('material',m);}if(Math.random()<0.0007+m.wear/200000){m.state='broken';m.needsRepair=true;downtime++;log('PORUCHA — ENGEL '+String(m.id).padStart(2,'0')+'. Je potrebný hlavný technik.','bad');moveRole('chief',m);}if(Math.random()<0.001){m.defects++;rejects++;good=Math.max(0,Math.round((output+1-rejects)/Math.max(1,output+1)*100));log('Kontrola kvality odhalila chybný diel na stroji ENGEL '+String(m.id).padStart(2,'0')+'. Diel bol vyradený z výroby.','bad');moveRole('quality',m);}if(m.cycle%8===0){output++;m.box++;if(m.box%6===0)moveRole('warehouse',m);}}else if(m.state==='material'&&Math.random()<.12){m.material=100;m.state='running';log('ENGEL '+String(m.id).padStart(2,'0')+' — materiál doplnený, výroba pokračuje.','good');resetRole('material');}else if(m.state==='setup'&&Math.random()<.08){m.form++;m.state='running';m.wear=0;log('ENGEL '+String(m.id).padStart(2,'0')+' — forma vymenená. Stroj opäť pracuje.','good');resetRole('setup');}});
  if(spawnTimer%18===0){const available=machines.filter(m=>m.state==='running');if(available.length&&Math.random()<.65){const m=available[Math.floor(Math.random()*available.length)];m.state='setup';log('Plánované prestavenie stroja ENGEL '+String(m.id).padStart(2,'0')+'. Privolaný nastavovač.','notice');moveRole('setup',m);}}
  // worker movement eases toward assigned task
- workers.forEach(w=>{w.x+=(w.tx-w.x)*.08;w.y+=(w.ty-w.y)*.08;w.phase+=.18;});
+ workers.forEach(w=>{w.x+=(w.tx-w.x)*.22;w.y+=(w.ty-w.y)*.22;w.phase+=.42;});
  hud();if(elapsed>=960){finish();}
 }
 function moveRole(role,m){const w=workers.find(x=>x.role===role&&(!x.task||x.task===''));if(!w)return;w.task='busy';w.machine=m.id;w.tx=m.x+32;w.ty=m.y+94;}
-function resetRole(role){const w=workers.find(x=>x.role===role&&x.task==='busy');if(!w)return;w.task='';w.machine=-1;const idx=workers.indexOf(w);w.tx=role==='material'?(idx%2?1120:330):role==='quality'?(idx%2?790:710):role==='setup'?(idx%2?950:600):role==='warehouse'?(idx%2?1300:190):750;w.ty=role==='chief'?420:350;}
+function resetRole(role){const w=workers.find(x=>x.role===role&&x.task==='busy');if(!w)return;w.task='';w.machine=-1;const idx=workers.indexOf(w);w.tx=role==='material'?(idx%2?1120:330):role==='quality'?(idx%2?790:710):role==='setup'?(idx%2?950:600):role==='warehouse'?(idx%2?1300:190):750;w.ty=role==='chief'?420:(role==='quality'||role==='setup'||(role==='warehouse'&&idx%2)?375:320);}
 function repair(){const m=machines.find(m=>m.state==='broken');if(!m){log('Oprava nie je potrebná — žiadny stroj nie je pokazený.','notice');return;}m.state='running';m.needsRepair=false;m.material=Math.max(m.material,50);m.wear=0;repairs++;downtime=Math.max(0,downtime-1);resetRole('chief');log('Hlavný technik opravil stroj ENGEL '+String(m.id).padStart(2,'0')+'. Výroba bola obnovená.','good');hud();}
 function pause(){if(!running)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ POKRAČOVAŤ':'Ⅱ PAUZA';log(paused?'Zmena je pozastavená.':'Zmena pokračuje.', 'notice');}
 function finish(){running=false;paused=false;document.getElementById('pause').disabled=true;document.getElementById('endText').textContent='Vyrobené diely: '+output+'. Kvalita: '+good+' %. Poruchy: '+downtime+'. Opravy: '+repairs+'. '+(good>=95?'Výborná zmena — kvalita je na vysokej úrovni.':good>=85?'Dobrá zmena, no stále je čo zlepšovať.':'Treba analyzovať príčiny nepodarkov a prestojov.');document.getElementById('end').classList.remove('hidden');log('14:00 — Zmena sa skončila. Výsledky sú zaznamenané.','good');}
-function reset(){running=false;paused=false;elapsed=output= downtime=repairs=qualityChecks=rejects=0;good=100;spawnTimer=0;machines.forEach((m,i)=>{Object.assign(m,makeMachine(i));});workers.forEach(w=>{w.task='';w.machine=-1;});workers.filter(w=>w.role==='operator').forEach((w,i)=>{w.tx=machines[i].x+26;w.ty=machines[i].y+68;});workers.filter(w=>w.role!=='operator').forEach((w,i)=>{const coords={material:[[330,350],[1120,350]],quality:[[710,350],[790,350]],warehouse:[[190,350],[1300,350]],setup:[[600,350],[950,350]],chief:[[750,420]]};const p=coords[w.role][workers.filter(x=>x.role===w.role).indexOf(w)]||[750,350];w.tx=p[0];w.ty=p[1];});events=[];document.getElementById('end').classList.add('hidden');document.getElementById('welcome').classList.remove('hidden');document.getElementById('pause').disabled=true;hud();log('06:00 — Zmena je pripravená. Skontroluj halu a stlač „Spustiť zmenu“.');}
+function reset(){running=false;paused=false;elapsed=output= downtime=repairs=qualityChecks=rejects=0;good=100;spawnTimer=0;machines.forEach((m,i)=>{Object.assign(m,makeMachine(i));});workers.forEach(w=>{w.task='';w.machine=-1;});workers.filter(w=>w.role==='operator').forEach((w,i)=>{w.tx=machines[i].x+26;w.ty=machines[i].y+68;});workers.filter(w=>w.role!=='operator').forEach((w,i)=>{const coords={material:[[330,320],[1120,320]],quality:[[710,375],[790,375]],warehouse:[[190,320],[1300,375]],setup:[[600,375],[950,375]],chief:[[750,420]]};const p=coords[w.role][workers.filter(x=>x.role===w.role).indexOf(w)]||[750,350];w.tx=p[0];w.ty=p[1];});events=[];document.getElementById('end').classList.add('hidden');document.getElementById('welcome').classList.remove('hidden');document.getElementById('pause').disabled=true;hud();log('06:00 — Zmena je pripravená. Skontroluj halu a stlač „Spustiť zmenu“.');}
 canvas.addEventListener('click',function(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;const m=machines.find(m=>x>=m.x-7&&x<=m.x+68&&y>=m.y-25&&y<=m.y+85);if(m){selected=m.id;const status={running:'funguje normálne',broken:'PORUCHA — stlač „Oprava“',material:'čaká na materiál',setup:'prebieha prestavenie'}[m.state];log('ENGEL '+String(m.id).padStart(2,'0')+' — '+status+'. Materiál: '+Math.round(m.material)+' %, forma č.'+m.form+'.',m.state==='broken'?'bad':'notice');}});
 document.getElementById('start').addEventListener('click',start);document.getElementById('welcomeStart').addEventListener('click',start);document.getElementById('repair').addEventListener('click',repair);document.getElementById('pause').addEventListener('click',pause);document.getElementById('reset').addEventListener('click',reset);document.getElementById('again').addEventListener('click',reset);
 setInterval(tick,100);renderRoster();hud();draw();
