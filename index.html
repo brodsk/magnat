@@ -375,8 +375,49 @@ const beaconAmber=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.18,16),be
 const beaconGreen=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.18,16),beaconGreenMat);beaconGreen.position.y=.53;processBeacon.add(beaconGreen);
 const inspectionSample=new THREE.Group();inspectionSample.position.set(1.25,.98,2.25);scene.add(inspectionSample);
 const sampleBodyMat=new THREE.MeshStandardMaterial({color:0x6f9fa8,metalness:.1,roughness:.35});
-const sampleBody=new THREE.Mesh(new THREE.BoxGeometry(.66,.22,.44),sampleBodyMat);inspectionSample.add(sampleBody);
-const sampleRib=new THREE.Mesh(new THREE.BoxGeometry(.5,.045,.07),mats.dark);sampleRib.position.y=.13;inspectionSample.add(sampleRib);
+const sampleClearMat=new THREE.MeshStandardMaterial({color:0x9bcbd0,transparent:true,opacity:.68,roughness:.18,metalness:.12});
+const sampleDefectMat=new THREE.MeshStandardMaterial({color:0xc85a43,roughness:.55});
+let sampleGeometryParts=[];
+function clearInspectionSample(){for(const o of sampleGeometryParts){inspectionSample.remove(o);o.geometry?.dispose()}sampleGeometryParts=[]}
+function addSampleMesh(geometry,material,position=[0,0,0],rotation=[0,0,0]){
+ const m=new THREE.Mesh(geometry,material);m.position.set(...position);m.rotation.set(...rotation);m.castShadow=true;m.receiveShadow=true;inspectionSample.add(m);sampleGeometryParts.push(m);return m;
+}
+let selectedPartType='housing';
+function buildInspectionSample(type=selectedPartType,defects=[]){
+ clearInspectionSample();
+ sampleBodyMat.color.set(type==='indicator'?0x9bcbd0:type==='carrier'?0x555f69:0x6f9fa8);
+ sampleBodyMat.transparent=type==='indicator';sampleBodyMat.opacity=type==='indicator'?.72:1;
+ if(type==='indicator'){
+  addSampleMesh(new THREE.BoxGeometry(.72,.13,.25),sampleClearMat,[0,0,0]);
+  addSampleMesh(new THREE.BoxGeometry(.55,.035,.035),new THREE.MeshStandardMaterial({color:0xe7f0e8,emissive:0x25302a}),[0,.075,0]);
+ }else if(type==='carrier'){
+  addSampleMesh(new THREE.BoxGeometry(.64,.16,.48),sampleBodyMat);
+  for(const x of [-.22,.22])for(const z of [-.15,.15])addSampleMesh(new THREE.CylinderGeometry(.055,.055,.12,12),sampleBodyMat,[x,.12,z]);
+  addSampleMesh(new THREE.BoxGeometry(.48,.05,.055),mats.dark,[0,.12,0]);
+ }else{
+  addSampleMesh(new THREE.BoxGeometry(.72,.22,.48),sampleBodyMat);
+  addSampleMesh(new THREE.BoxGeometry(.58,.07,.08),mats.dark,[0,.14,0]);
+  addSampleMesh(new THREE.BoxGeometry(.12,.1,.42),sampleBodyMat,[-.29,.12,0]);
+  addSampleMesh(new THREE.BoxGeometry(.12,.1,.42),sampleBodyMat,[.29,.12,0]);
+ }
+ // Visible defect signatures are intentionally schematic, not metrology.
+ if(defects.includes('flash')){
+  addSampleMesh(new THREE.BoxGeometry(.78,.018,.018),sampleDefectMat,[0,.015,.245]);
+  addSampleMesh(new THREE.BoxGeometry(.78,.018,.018),sampleDefectMat,[0,.015,-.245]);
+ }
+ if(defects.includes('sink')){
+  for(const x of [-.18,.18])addSampleMesh(new THREE.CylinderGeometry(.055,.055,.008,18),sampleDefectMat,[x,.115,.11],[Math.PI/2,0,0]);
+ }
+ if(defects.includes('short')){
+  addSampleMesh(new THREE.BoxGeometry(.24,.16,.46),sampleDefectMat,[-.24,.02,0]);
+ }
+ if(defects.includes('warp'))inspectionSample.rotation.z=.16;
+ else inspectionSample.rotation.z=0;
+ if(defects.includes('burn')){
+  addSampleMesh(new THREE.BoxGeometry(.12,.018,.08),sampleDefectMat,[.18,.13,-.1]);
+ }
+}
+buildInspectionSample();
 inspectionSample.visible=false;
 let processAlarm='none',processPulse=0,lastProcessReport=null;
 function readProcessSettings(){
@@ -402,6 +443,8 @@ function diagnoseProcess(v=readProcessSettings()){
  if(v.s12<2)faults.push(['короткая выдержка','Усадка может не компенсироваться до замерзания литника.']);
  if(v.s9>190)faults.push(['высокая скорость вращения шнека','Возможен избыточный нагрев материала и нестабильная пластикация.']);
  if(v.s10>45)faults.push(['высокое противодавление','Возможен дополнительный нагрев и увеличение времени пластикации.']);
+ if(selectedPartType==='indicator'&&avg>245)faults.push(['риск оптических дефектов линзы','Для прозрачной детали особенно заметны потемнение, полосы и неоднородность поверхности.']);
+ if(selectedPartType==='carrier'&&v.s5<16)faults.push(['риск деформации несущей детали','Для детали с рёбрами и бобышками геометрическая стабильность зависит от охлаждения и конструкции формы.']);
  return {faults,quality:faults.length===0?'OK':faults.length<=2?'WARNING':'REJECT',avg};
 }
 function renderProcessFeedback(v=readProcessSettings()){
@@ -561,9 +604,14 @@ function startTrainingCycle(){
   document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=false);
   partCount++;inspectionSample.visible=true;
   const bad=diagnosis.quality!=='OK';
-  sampleBodyMat.color.set(bad?0xc65b45:0x6f9fa8);
-  sampleBody.scale.set(1,bad&&diagnosis.faults.some(f=>f[0].includes('охлаждения'))?.72:1,1);
-  inspectionSample.position.y=bad&&diagnosis.faults.some(f=>f[0].includes('охлаждения'))?.91:.98;
+  const defects=[];
+  if(diagnosis.faults.some(f=>f[0].includes('смыкания')||f[0].includes('давление выдержки')&&readProcessSettings().s4>88))defects.push('flash');
+  if(diagnosis.faults.some(f=>f[0].includes('давление выдержки')&&readProcessSettings().s4<30||f[0].includes('короткая выдержка')))defects.push('sink');
+  if(diagnosis.faults.some(f=>f[0].includes('впрыска')&&readProcessSettings().s3<20||f[0].includes('переключения')))defects.push('short');
+  if(diagnosis.faults.some(f=>f[0].includes('охлаждения')))defects.push('warp');
+  if(diagnosis.faults.some(f=>f[0].includes('температура расплава')))defects.push('burn');
+  buildInspectionSample(selectedPartType,defects);
+  inspectionSample.position.y=defects.includes('warp')?.91:.98;
   if(bad){document.querySelector('#cellStatus').textContent='БРАК / НУЖНА КОРРЕКЦИЯ';report('Цикл завершён. Деталь №'+partCount+' отмечена как подозрительная/брак. '+diagnosis.faults.map(f=>f[0]).join('; ')+'. Исправьте причины и повторите пробный цикл.');toast('ВНИМАНИЕ · обнаружены признаки брака')}
   else{document.querySelector('#cellStatus').textContent='ЦИКЛ ЗАВЕРШЁН · ДЕТАЛЕЙ: '+partCount;report('Цикл завершён. Учебная деталь №'+partCount+' прошла условную проверку.');toast('Учебная деталь изготовлена')}
  }
@@ -574,7 +622,9 @@ function updateMachineMotion(dt){
  const closed=['CLAMPING','INJECTION','HOLDING','COOLING'].includes(cyclePhase),clampTarget=closed?.15:.55;
  movingPlaten.position.x+=(clampTarget-movingPlaten.position.x)*Math.min(1,dt*4.5);
  const screwTarget=cyclePhase==='INJECTION'?2.42:['HOLDING'].includes(cyclePhase)?2.22:2.05;
- screw.position.x+=(screwTarget-screw.position.x)*Math.min(1,dt*3.5);
+ screw.position.x+=(screwTarget-screw.position.x)*Math.min(1,dt*(cyclePhase==='INJECTION'?7:3.5));
+ const screwRotation=cyclePhase==='PLASTICISING'?dt*2.8:0;
+ screw.rotation.x+=screwRotation;
  processPulse+=dt;
  const active=processAlarm!=='none';
  beaconRedMat.emissiveIntensity=active&&processAlarm==='alarm'?(Math.sin(processPulse*9)>0?2.5:.08):.02;
@@ -584,7 +634,7 @@ function updateMachineMotion(dt){
 }
 function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('Оборудование вне досягаемости. Подойдите ближе и наведитесь на интерактивный объект.');return}const n=hit.name;
 if(n==='control console'||n==='ENGEL base'||n==='clamping unit'||n==='mold'||n==='injection unit'){
-showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуального термопластавтомата ENGEL. Все значения приведены для демонстрации и не являются рецептом для конкретного материала.</p><div class="hmi-note">Только учебный режим · не переносите эти значения на реальную машину. Для настройки используйте документацию производителя оборудования и поставщика материала.</div><div class="grid">
+showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуального термопластавтомата ENGEL. Все значения приведены для демонстрации и не являются рецептом для конкретного материала.</p><div class="hmi-note">Только учебный режим · не переносите эти значения на реальную машину. Для настройки используйте документацию производителя оборудования и поставщика материала.</div><div class="field"><label for="partProfile">ТЕКУЩИЙ ЗАКАЗ · ДЕТАЛЬ ЗЕРКАЛА</label><select id="partProfile" style="width:100%;padding:11px;background:#263843;color:white;border:1px solid #536773;border-radius:8px"><option value="housing">Наружный корпус зеркала · непрозрачный пластик</option><option value="indicator">Рассеиватель указателя поворота · прозрачный пластик</option><option value="carrier">Внутренний держатель / несущий элемент</option></select><p id="partProfileInfo">Крупная наружная деталь с рёбрами и крепёжными зонами. Геометрия показана условно.</p></div><div class="grid">
  <div class="section-label">ПЛАСТИКАЦИОННЫЙ УЗЕЛ</div>
  <div class="field"><label>Зона цилиндра 1 <output id="v1">220 °C</output></label><input type="range" min="160" max="300" value="220" data-unit=" °C" id="s1"></div>
  <div class="field"><label>Зона цилиндра 2 <output id="v2">230 °C</output></label><input type="range" min="160" max="300" value="230" data-unit=" °C" id="s2"></div>
@@ -600,6 +650,8 @@ showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуа�
  <div class="section-label">СМЫКАНИЕ И ОХЛАЖДЕНИЕ</div>
  <div class="field"><label>Время охлаждения <output id="v5">18 s</output></label><input type="range" min="5" max="60" value="18" data-unit=" s" id="s5"></div>
  <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><div id="processDiagnosis" class="hmi-note"><strong>ДИАГНОСТИКА</strong><p>Изменяйте параметры: здесь будут появляться технологические последствия.</p></div><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
+ content.querySelector('#partProfile').value=selectedPartType;
+ content.querySelector('#partProfile').onchange=e=>{selectedPartType=e.target.value;const info={housing:'Наружный корпус зеркала: крупная деталь с крепёжными зонами.',indicator:'Прозрачный рассеиватель: важны чистота поверхности и отсутствие оптических дефектов.',carrier:'Внутренний держатель: рёбра и бобышки повышают требования к равномерному охлаждению.'};content.querySelector('#partProfileInfo').textContent=info[selectedPartType];buildInspectionSample(selectedPartType);inspectionSample.visible=false;renderProcessFeedback();trainingSettingsApplied=false;toast('Выбран другой тип детали — проверьте технологические настройки')};
  content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{
   content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit;
   trainingSettingsApplied=false;document.querySelector('#cellStatus').textContent='ТРЕБУЕТСЯ НАСТРОЙКА';
