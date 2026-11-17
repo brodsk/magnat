@@ -20,7 +20,7 @@
 #interact{position:fixed;right:20px;bottom:calc(70px + env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;border:2px solid #d9ff9e;background:#b8ef69e8;color:#14200e;font-weight:800;font-size:12px;box-shadow:0 5px 18px #0008;touch-action:manipulation}
 #panel{position:fixed;inset:auto 0 0 0;max-height:82dvh;background:#101a22f5;border:1px solid #536773;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .22s ease;overflow:auto;touch-action:pan-y;z-index:5}
 #panel.open{transform:translateY(0)}#panel h2{margin:0 36px 8px 0;font-size:18px}#panel p{color:var(--muted);line-height:1.5;font-size:13px}#close{position:absolute;right:14px;top:12px;border:1px solid var(--line);background:#263843;color:white;border-radius:8px;padding:8px 11px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.field{background:#1b2a34;border:1px solid #3b505c;border-radius:9px;padding:10px}.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.field input{width:100%;accent-color:var(--accent)}.field output{float:right;color:var(--accent);font-weight:700}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}.progress-track{height:7px;background:#263843;border-radius:10px;overflow:hidden;margin:10px 0}.progress-track span{display:block;height:100%;background:linear-gradient(90deg,#86bd45,#d8ff8e);transition:width .25s}.step-list{display:grid;gap:6px;margin:12px 0}.step-item{display:flex;gap:9px;align-items:flex-start;padding:8px;background:#1b2a34;border:1px solid #3b505c;border-radius:8px;font-size:11px;color:#a8bac3}.step-item.active{border-color:#b8ef69;color:#e9f0f3;background:#263a32}.step-item.done{border-color:#577b48;color:#b8ef69}.step-num{font-weight:800;min-width:20px;color:#b8ef69}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.field{background:#1b2a34;border:1px solid #3b505c;border-radius:9px;padding:10px}.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.field input{width:100%;accent-color:var(--accent)}.field output{float:right;color:var(--accent);font-weight:700}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.trend-card{background:#111d25;border:1px solid #3b505c;border-radius:10px;padding:11px;margin:12px 0}.trend-head{display:flex;justify-content:space-between;gap:8px;color:#a8bac3;font-size:10px}.trend-head strong{color:#b8ef69}.trend-card svg{display:block;width:100%;height:112px;margin-top:8px}.trend-legend{display:flex;gap:14px;flex-wrap:wrap;color:#a8bac3;font-size:10px}.trend-legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px}.cycle-meter{height:8px;background:#263843;border-radius:8px;overflow:hidden;margin:9px 0}.cycle-meter span{display:block;width:0;height:100%;background:linear-gradient(90deg,#75a83c,#d8ff8e);transition:width .12s}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}.progress-track{height:7px;background:#263843;border-radius:10px;overflow:hidden;margin:10px 0}.progress-track span{display:block;height:100%;background:linear-gradient(90deg,#86bd45,#d8ff8e);transition:width .25s}.step-list{display:grid;gap:6px;margin:12px 0}.step-item{display:flex;gap:9px;align-items:flex-start;padding:8px;background:#1b2a34;border:1px solid #3b505c;border-radius:8px;font-size:11px;color:#a8bac3}.step-item.active{border-color:#b8ef69;color:#e9f0f3;background:#263a32}.step-item.done{border-color:#577b48;color:#b8ef69}.step-num{font-weight:800;min-width:20px;color:#b8ef69}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}
 .action{background:#b8ef69;color:#15200e;border:0;border-radius:9px;padding:12px 15px;font-weight:800;width:100%;margin-top:8px}.secondary{background:#263843;color:var(--text);border:1px solid var(--line)}
 #toast{position:fixed;top:82px;left:50%;transform:translateX(-50%);background:#17242df2;border:1px solid var(--line);border-radius:9px;padding:10px 13px;max-width:90vw;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}#toast.show{opacity:1}
 #help{position:fixed;left:12px;top:86px;max-width:190px;background:#101820b8;border:1px solid #52636b;border-radius:8px;padding:8px 10px;color:#bdcbd1;font-size:10px;line-height:1.5;pointer-events:none}
@@ -103,6 +103,9 @@ box(engel,'ENGEL rear cabinet',[-2.15,2.0,-.05],[1.25,2.9,2.35],mats.orange);
 box(engel,'clamping unit',[-.55,1.8,0],[2.0,2.5,2.25],mats.white,true);
 box(engel,'fixed platen',[-1.45,1.85,0],[.25,2.35,2.35],mats.steel);
 const movingPlaten=box(engel,'moving platen',[.55,1.85,0],[.28,2.35,2.35],mats.steel);
+// Floor-mounted hazard perimeter: flat, anchored markings around the mould-change working envelope.
+for(let x=-5.55;x<=-.45;x+=.42){box(scene,'ENGEL floor hazard stripe',[x,.012,-4.42],[.24,.018,.075],mats.yellow);box(scene,'ENGEL floor hazard stripe',[x,.012,-1.58],[.24,.018,.075],mats.yellow)}
+for(let z=-4.1;z<=-1.9;z+=.42){box(scene,'ENGEL floor hazard stripe',[-5.88,.012,z],[.075,.018,.24],mats.yellow);box(scene,'ENGEL floor hazard stripe',[-.12,.012,z],[.075,.018,.24],mats.yellow)}
 for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.1,12),mats.yellow);tie.rotation.z=Math.PI/2;tie.position.set(-.45,y,z);engel.add(tie)}
 
  // Grounded machine feet and anchor hardware transfer the base load to the floor.
@@ -258,7 +261,21 @@ box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
 const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
 // Hopper geometry is assembled below with its inspection window and lid.
 box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
-box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],mats.green);
+const machineDisplayCanvas=document.createElement('canvas');machineDisplayCanvas.width=512;machineDisplayCanvas.height=384;const machineDisplayCtx=machineDisplayCanvas.getContext('2d');
+const machineDisplayTexture=new THREE.CanvasTexture(machineDisplayCanvas);machineDisplayTexture.colorSpace=THREE.SRGBColorSpace;
+const machineDisplayMat=new THREE.MeshStandardMaterial({map:machineDisplayTexture,emissive:0x20352a,emissiveMap:machineDisplayTexture,roughness:.32});
+box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],machineDisplayMat);
+function renderMachineDisplay(){
+ const c=machineDisplayCtx;if(!c)return;const phase=cyclePhase||'IDLE';
+ c.fillStyle='#08151b';c.fillRect(0,0,512,384);c.fillStyle='#17313a';c.fillRect(14,14,484,54);
+ c.fillStyle='#b8ef69';c.font='bold 27px Arial';c.fillText('ENGEL  ·  MAGNA',30,51);
+ c.fillStyle='#dce8eb';c.font='bold 31px Arial';c.fillText(({IDLE:'SETUP',CLAMPING:'CLAMP',INJECTION:'INJECTION',HOLDING:'HOLDING',COOLING:'COOLING',EJECTION:'EJECTION',PLASTICISING:'METERING'})[phase]||phase,28,124);
+ c.fillStyle='#90aab4';c.font='21px Arial';c.fillText('PARTS  '+String(partCount||0).padStart(4,'0'),30,177);
+ c.fillText('CYCLE  '+Math.round((cycleProgress||0)*100)+'%',30,213);
+ c.fillStyle='#263c45';c.fillRect(28,244,456,24);c.fillStyle=processAlarm==='alarm'?'#f05c54':processAlarm==='warning'?'#ffc36b':'#b8ef69';c.fillRect(28,244,456*clamp(cycleProgress||0,0,1),24);
+ c.fillStyle='#8da6af';c.font='18px Arial';c.fillText(processAlarm==='alarm'?'PROCESS ALARM':processAlarm==='warning'?'CHECK PROCESS':'CELL READY',30,319);
+ machineDisplayTexture.needsUpdate=true;
+}
 // The machine identity is mounted on the physical cabinet badge below; no floating billboard.
 // Machine detailing: cooling ribs, hydraulic hardware, fasteners, guards and service lines.
 for(let i=0;i<9;i++){box(engel,'cabinet ventilation slot',[-2.15,1.05+i*.19,1.14],[.82,.035,.018],mats.dark)}
@@ -421,8 +438,8 @@ buildInspectionSample();
 inspectionSample.visible=false;
 let processAlarm='none',processPulse=0,lastProcessReport=null;
 function readProcessSettings(){
- const ids=['s1','s2','s7','s8','s9','s10','s3','s11','s4','s12','s5','s6'];
- const defaults={s1:220,s2:230,s7:225,s8:230,s9:80,s10:8,s3:45,s11:12,s4:55,s12:5,s5:18,s6:70};
+ const ids=['s1','s2','s7','s8','s9','s10','s3','s11','s4','s12','s5','s6','s13','s14','s15','s16','s17'];
+ const defaults={s1:220,s2:230,s7:225,s8:230,s9:80,s10:8,s3:45,s11:12,s4:55,s12:5,s5:18,s6:70,s13:42,s14:3,s15:32,s16:38,s17:12};
  const values={};for(const id of ids){const el=document.getElementById(id);values[id]=el?Number(el.value):defaults[id]}
  return values;
 }
@@ -443,12 +460,19 @@ function diagnoseProcess(v=readProcessSettings()){
  if(v.s12<2)faults.push(['короткая выдержка','Усадка может не компенсироваться до замерзания литника.']);
  if(v.s9>190)faults.push(['высокая скорость вращения шнека','Возможен избыточный нагрев материала и нестабильная пластикация.']);
  if(v.s10>45)faults.push(['высокое противодавление','Возможен дополнительный нагрев и увеличение времени пластикации.']);
+ if(v.s13<18)faults.push(['малый ход дозирования','Возможна недостаточная масса впрыска и нестабильная подушка шнека.']);
+ if(v.s13>82)faults.push(['чрезмерный ход дозирования','Увеличивается время пластикации; требуется проверка соответствия дозы объёму детали.']);
+ if(v.s14>10)faults.push(['чрезмерная декомпрессия','Возможны подсос воздуха, нестабильная масса дозы и вытекание материала из сопла при неверной настройке.']);
+ if(v.s15<15||v.s15>110)faults.push(['неподходящая скорость второй ступени впрыска','Переход между ступенями может вызвать линии потока, недолив или скачок давления.']);
+ if(Math.abs(v.s16-v.s4)>38)faults.push(['резкий переход давления выдержки','Ступени выдержки заметно различаются; возможна неравномерная компенсация усадки.']);
+ if(Math.abs(v.s17-v.s11)>24)faults.push(['несогласованные точки V/P','Основная и дополнительная точки переключения расходятся; проверьте профиль впрыска.']);
  if(selectedPartType==='indicator'&&avg>245)faults.push(['риск оптических дефектов линзы','Для прозрачной детали особенно заметны потемнение, полосы и неоднородность поверхности.']);
  if(selectedPartType==='carrier'&&v.s5<16)faults.push(['риск деформации несущей детали','Для детали с рёбрами и бобышками геометрическая стабильность зависит от охлаждения и конструкции формы.']);
  return {faults,quality:faults.length===0?'OK':faults.length<=2?'WARNING':'REJECT',avg};
 }
 function renderProcessFeedback(v=readProcessSettings()){
  const d=diagnoseProcess(v);processAlarm=d.quality==='OK'?'none':d.quality==='WARNING'?'warning':'alarm';
+ updateProcessTrend(v);
  const panel=document.querySelector('#processDiagnosis');
  if(panel){panel.innerHTML=d.faults.length?'<strong>ДИАГНОСТИКА · '+(d.quality==='REJECT'?'КРИТИЧЕСКИЕ ОТКЛОНЕНИЯ':'ЕСТЬ ОТКЛОНЕНИЯ')+'</strong><ul>'+d.faults.map(f=>'<li><b>'+f[0]+'</b> — '+f[1]+'</li>').join('')+'</ul>':'<strong>ПРЕДВАРИТЕЛЬНАЯ ОЦЕНКА · БЕЗ ЯВНЫХ ОТКЛОНЕНИЙ</strong><p>Параметры находятся в условной учебной зоне. Это не подтверждение технологической пригодности.</p>'}
  return d;
@@ -529,7 +553,7 @@ cyl(scene,'beacon post',[6,.78,2],.045,.045,1.5,mats.steel);cyl(scene,'beacon ba
 
 // Player movement and look controls.
 const player={x:0,z:7,yaw:0,pitch:0,moveX:0,moveY:0};const keys={};let activePanel=false;
-let safetyGateClosed=false,trainingSettingsApplied=false,materialPrepared=true,machineCycleActive=false,cycleTimer=null,cyclePhase='IDLE',conveyorRunning=false,partCount=0;
+let safetyGateClosed=false,trainingSettingsApplied=false,materialPrepared=true,machineCycleActive=false,cycleTimer=null,cyclePhase='IDLE',conveyorRunning=false,partCount=0,cycleProgress=0,cyclePhaseProgress=0,cyclePhaseDuration=1;
 function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
 function updateCamera(){camera.position.set(player.x,1.68,player.z);camera.rotation.order='YXZ';camera.rotation.y=player.yaw;camera.rotation.x=player.pitch}
 function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2200)}
@@ -585,6 +609,17 @@ const panel=document.querySelector('#panel'),content=document.querySelector('#pa
 function showPanel(title,body){activePanel=true;content.innerHTML='<h2>'+title+'</h2>'+body;panel.classList.add('open')}
 function closePanel(){panel.classList.remove('open');activePanel=false}
 document.querySelector('#close').onclick=closePanel;
+function updateProcessTrend(v=readProcessSettings()){
+ const phase=document.querySelector('#trendPhase'),fill=document.querySelector('#cycleFill'),pct=document.querySelector('#cyclePercent'),phaseText=document.querySelector('#cyclePhaseText');
+ const labels={IDLE:'ОЖИДАНИЕ',CLAMPING:'СМЫКАНИЕ',INJECTION:'ВПРЫСК',HOLDING:'ВЫДЕРЖКА',COOLING:'ОХЛАЖДЕНИЕ',EJECTION:'ИЗВЛЕЧЕНИЕ',PLASTICISING:'ДОЗИРОВАНИЕ'};
+ if(phase)phase.textContent=labels[cyclePhase]||'НАСТРОЙКА';
+ if(fill)fill.style.width=(cycleProgress*100)+'%';if(pct)pct.textContent=Math.round(cycleProgress*100)+'%';renderMachineDisplay();
+ if(phaseText)phaseText.textContent=machineCycleActive?'Фаза: '+(labels[cyclePhase]||cyclePhase):'Цикл не запущен';
+ const p=clamp(v.s4/100,0,1),sp=clamp(v.s3/150,0,1),p2=clamp(v.s16/100,0,1),sp2=clamp(v.s15/150,0,1);
+ const pressure=[0,.08,.24,.55,.82,1,1,.9,.72,.5,.25,.08].map((n,i)=>{const y=94-n*(25+p*50);return (8+i*27)+','+y}).join(' ');
+ const speed=[0,.12,.42,.88,1,.8,.5,.22,.08,.03,0,0].map((n,i)=>{const blend=i<5?sp:sp2;const y=94-n*(18+blend*55);return (8+i*27)+','+y}).join(' ');
+ const pl=document.querySelector('#pressureLine'),sl=document.querySelector('#speedLine');if(pl)pl.setAttribute('points',pressure);if(sl)sl.setAttribute('points',speed);
+}
 function startTrainingCycle(){
  const result=document.querySelector('#cycleResult'),report=m=>{if(result)result.textContent=m};
  if(machineCycleActive){report('Цикл уже выполняется.');return}
@@ -592,15 +627,15 @@ function startTrainingCycle(){
  if(!materialPrepared){report('ЗАПУСК ЗАПРЕЩЁН · материал должен быть подготовлен грануловщиком.');toast('Блокировка: нет подтверждения готовности материала');return}
  if(!safetyGateClosed){report('ЗАПУСК ЗАПРЕЩЁН · сначала закройте защитную дверь.');toast('Блокировка: защитная дверь открыта');return}
  const diagnosis=renderProcessFeedback();
- machineCycleActive=true;inspectionSample.visible=false;
+ machineCycleActive=true;inspectionSample.visible=false;cycleProgress=0;cyclePhaseProgress=0;
  document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=true);
  const phases=[['CLAMPING','СМЫКАНИЕ · плиты сходятся'],['INJECTION','ВПРЫСК · шнек движется вперёд'],['HOLDING','ВЫДЕРЖКА · компенсация усадки'],['COOLING','ОХЛАЖДЕНИЕ · деталь стабилизируется'],['EJECTION','РАСКРЫТИЕ ФОРМЫ / ИЗВЛЕЧЕНИЕ']];
  let i=0;const durations=[900,1100,900,Math.max(900,Number(document.getElementById('s5')?.value||18)*75),1000];
  const advance=()=>{if(i<phases.length){
-  cyclePhase=phases[i][0];document.querySelector('#cellStatus').textContent=({CLAMPING:'СМЫКАНИЕ',INJECTION:'ВПРЫСК',HOLDING:'ВЫДЕРЖКА',COOLING:'ОХЛАЖДЕНИЕ',EJECTION:'ИЗВЛЕЧЕНИЕ'})[cyclePhase];
+  cyclePhase=phases[i][0];cyclePhaseProgress=0;cyclePhaseDuration=durations[i]/1000;updateProcessTrend();document.querySelector('#cellStatus').textContent=({CLAMPING:'СМЫКАНИЕ',INJECTION:'ВПРЫСК',HOLDING:'ВЫДЕРЖКА',COOLING:'ОХЛАЖДЕНИЕ',EJECTION:'ИЗВЛЕЧЕНИЕ'})[cyclePhase];
   report('Выполняется цикл: '+phases[i][1]+'.');cycleTimer=setTimeout(advance,durations[i++]);
  }else{
-  machineCycleActive=false;cycleTimer=null;cyclePhase='IDLE';
+  machineCycleActive=false;cycleTimer=null;cyclePhase='IDLE';cycleProgress=1;updateProcessTrend();
   document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=false);
   partCount++;inspectionSample.visible=true;
   const bad=diagnosis.quality!=='OK';
@@ -619,6 +654,7 @@ function startTrainingCycle(){
  advance();
 }
 function updateMachineMotion(dt){
+ if(machineCycleActive){cyclePhaseProgress=Math.min(1,cyclePhaseProgress+dt/Math.max(.1,cyclePhaseDuration));cycleProgress=Math.min(1,cycleProgress+dt/Math.max(1,(cyclePhaseDuration*5)));updateProcessTrend();renderMachineDisplay()}else renderMachineDisplay();
  const closed=['CLAMPING','INJECTION','HOLDING','COOLING'].includes(cyclePhase),clampTarget=closed?.15:.55;
  movingPlaten.position.x+=(clampTarget-movingPlaten.position.x)*Math.min(1,dt*4.5);
  const screwTarget=cyclePhase==='INJECTION'?2.42:['HOLDING'].includes(cyclePhase)?2.22:2.05;
@@ -647,9 +683,15 @@ showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуа�
  <div class="field"><label>Положение переключения впрыск/выдержка <output id="v11">12 mm</output></label><input type="range" min="1" max="80" value="12" data-unit=" mm" id="s11"></div>
  <div class="field"><label>Давление выдержки <output id="v4">55 %</output></label><input type="range" min="10" max="100" value="55" data-unit=" %" id="s4"></div>
  <div class="field"><label>Время выдержки <output id="v12">5 s</output></label><input type="range" min="1" max="20" value="5" data-unit=" s" id="s12"></div>
+ <div class="section-label">ДОЗИРОВАНИЕ И ПОДГОТОВКА ВПРЫСКА</div>
+ <div class="field"><label>Ход дозирования шнека <output id="v13">42 mm</output></label><input type="range" min="10" max="100" value="42" data-unit=" mm" id="s13"></div>
+ <div class="field"><label>Декомпрессия после дозирования <output id="v14">3 mm</output></label><input type="range" min="0" max="15" value="3" data-unit=" mm" id="s14"></div>
+ <div class="field"><label>Скорость впрыска · ступень 2 <output id="v15">32 mm/s</output></label><input type="range" min="5" max="150" value="32" data-unit=" mm/s" id="s15"></div>
+ <div class="field"><label>Давление выдержки · ступень 2 <output id="v16">38 %</output></label><input type="range" min="10" max="100" value="38" data-unit=" %" id="s16"></div>
+ <div class="field"><label>Положение точки V/P <output id="v17">12 mm</output></label><input type="range" min="1" max="80" value="12" data-unit=" mm" id="s17"></div>
  <div class="section-label">СМЫКАНИЕ И ОХЛАЖДЕНИЕ</div>
  <div class="field"><label>Время охлаждения <output id="v5">18 s</output></label><input type="range" min="5" max="60" value="18" data-unit=" s" id="s5"></div>
- <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><div id="processDiagnosis" class="hmi-note"><strong>ДИАГНОСТИКА</strong><p>Изменяйте параметры: здесь будут появляться технологические последствия.</p></div><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
+ <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><div class="trend-card"><div class="trend-head"><span>ПРОФИЛЬ ЦИКЛА · УЧЕБНАЯ МОДЕЛЬ</span><strong id="trendPhase">ОЖИДАНИЕ</strong></div><svg id="processTrend" viewBox="0 0 320 112" preserveAspectRatio="none" aria-label="График скорости и давления"><path d="M8 8V94H312" stroke="#52636b" fill="none" stroke-width="1"/><path d="M8 30H312M8 62H312" stroke="#334650" stroke-dasharray="3 4" fill="none"/><polyline id="pressureLine" points="8,82 312,82" fill="none" stroke="#ffbd69" stroke-width="2.5"/><polyline id="speedLine" points="8,76 312,76" fill="none" stroke="#83c9e8" stroke-width="2.5"/></svg><div class="trend-legend"><span><i style="background:#ffbd69"></i>Давление · условно</span><span><i style="background:#83c9e8"></i>Скорость шнека · условно</span></div><div class="cycle-meter"><span id="cycleFill"></span></div><div class="trend-head"><span id="cyclePhaseText">Цикл не запущен</span><strong id="cyclePercent">0%</strong></div></div><div id="processDiagnosis" class="hmi-note"><strong>ДИАГНОСТИКА</strong><p>Изменяйте параметры: здесь будут появляться технологические последствия.</p></div><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
  content.querySelector('#partProfile').value=selectedPartType;
  content.querySelector('#partProfile').onchange=e=>{selectedPartType=e.target.value;const info={housing:'Наружный корпус зеркала: крупная деталь с крепёжными зонами.',indicator:'Прозрачный рассеиватель: важны чистота поверхности и отсутствие оптических дефектов.',carrier:'Внутренний держатель: рёбра и бобышки повышают требования к равномерному охлаждению.'};content.querySelector('#partProfileInfo').textContent=info[selectedPartType];buildInspectionSample(selectedPartType);inspectionSample.visible=false;renderProcessFeedback();trainingSettingsApplied=false;toast('Выбран другой тип детали — проверьте технологические настройки')};
  content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{
@@ -658,6 +700,7 @@ showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуа�
   content.querySelector('#hmiResult').textContent='Параметр изменён. Примените учебные настройки повторно.';
   renderProcessFeedback();
  }));
+ updateProcessTrend();
  content.querySelector('#apply').onclick=()=>{if(machineCycleActive){toast('Нельзя применять настройки во время цикла');return}trainingSettingsApplied=true;document.querySelector('#cellStatus').textContent='ПАРАМЕТРЫ ЗАГРУЖЕНЫ';content.querySelector('#hmiResult').textContent='Параметры загружены. Подготовьте выбранный материал и закройте защитную дверь перед запуском цикла.';toast('Учебные параметры применены')};content.querySelector('#startCycle').onclick=startTrainingCycle;
 }else if(n.includes('ABB')||n.includes('gripper')||n==='robot pedestal'){
 showPanel('ABB · Обучение робота',`<p>Панель обучения шестиосевого робота. Меняйте положение виртуальных осей, чтобы изучить их движение. Это не пульт ABB, не проверенная кинематическая модель и не компилятор RAPID.</p><div class="hmi-note">Движение робота показано условно. Реальная программа и безопасное движение промышленного робота не создаются.</div><div class="grid">
