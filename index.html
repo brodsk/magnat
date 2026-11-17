@@ -265,8 +265,10 @@ const machineDisplayCanvas=document.createElement('canvas');machineDisplayCanvas
 const machineDisplayTexture=new THREE.CanvasTexture(machineDisplayCanvas);machineDisplayTexture.colorSpace=THREE.SRGBColorSpace;
 const machineDisplayMat=new THREE.MeshStandardMaterial({map:machineDisplayTexture,emissive:0x20352a,emissiveMap:machineDisplayTexture,roughness:.32});
 box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],machineDisplayMat);
+let lastMachineDisplayKey='';
 function renderMachineDisplay(){
  const c=machineDisplayCtx;if(!c)return;const phase=cyclePhase||'IDLE';
+ const key=[phase,partCount,Math.round((cycleProgress||0)*100),processAlarm].join('|');if(key===lastMachineDisplayKey)return;lastMachineDisplayKey=key;
  c.fillStyle='#08151b';c.fillRect(0,0,512,384);c.fillStyle='#17313a';c.fillRect(14,14,484,54);
  c.fillStyle='#b8ef69';c.font='bold 27px Arial';c.fillText('ENGEL  ·  MAGNA',30,51);
  c.fillStyle='#dce8eb';c.font='bold 31px Arial';c.fillText(({IDLE:'SETUP',CLAMPING:'CLAMP',INJECTION:'INJECTION',HOLDING:'HOLDING',COOLING:'COOLING',EJECTION:'EJECTION',PLASTICISING:'METERING'})[phase]||phase,28,124);
@@ -487,6 +489,7 @@ robotPart.visible=false;
 const robotTransfer={active:false,phase:0,elapsed:0,phaseDuration:1.25,partCount:0,baseY:2.35,shoulderZ:0,elbowZ:0,wristZ:0};
 const transferPick=new THREE.Vector3(-2.85,2.65,-2.75);
 const transferPlace=new THREE.Vector3(1.25,1.0,1.75);
+const robotToolWorldPosition=new THREE.Vector3();
 function smooth01(v){v=clamp(v,0,1);return v*v*(3-2*v)}
 function startRobotTransfer(){
  if(robotTransfer.active){toast('Робот уже выполняет перенос');return}
@@ -508,12 +511,12 @@ function updateRobotTransfer(dt){
  shoulder.rotation.z=from[1]+(to[1]-from[1])*t;
  elbow.rotation.z=from[2]+(to[2]-from[2])*t;
  wrist.rotation.z=from[3]+(to[3]-from[3])*t;
- const tool=new THREE.Vector3();toolTip.getWorldPosition(tool);
+ const tool=robotToolWorldPosition;toolTip.getWorldPosition(tool);
  if(robotTransfer.phase===0){robotPart.position.lerpVectors(transferPick,tool,t);if(gripperFingerA){gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}if(toolVacuumLamp)toolVacuumLamp.material=mats.green}
  else if(robotTransfer.phase===1){robotPart.position.copy(tool);if(gripperFingerA){gripperFingerA.position.y=.075;gripperFingerB.position.y=-.075}if(toolVacuumLamp)toolVacuumLamp.material=mats.green}
  else if(robotTransfer.phase===2){robotPart.position.copy(tool)}
  else if(robotTransfer.phase===3){robotPart.position.lerpVectors(tool,transferPlace,t)}
- else if(robotTransfer.phase===4){robotPart.position.copy(transferPlace);gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}
+ else if(robotTransfer.phase===4){robotPart.position.copy(transferPlace);if(gripperFingerA&&gripperFingerB){gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}}
  else {robotPart.position.copy(transferPlace)}
  if(robotTransfer.elapsed>=robotTransfer.phaseDuration){
   robotTransfer.elapsed=0;robotTransfer.phase++;
