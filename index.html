@@ -93,9 +93,28 @@ for(let x=-12;x<=12;x+=4){box(scene,'roof beam',[x,5.8,0],[.18,.18,30],mats.stee
 // Roof purlins and utility cable trays.
 for(let z=-12;z<=12;z+=4){box(scene,'roof purlin',[0,5.62,z],[30,.12,.12],mats.steel)}
 box(scene,'overhead cable tray',[-11,4.9,-1],[.35,.12,27],mats.dark);box(scene,'overhead pipe rack',[11,4.75,-1],[.28,.18,27],mats.steel);for(const z of [-12,-6,0,6,12]){box(scene,'cable tray hanger',[-11,5.28,z],[.08,.62,.08],mats.steel);box(scene,'pipe rack hanger',[11,5.18,z],[.08,.86,.08],mats.steel)}
-// Safety fence around the rear half of the cell.
-for(let x=-7;x<=7;x+=2.5){box(scene,'safety fence post',[x,1.25,-5],[.09,2.5,.09],mats.yellow);box(scene,'fence rail',[x,2.35,-5],[2.5,.06,.06],mats.yellow);box(scene,'fence lower rail',[x,.12,-5],[2.5,.06,.06],mats.yellow)}
-const meshMat=new THREE.MeshStandardMaterial({color:0x71848a,metalness:.35,roughness:.6});for(let x=-8.1;x<=8.1;x+=.18)box(scene,'fence mesh vertical',[x,1.25,-5],[.012,2.12,.018],meshMat);for(let y=.25;y<=2.25;y+=.18)box(scene,'fence mesh horizontal',[0,y,-5],[16.2,.012,.018],meshMat);
+// Realistic robot safety cage: mesh rear and side walls, with a conveyor pass-through at the operator side.
+const meshMat=new THREE.MeshStandardMaterial({color:0x71848a,metalness:.35,roughness:.6});
+function cageWallX(x,z0,z1){
+ for(const z of [z0,z1]){box(scene,'ABB cage yellow upright',[x,1.28,z],[.085,2.56,.085],mats.yellow)}
+ box(scene,'ABB cage top rail',[x,2.5,(z0+z1)/2],[.075,.075,Math.abs(z1-z0)],mats.yellow);
+ box(scene,'ABB cage bottom rail',[x,.12,(z0+z1)/2],[.075,.075,Math.abs(z1-z0)],mats.yellow);
+ for(let z=z0+.12;z<z1;z+=.16)box(scene,'ABB safety mesh vertical',[x,1.3,z],[.014,2.25,.02],meshMat);
+ for(let y=.22;y<2.45;y+=.16)box(scene,'ABB safety mesh horizontal',[x,y,(z0+z1)/2],[.018,.014,Math.abs(z1-z0)],meshMat);
+}
+function cageWallZ(z,x0,x1){
+ for(const x of [x0,x1])box(scene,'ABB cage yellow upright',[x,1.28,z],[.085,2.56,.085],mats.yellow);
+ box(scene,'ABB cage top rail',[(x0+x1)/2,2.5,z],[Math.abs(x1-x0),.075,.075],mats.yellow);
+ box(scene,'ABB cage bottom rail',[(x0+x1)/2,.12,z],[Math.abs(x1-x0),.075,.075],mats.yellow);
+ for(let x=x0+.12;x<x1;x+=.16)box(scene,'ABB safety mesh vertical',[x,1.3,z],[.02,2.25,.014],meshMat);
+ for(let y=.22;y<2.45;y+=.16)box(scene,'ABB safety mesh horizontal',[(x0+x1)/2,y,z],[Math.abs(x1-x0),.014,.018],meshMat);
+}
+cageWallZ(-3.55,-2.75,2.55);cageWallX(-2.75,-3.55,1.1);cageWallX(2.55,-3.55,1.1);
+// Front mesh sections leave a deliberate conveyor transfer opening.
+cageWallZ(1.1,-2.75,-.15);cageWallZ(1.1,1.55,2.55);
+for(const x of [-.15,1.55])box(scene,'ABB conveyor opening safety post',[x,1.28,1.1],[.085,2.56,.085],mats.yellow);
+box(scene,'ABB cage top front beam',[.7,2.5,1.1],[1.9,.075,.075],mats.yellow);
+box(scene,'ABB cage lower front beam',[.7,.12,1.1],[1.9,.075,.075],mats.yellow);
 // ENGEL injection molding machine: simplified but recognisable machine architecture.
 const engel=new THREE.Group();engel.position.set(-3,0,-3);scene.add(engel);
 box(engel,'ENGEL base',[0,.65,0],[5.8,1.1,2.5],mats.dark,true);
@@ -508,7 +527,7 @@ for(const x of [-.2,.2])for(const z of [-.12,.12])cyl(robotPart,'part boss',[x,.
 robotPart.visible=false;
 const robotTransfer={active:false,phase:0,elapsed:0,phaseDuration:1.25,partCount:0,baseY:2.35,shoulderZ:0,elbowZ:0,wristZ:0};
 const transferPick=new THREE.Vector3(-2.85,2.65,-2.75);
-const transferPlace=new THREE.Vector3(1.25,1.0,1.75);
+const transferPlace=new THREE.Vector3(.7,1.02,1.65);
 const robotToolWorldPosition=new THREE.Vector3();
 function smooth01(v){v=clamp(v,0,1);return v*v*(3-2*v)}
 function startRobotTransfer(){
@@ -549,62 +568,68 @@ function updateRobotTransfer(dt){
  }
 }
 
-// Auxiliary equipment and conveyor.
+// Auxiliary equipment and a straight operator-facing outfeed conveyor.
 const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
-box(scene,'temperature controller',[-8, .8,-1.8],[1.1,1.5,.65],mats.steel,true);
-box(scene,'conveyor',[2,.7,2.05],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.88,2.05);roller.castShadow=true;roller.receiveShadow=true;scene.add(roller);conveyorRollers.push(roller)}
-// Four bolted support legs carry the conveyor frame to the factory floor.
-for(const x of [-.85,1.15,3.15,4.85])for(const z of [1.62,2.48]){box(scene,'conveyor support leg',[x,.38,z],[.12,.76,.12],mats.steel);box(scene,'conveyor support foot',[x,.055,z],[.3,.11,.28],mats.dark);cyl(scene,'conveyor foot anchor',[x,.12,z],.035,.035,.025,mats.yellow,'y',8)}
-const conveyorDrive=cyl(scene,'conveyor drive motor',[5.45,.62,2.05],.24,.24,.62,mats.dark,'x',18);cyl(scene,'conveyor gearbox',[5.08,.68,2.05],.18,.18,.25,mats.steel,'x',16);cyl(scene,'conveyor drive coupling',[4.92,.88,2.05],.075,.075,.22,mats.yellow,'x',12);
-// Side rails, end stops and a guarded discharge chute make the conveyor read as a real take-away line.
-for(const z of [1.38,2.72])box(scene,'conveyor side guard',[2,.94,z],[7,.22,.09],mats.steel);
-for(const x of [-1.55,5.55]){box(scene,'conveyor end frame',[x,.77,2.05],[.14,.55,1.55],mats.steel);for(const z of [1.5,2.6])cyl(scene,'conveyor frame bolt',[x,.78,z],.045,.045,.035,mats.yellow,'x',10)}
-box(scene,'conveyor discharge sensor',[5.15,1.35,2.05],[.16,.55,.18],mats.dark);cyl(scene,'conveyor photoeye',[5.05,1.48,2.05],.07,.07,.08,mats.green,'x',12);
+box(scene,'temperature controller',[-8,.8,-1.8],[1.1,1.5,.65],mats.steel,true);
+const conveyorRollers=[];
+box(scene,'conveyor frame',[.7,.7,3.55],[1.55,.34,5.25],mats.dark,true);
+box(scene,'green conveyor belt',[.7,.895,3.55],[1.34,.035,5.12],new THREE.MeshStandardMaterial({color:0x168b50,roughness:.94,metalness:0}));
+for(const x of [.0,1.4])box(scene,'conveyor side guard',[x,.98,3.55],[.09,.22,5.22],mats.steel);
+for(let z=1.05;z<=6.05;z+=.42){
+ const roller=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,1.38,12),mats.steel);roller.rotation.z=Math.PI/2;roller.position.set(.7,.86,z);roller.castShadow=true;roller.receiveShadow=true;scene.add(roller);conveyorRollers.push(roller);
+}
+for(const z of [1.15,2.9,4.65,5.95])for(const x of [.08,1.32]){
+ box(scene,'conveyor support leg',[x,.39,z],[.11,.72,.11],mats.steel);
+ box(scene,'conveyor support foot',[x,.055,z],[.28,.11,.28],mats.dark);
+ cyl(scene,'conveyor foot anchor',[x,.12,z],.035,.035,.025,mats.yellow,'y',8);
+}
+cyl(scene,'conveyor drive motor',[1.55,.62,5.7],.24,.24,.62,mats.dark,'x',18);
+cyl(scene,'conveyor gearbox',[1.35,.68,5.7],.18,.18,.25,mats.steel,'x',16);
+box(scene,'conveyor discharge sensor',[.7,1.3,5.85],[.72,.42,.12],mats.dark);
+cyl(scene,'conveyor photoeye',[.7,1.48,5.78],.07,.07,.08,mats.green,'x',12);
 box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
 box(scene,'cell identification sign backing',[0,4.8,-15.58],[3.2,.72,.12],mats.dark);const sign=labelPlane('MOULDING CELL 01',2.8,.58);sign.position.set(0,4.8,-15.505);scene.add(sign);
-// Operator-side view based on the real MAGNA workstation photo.
-const beltMat=new THREE.MeshStandardMaterial({color:0x168b50,roughness:.94,metalness:0});
-box(scene,'green outfeed conveyor belt',[2,.895,2.05],[6.72,.035,1.08],beltMat);
-for(const z of [1.48,2.62])box(scene,'conveyor belt edge strip',[2,.91,z],[6.65,.035,.035],mats.dark);
-// Standalone operator desk outside the robot safety cage; this is separate from the ENGEL machine HMI.
-const operatorDesk=box(scene,'operator workstation desk',[3.25,1.02,4.05],[2.65,.14,.92],mats.steel,true);
-for(const x of [2.12,4.38])for(const z of [3.72,4.38]){
- box(scene,'operator desk leg',[x,.51,z],[.09,1.02,.09],mats.dark);
- box(scene,'operator desk foot',[x,.055,z],[.28,.08,.25],mats.dark);
+// Operator station copied from the reference photo: side shelf, Dell-style monitor and a pendant at the belt edge.
+const operatorShelf=box(scene,'operator monitor shelf',[-3.55,1.42,1.95],[2.65,.14,.9],mats.steel,true);
+for(const x of [-4.65,-2.45])for(const z of [1.62,2.28]){
+ box(scene,'operator shelf bracket',[x, .78,z],[.08,1.35,.08],mats.dark);
+ box(scene,'operator shelf foot',[x,.08,z],[.25,.12,.24],mats.dark);
 }
-box(scene,'operator desk front fascia',[3.25,.86,4.5],[2.5,.18,.055],mats.dark);
-for(let x=2.18;x<4.34;x+=.18)box(scene,'operator desk front vent',[x,.86,4.465],[.09,.035,.012],mats.steel);
-// Dell-style industrial all-in-one monitor, with a proper stand and a production screen.
-box(scene,'operator monitor rear housing',[3.25,1.96,3.79],[1.78,1.12,.16],mats.dark,true);
-box(scene,'operator monitor bezel',[3.25,1.96,3.695],[1.68,1.02,.035],mats.dark);
+box(scene,'operator shelf front lip',[-3.55,1.53,2.4],[2.6,.08,.05],mats.dark);
+// Dell monitor sits above the belt at the operator's left, facing the operator.
+box(scene,'operator monitor rear housing',[-3.55,2.55,1.72],[1.9,1.25,.16],mats.dark,true);
+box(scene,'operator monitor bezel',[-3.55,2.55,1.625],[1.82,1.17,.045],mats.dark);
 const operatorScreenCanvas=document.createElement('canvas');operatorScreenCanvas.width=1024;operatorScreenCanvas.height=640;
 const osc=operatorScreenCanvas.getContext('2d');
-osc.fillStyle='#e7eaf0';osc.fillRect(0,0,1024,640);
-osc.fillStyle='#f8f9fb';osc.fillRect(0,0,1024,64);
-osc.fillStyle='#27364a';osc.font='bold 28px Arial';osc.fillText('JIT - Production',28,42);
-osc.fillStyle='#263c52';osc.font='bold 34px Arial';osc.textAlign='right';osc.fillText('MAGNA',985,43);osc.textAlign='left';
-osc.fillStyle='#d9e0e8';osc.fillRect(20,82,984,48);osc.fillStyle='#33465a';osc.font='bold 20px Arial';osc.fillText('Production order     Status       Machine      Shift / Operator',36,113);
-osc.fillStyle='#fff';osc.fillRect(20,140,984,76);osc.fillStyle='#26364a';osc.font='21px Arial';osc.fillText('JIT order  008734221     ACTIVE       ENGEL 01       A / Operator',36,183);
-osc.fillStyle='#d9e0e8';osc.fillRect(20,238,984,42);osc.fillStyle='#33465a';osc.font='bold 20px Arial';osc.fillText('Part / Product',36,266);osc.fillText('Target',480,266);osc.fillText('Actual',620,266);osc.fillText('Cycle',760,266);osc.fillText('Status',880,266);
-for(let i=0;i<3;i++){const y=290+i*62;osc.fillStyle=i%2?'#f4f6f8':'#fff';osc.fillRect(20,y,984,58);osc.fillStyle='#27384c';osc.font='20px Arial';osc.fillText(['Mirror housing - LH','Indicator lens - clear','Mirror carrier'][i],36,y+36);osc.fillText(['300','180','240'][i],480,y+36);osc.fillText(['286','174','232'][i],620,y+36);osc.fillText(['38 s','31 s','34 s'][i],760,y+36);osc.fillStyle=i===0?'#e4b24d':'#53a66b';osc.fillRect(880,y+12,100,34);osc.fillStyle='#fff';osc.font='bold 17px Arial';osc.fillText(i===0?'RUNNING':'READY',891,y+35)}
-osc.fillStyle='#dce3eb';osc.fillRect(20,492,984,112);osc.fillStyle='#33465a';osc.font='bold 22px Arial';osc.fillText('Production overview',36,528);osc.font='20px Arial';osc.fillText('Planned: 720 pcs      Completed: 692 pcs      Scrap: 3 pcs',36,570);
+function drawOperatorJitScreen(){
+ osc.fillStyle='#e7eaf0';osc.fillRect(0,0,1024,640);
+ osc.fillStyle='#f8f9fb';osc.fillRect(0,0,1024,64);
+ osc.fillStyle='#27364a';osc.font='bold 28px Arial';osc.fillText('JIT - Production',28,42);
+ osc.fillStyle='#263c52';osc.font='bold 34px Arial';osc.textAlign='right';osc.fillText('MAGNA',985,43);osc.textAlign='left';
+ osc.fillStyle='#d9e0e8';osc.fillRect(20,82,984,48);osc.fillStyle='#33465a';osc.font='bold 20px Arial';osc.fillText('Production order     Status       Machine      Shift / Operator',36,113);
+ osc.fillStyle='#fff';osc.fillRect(20,140,984,76);osc.fillStyle='#26364a';osc.font='21px Arial';osc.fillText('JIT order  008734221     ACTIVE       ENGEL 01       A / Operator',36,183);
+ osc.fillStyle='#d9e0e8';osc.fillRect(20,238,984,42);osc.fillStyle='#33465a';osc.font='bold 20px Arial';osc.fillText('Part / Product',36,266);osc.fillText('Target',480,266);osc.fillText('Actual',620,266);osc.fillText('Cycle',760,266);osc.fillText('Status',880,266);
+ for(let i=0;i<3;i++){const y=290+i*62;osc.fillStyle=i%2?'#f4f6f8':'#fff';osc.fillRect(20,y,984,58);osc.fillStyle='#27384c';osc.font='20px Arial';osc.fillText(['Mirror housing - LH','Indicator lens - clear','Mirror carrier'][i],36,y+36);osc.fillText(['300','180','240'][i],480,y+36);osc.fillText([String(Math.max(0,286+partCount)),String(Math.max(0,174+partCount)),String(Math.max(0,232+partCount))][i],620,y+36);osc.fillText(['38 s','31 s','34 s'][i],760,y+36);osc.fillStyle=i===0?'#e4b24d':'#53a66b';osc.fillRect(880,y+12,100,34);osc.fillStyle='#fff';osc.font='bold 17px Arial';osc.fillText(i===0?'RUNNING':'READY',891,y+35)}
+ osc.fillStyle='#dce3eb';osc.fillRect(20,492,984,112);osc.fillStyle='#33465a';osc.font='bold 22px Arial';osc.fillText('Production overview',36,528);osc.font='20px Arial';osc.fillText('Planned: 720 pcs      Completed: '+(692+partCount)+' pcs      Scrap: 3 pcs',36,570);
+}
+drawOperatorJitScreen();
 const operatorScreenTexture=new THREE.CanvasTexture(operatorScreenCanvas);operatorScreenTexture.colorSpace=THREE.SRGBColorSpace;
-const operatorScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.57,.91),new THREE.MeshBasicMaterial({map:operatorScreenTexture}));
-operatorScreen.position.set(3.25,1.96,3.671);scene.add(operatorScreen);
-box(scene,'operator monitor stand neck',[3.25,1.36,3.82],[.16,.18,.12],mats.steel);
-box(scene,'operator monitor stand base',[3.25,1.15,3.82],[.62,.055,.34],mats.dark);
-cyl(scene,'monitor power indicator',[4.02,1.49,3.67],.025,.025,.018,mats.green,'z',12);
-// Separate operator emergency-stop pendant at the conveyor edge, outside the guarded robot envelope.
-box(scene,'operator emergency pendant housing',[4.72,.92,3.08],[.42,.18,.58],mats.dark,true);
-box(scene,'operator emergency pendant yellow plate',[4.72,1.03,3.08],[.38,.035,.52],mats.yellow);
-cyl(scene,'operator emergency stop bezel',[4.72,1.15,2.94],.14,.14,.09,mats.dark,'y',20);
-cyl(scene,'operator emergency stop mushroom',[4.72,1.22,2.94],.105,.105,.12,mats.red,'y',20);
-cyl(scene,'operator pendant white button',[4.72,1.13,3.19],.065,.065,.07,mats.white,'y',16);
-tube(scene,'operator pendant cable',[[4.72,.83,3.08],[4.85,.65,3.0],[4.9,.35,2.8],[4.9,.18,2.3]],.025,mats.dark);
-// A small inspection tray sits beside the operator controls, as in the reference workstation.
-box(scene,'operator inspection tray frame',[5.1,.78,4.0],[.88,.12,.82],mats.dark);
-box(scene,'operator inspection tray surface',[5.1,.85,4.0],[.78,.035,.72],mats.white);
-for(const x of [4.66,5.54])for(const z of [3.58,4.42])box(scene,'inspection tray red white corner marking',[x,.876,z],[.12,.02,.12],mats.red);
+const operatorScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.7,1.06),new THREE.MeshBasicMaterial({map:operatorScreenTexture}));
+operatorScreen.position.set(-3.55,2.55,1.594);scene.add(operatorScreen);
+box(scene,'operator monitor stand neck',[-3.55,1.92,1.83],[.16,.72,.14],mats.steel);
+box(scene,'operator monitor stand base',[-3.55,1.58,1.83],[.62,.055,.34],mats.dark);
+cyl(scene,'monitor power indicator',[-2.72,2.0,1.59],.025,.025,.018,mats.green,'z',12);
+// Physical operator emergency stop on a yellow pendant to the right of the conveyor.
+box(scene,'operator emergency pendant housing',[2.05,1.0,2.25],[.48,.18,.62],mats.dark,true);
+box(scene,'operator emergency pendant yellow plate',[2.05,1.1,2.25],[.44,.035,.58],mats.yellow);
+cyl(scene,'operator emergency stop bezel',[2.05,1.23,2.05],.15,.15,.09,mats.dark,'y',20);
+cyl(scene,'operator emergency stop mushroom',[2.05,1.3,2.05],.11,.11,.12,mats.red,'y',20);
+cyl(scene,'operator pendant white button',[2.05,1.2,2.43],.065,.065,.07,mats.white,'y',16);
+tube(scene,'operator pendant cable',[[2.05,.88,2.25],[2.18,.64,2.18],[2.22,.3,2.0],[2.22,.18,1.5]],.025,mats.dark);
+// Red-white inspection tray next to the conveyor outfeed.
+box(scene,'operator inspection tray frame',[2.35,.78,4.0],[.9,.12,.82],mats.dark);
+box(scene,'operator inspection tray surface',[2.35,.85,4.0],[.8,.035,.72],mats.white);
+for(const x of [1.9,2.8])for(const z of [3.58,4.42])box(scene,'inspection tray red white corner marking',[x,.876,z],[.12,.02,.12],mats.red);
 
 // Peripheral cabinets, compressed-air drop, cooling manifolds and warning beacons.
 const utility=box(scene,'electrical distribution cabinet',[10,1.55,-7],[1.4,3.1,.9],mats.white,true);for(let i=0;i<5;i++)box(scene,'cabinet vent',[10,2.45+i*.12,-6.53],[.8,.025,.025],mats.dark);cyl(scene,'cabinet indicator green',[9.55,2.85,-6.5],.055,.055,.04,mats.green,'z',12);cyl(scene,'cabinet indicator amber',[9.75,2.85,-6.5],.055,.055,.04,mats.yellow,'z',12);
@@ -633,16 +658,16 @@ addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>key
 // Collision volumes are conservative walk-space footprints, not machine geometry.
 const PLAYER_RADIUS=.34;
 const obstacles=[
-  {minX:-1.65,maxX:1.25,minZ:-2.25,maxZ:.65,name:'ABB robot safety enclosure'},
+  {minX:-2.75,maxX:2.55,minZ:-3.55,maxZ:1.1,name:'ABB robot safety enclosure'},
   {minX:-5.95,maxX:-.05,minZ:-4.32,maxZ:-1.68,name:'термопластавтомат ENGEL'},
   {minX:-8.72,maxX:-7.28,minZ:-4.72,maxZ:-3.28,name:'material dryer'},
   {minX:-8.72,maxX:-7.28,minZ:-2.25,maxZ:-1.35,name:'temperature controller'},
   {minX:-7.35,maxX:-3.75,minZ:.05,maxZ:2.35,name:'mould storage rack'},
-  {minX:-.65,maxX:1.15,minZ:-2.15,maxZ:-.15,name:'ABB robot pedestal'},
-  {minX:-1.72,maxX:5.72,minZ:1.3,maxZ:2.8,name:'conveyor'}, 
-  {minX:1.82,maxX:4.68,minZ:3.48,maxZ:4.62,name:'operator workstation'},
-  {minX:4.45,maxX:5.0,minZ:2.78,maxZ:3.38,name:'operator emergency pendant'},
-  {minX:4.62,maxX:5.58,minZ:3.52,maxZ:4.48,name:'operator inspection tray'},
+  {minX:-.75,maxX:.35,minZ:-1.35,maxZ:-.25,name:'ABB robot pedestal'},
+  {minX:-.15,maxX:1.55,minZ:.8,maxZ:6.2,name:'conveyor'}, 
+  {minX:-4.9,maxX:-2.2,minZ:1.45,maxZ:2.45,name:'operator monitor shelf'},
+  {minX:1.78,maxX:2.32,minZ:1.9,maxZ:2.6,name:'operator emergency pendant'},
+  {minX:1.85,maxX:2.85,minZ:3.5,maxZ:4.5,name:'operator inspection tray'},
   
   {minX:9.18,maxX:10.82,minZ:-7.52,maxZ:-6.48,name:'electrical cabinet'},
   {minX:7.18,maxX:8.82,minZ:-3.38,maxZ:-2.62,name:'cooling manifold'},
@@ -740,6 +765,7 @@ function updateMachineMotion(dt){
  if(conveyorRunning)for(const roller of conveyorRollers)roller.rotation.z+=dt*5;
 }
 function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('Оборудование вне досягаемости. Подойдите ближе и наведитесь на интерактивный объект.');return}const n=hit.name;
+if(n==='operator monitor rear housing'){showPanel('MAGNA · JIT PRODUCTION',`<div style="background:#e7eaf0;padding:10px;border-radius:8px"><img alt="JIT Production screen" style="display:block;width:100%;height:auto;border:8px solid #171b20;border-radius:5px" src="${operatorScreenCanvas.toDataURL('image/png')}"><p style="color:#26364a;font-size:13px;text-align:center;margin:8px 0 0">JIT · Production overview · MAGNA</p></div><p>Экран производственного задания. Нажмите «Закрыть», чтобы вернуться к рабочему месту.</p>`);return}
 if(n==='control console'||n==='ENGEL base'||n==='clamping unit'||n==='mold'||n==='injection unit'){
 showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуального термопластавтомата ENGEL. Все значения приведены для демонстрации и не являются рецептом для конкретного материала.</p><div class="hmi-note">Только учебный режим · не переносите эти значения на реальную машину. Для настройки используйте документацию производителя оборудования и поставщика материала.</div><div class="field"><label for="partProfile">ТЕКУЩИЙ ЗАКАЗ · ДЕТАЛЬ ЗЕРКАЛА</label><select id="partProfile" style="width:100%;padding:11px;background:#263843;color:white;border:1px solid #536773;border-radius:8px"><option value="housing">Наружный корпус зеркала · непрозрачный пластик</option><option value="indicator">Рассеиватель указателя поворота · прозрачный пластик</option><option value="carrier">Внутренний держатель / несущий элемент</option></select><p id="partProfileInfo">Крупная наружная деталь с рёбрами и крепёжными зонами. Геометрия показана условно.</p></div><div class="grid">
  <div class="section-label">ПЛАСТИКАЦИОННЫЙ УЗЕЛ</div>
