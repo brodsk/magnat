@@ -602,6 +602,34 @@ for(const z of [1.22,2.22]){
  box(scene,'operator shelf wall clamp',[2.58,1.42,z],[.12,.28,.2],mats.yellow);
 }
 box(scene,'operator shelf front lip',[3.62,1.59,2.29],[1.46,.08,.05],mats.dark);
+
+ // Compact Zebra desktop thermal label printer mounted beside the operator monitor.
+ box(scene,'Zebra ZD421 printer lower chassis',[4.05,1.72,1.94],[.62,.30,.48],mats.dark,true);
+ box(scene,'Zebra ZD421 upper lid',[4.05,1.89,1.91],[.59,.09,.43],mats.white,true);
+ box(scene,'Zebra printer front fascia',[4.05,1.76,2.187],[.56,.16,.035],mats.white);
+ box(scene,'Zebra printer label exit slot',[4.05,1.70,2.211],[.43,.035,.012],mats.dark);
+ box(scene,'Zebra printer top status panel',[4.05,1.94,1.91],[.22,.018,.15],mats.steel);
+ cyl(scene,'Zebra printer feed button',[3.88,1.953,1.91],.025,.025,.018,mats.green,'y',12);
+ // Small visible thermal-label roll under the hinged top cover.
+ cyl(scene,'Zebra label roll core',[4.05,1.91,1.91],.105,.105,.25,mats.white,'x',24);
+ cyl(scene,'Zebra label roll edge',[3.915,1.91,1.91],.11,.11,.012,mats.steel,'x',24);
+ box(scene,'ZEBRA brand badge',[4.05,1.86,2.214],[.25,.055,.012],mats.dark);
+ const zebraBadge=labelPlane('ZEBRA',.23,.045);zebraBadge.position.set(4.05,1.86,2.222);scene.add(zebraBadge);
+ function printZebraLabel(project,quantity){
+  const c=document.createElement('canvas');c.width=640;c.height=360;const g=c.getContext('2d');
+  g.fillStyle='#fff';g.fillRect(0,0,640,360);g.strokeStyle='#172126';g.lineWidth=8;g.strokeRect(5,5,630,350);
+  g.fillStyle='#172126';g.font='bold 28px Arial';g.fillText('MAGNA · BOX LABEL',24,43);
+  g.font='bold 38px Arial';g.fillText(project.name,24,99);
+  g.font='bold 34px Arial';g.fillText(project.material,24,148);
+  g.font='22px Arial';g.fillText('BOX: '+project.box,24,196);g.fillText('QUANTITY: '+quantity+' pcs',24,234);g.fillText('ORDER: '+project.order,24,272);
+  g.fillStyle='#111';for(let i=0;i<48;i++){const w=2+(i%4);g.fillRect(25+i*11,292,w,45)}
+  const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;
+  const label=new THREE.Mesh(new THREE.PlaneGeometry(.42,.236),new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide}));
+  label.position.set(4.05,1.68,2.235);label.name='fresh Zebra printed box label';scene.add(label);
+  setTimeout(()=>{scene.remove(label);label.material.map.dispose();label.material.dispose();tex.dispose()},12000);
+  toast('Zebra printer: etiketa vytlačená');
+ }
+
 // Large monitor faces the operator standing in front of the green conveyor.
 box(scene,'operator monitor rear housing',[3.62,2.55,1.42],[1.9,1.25,.16],mats.dark,true);
 box(scene,'operator monitor bezel',[3.62,2.55,1.325],[1.82,1.17,.045],mats.dark);
@@ -822,7 +850,7 @@ function showJitQuantityDialog(){
  content.querySelector('#jit-qty-cancel').onclick=()=>content.querySelector('#jit-qty-dialog')?.remove();
  content.querySelector('#jit-qty-ok').onclick=()=>{const qty=Number(content.querySelector('#jit-qty').value);if(!Number.isInteger(qty)||qty<1||qty>9999){toast('Zadaйте počet od 1 do 9999');return}jitPrintedLabels++;const q=jitProjects[jitSelectedProject];
  content.querySelector('#jit-qty-dialog').outerHTML='<div class="jit-label" id="jit-print-sheet"><div class="brand">MAGNA · JIT PRODUCTION</div><h2>'+q.name+'</h2><div class="code">'+q.material+'</div><div class="label-grid"><div><small>PROJEKT / PROJECT</small><b>'+q.name+'</b></div><div><small>GRANULÁT / MATERIAL</small><b>'+q.material+'</b></div><div><small>PREPRAVKA / BOX</small><b>'+q.box+'</b></div><div><small>POČET KUSOV / QUANTITY</small><b>'+qty+' ks</b></div><div><small>VÝROBNÝ PRÍKAZ</small><b>'+q.order+'</b></div><div><small>FORMA / MOULD</small><b>'+q.mould+'</b></div></div><p style="text-align:center;margin:14px 0 0;font-size:10px">MAGNA · SIMULATED BOX LABEL</p></div><button class="jit-btn primary" id="jit-print-now">Tlačiť etiketu</button><button class="jit-btn" id="jit-print-back">Späť</button>';
- content.querySelector('#jit-print-now').onclick=()=>{toast('Etiketa pripravená na tlač');window.print()};content.querySelector('#jit-print-back').onclick=()=>renderJitApp('labels');toast('Etiketa vytvorená · '+qty+' ks')};
+ content.querySelector('#jit-print-now').onclick=()=>{printZebraLabel(q,qty);toast('Zebra: tlač etikety · '+qty+' ks');window.print()};content.querySelector('#jit-print-back').onclick=()=>renderJitApp('labels');toast('Etiketa vytvorená · '+qty+' ks')};
 }
 function openJitComputer(){showPanel('MAGNA · JIT PRODUCTION','');renderJitApp('production')}
 
