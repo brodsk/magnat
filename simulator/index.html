@@ -77,7 +77,7 @@ function box(parent,name,pos,size,mat,interactive=false){const m=new THREE.Mesh(
 function cyl(parent,name,pos,r1,r2,len,mat,axis='y',segments=16){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,len,segments),mat);m.name=name;m.position.set(...pos);if(axis==='x')m.rotation.z=Math.PI/2;else if(axis==='z')m.rotation.x=Math.PI/2;m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 function tube(parent,name,points,radius,mat){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const m=new THREE.Mesh(new THREE.TubeGeometry(curve,32,radius,8,false),mat);m.name=name;m.castShadow=true;parent.add(m);return m}
 const targets=[];
-function labelSprite(text){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.fillStyle='#14212a';x.fillRect(0,0,512,128);x.fillStyle='#c7f18a';x.font='bold 42px Arial';x.textAlign='center';x.fillText(text,256,80);const tex=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));s.scale.set(2.2,.55,1);return s}
+function labelSprite(text){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.fillStyle='#14212a';x.fillRect(0,0,512,128);x.fillStyle='#c7f18a';x.font='bold 42px Arial';x.textAlign='center';x.fillText(text,256,80);const tex=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));s.scale.set(2.2,.55,1);return s}\nfunction labelPlane(text,w,h){const c=document.createElement('canvas');c.width=768;c.height=192;const x=c.getContext('2d');x.fillStyle='#14212a';x.fillRect(0,0,c.width,c.height);x.strokeStyle='#71858c';x.lineWidth=8;x.strokeRect(5,5,c.width-10,c.height-10);x.fillStyle='#c7f18a';x.font='bold 54px Arial';x.textAlign='center';x.textBaseline='middle';x.fillText(text,c.width/2,c.height/2);const tex=new THREE.CanvasTexture(c);tex.colorSpace=THREE.SRGBColorSpace;const m=new THREE.Mesh(new THREE.PlaneGeometry(w,h),new THREE.MeshStandardMaterial({map:tex,roughness:.82,metalness:.08}));m.name='fixed equipment identification label';return m}
 box(scene,'factory floor',[0,-.12,0],[32,.2,32],mats.floor);
 for(let x=-15;x<=15;x+=3)box(scene,'floor marking',[x,-.012,0],[.018,.008,31],new THREE.MeshStandardMaterial({color:0x9aa6a8,roughness:1}));
 // Painted traffic lanes, work zones and floor expansion joints.
@@ -153,7 +153,7 @@ box(mouldRack,'mould storage rack base',[0,.32,0],[3.3,.64,1.9],craneSteel);
 for(const x of [-1.35,-.15,1.05]){box(mouldRack,'rack upright',[x,.92,-.72],[.12,1.2,.12],craneYellow);box(mouldRack,'rack upright',[x,.92,.72],[.12,1.2,.12],craneYellow)}
 for(const z of [-.62,.62])box(mouldRack,'mould storage rail',[0,.72,z],[3.1,.12,.12],craneYellow);
 
- box(mouldRack,'rack identification plate',[0,1.72,-.79],[1.8,.34,.08],mats.dark);const rackLabel=labelSprite('MOULD STORAGE · A / B');rackLabel.scale.set(1.45,.34,1);rackLabel.position.set(0,1.72,-.84);mouldRack.add(rackLabel);
+ box(mouldRack,'rack identification plate',[0,1.72,-.79],[1.8,.34,.08],mats.dark);const rackLabel=labelPlane('MOULD STORAGE · A / B',1.62,.25);rackLabel.position.set(0,1.72,-.744);mouldRack.add(rackLabel);
  for(const x of [-1.45,1.45])for(const z of [-.72,.72]){box(mouldRack,'rack foot',[x,.06,z],[.28,.12,.28],mats.dark);cyl(mouldRack,'rack anchor',[x,.14,z],.045,.045,.035,mats.yellow,'y',10)}
  for(let i=0;i<12;i++)box(craneBridge,'crane hazard stripe',[-6.7+i*.62,4.82,.32],[.28,.12,.025],i%2?mats.dark:craneYellow);
  cyl(craneTrolley,'hoist drum',[0,-.22,.42],.22,.22,.55,craneSteel,'z',20);
@@ -236,7 +236,7 @@ const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel
 box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
 box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
 box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],mats.green);
-const engelLabel=labelSprite('ENGEL · INJECTION MOULDING');engelLabel.position.set(0,3.7,0);engel.add(engelLabel);
+// The machine identity is mounted on the physical cabinet badge below; no floating billboard.
 // Machine detailing: cooling ribs, hydraulic hardware, fasteners, guards and service lines.
 for(let i=0;i<9;i++){box(engel,'cabinet ventilation slot',[-2.15,1.05+i*.19,1.14],[.82,.035,.018],mats.dark)}
 for(let z of [-.92,.92]){for(let y of [1.0,2.72]){cyl(engel,'tie-bar lock nut',[-1.45,y,z],.13,.13,.13,mats.yellow,'x',12);cyl(engel,'tie-bar lock nut',[.55,y,z],.13,.13,.13,mats.yellow,'x',12)}}
@@ -260,7 +260,7 @@ box(engel,'HMI bezel',[1.45,2.28,1.265],[.62,.5,.06],mats.steel);for(let i=0;i<3
  box(engel,'clamping unit trim',[-.55,3.08,1.04],[1.82,.12,.16],mats.orange);
  box(engel,'injection unit side panel',[2.05,2.36,.69],[1.85,.08,.06],mats.dark);
  for(const x of [-2.5,-1.1,.7,2.5]){box(engel,'machine foot pad',[x,.08,.82],[.48,.16,.62],mats.dark);cyl(engel,'machine anchor bolt',[x,.17,1.08],.055,.055,.04,mats.yellow,'y',10)}
- const machineBadge=labelSprite('ENGEL · MOULDING CELL');machineBadge.position.set(-2.15,2.95,1.24);machineBadge.scale.set(1.45,.36,1);engel.add(machineBadge);
+ box(engel,'ENGEL machine identification plate',[-2.15,2.95,1.19],[1.62,.42,.08],mats.dark);const machineBadge=labelPlane('ENGEL · MOULDING CELL',1.48,.31);machineBadge.position.set(-2.15,2.95,1.236);engel.add(machineBadge);
  // Cooling connection blocks and colour-coded mould circuits.
  for(let i=0;i<4;i++){cyl(engel,'mould cooling connector',[-.45+i*.3,1.15,1.22],.075,.075,.09,i%2?mats.green:mats.yellow,'z',14);cyl(engel,'cooling connector collar',[-.45+i*.3,1.15,1.28],.095,.095,.035,mats.steel,'z',14)}
  // Flexible hydraulic and cooling hoses, routed along the machine frame.
@@ -280,10 +280,10 @@ box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
 box(wrist,'gripper mount',[.48,0,0],[.28,.2,.24],mats.dark,true);
 const gripperFingerA=box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
 const gripperFingerB=box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
-const robotNameplate=box(robot,'ABB robot nameplate',[0,1.12,.58],[.82,.25,.055],mats.dark);const robotLabel=labelSprite('ABB · IRB');robotLabel.scale.set(1.0,.25,1);robotLabel.position.set(0,1.12,.62);robot.add(robotLabel);
+const robotNameplate=box(robot,'ABB robot nameplate',[0,1.12,.58],[.82,.25,.055],mats.dark);const robotLabel=labelPlane('ABB · IRB',.72,.19);robotLabel.position.set(0,1.12,.611);robot.add(robotLabel);
 // Robot extraction station: machine-side hand-off, guarding posts and local status stack.
 const robotPad=box(scene,'ABB robot foundation',[-.2,.08,-.8],[2.05,.16,2.05],mats.dark);
-for(const [x,z] of [[-1.22,-1.82],[.82,-1.82],[-1.22,.22],[.82,.22]]){box(scene,'robot cell guard post',[x,1.12,z],[.09,2.24,.09],mats.yellow);cyl(scene,'robot guard anchor',[x,.18,z],.08,.08,.06,mats.steel,'y',12)}
+for(const [x,z] of [[-1.22,-1.82],[.82,-1.82],[-1.22,.22],[.82,.22]]){box(scene,'robot cell guard post',[x,1.12,z],[.09,2.24,.09],mats.yellow);cyl(scene,'robot guard anchor',[x,.18,z],.08,.08,.06,mats.steel,'y',12)}\n// Fixed perimeter panels turn the four posts into a recognisable guarded robot cell.\nconst fenceMeshMat=new THREE.MeshStandardMaterial({color:0x819196,metalness:.42,roughness:.58});\nfunction addRobotFenceX(name,x1,x2,z){box(scene,name+' upper rail',[(x1+x2)/2,2.18,z],[x2-x1,.07,.07],mats.yellow);box(scene,name+' lower rail',[(x1+x2)/2,.18,z],[x2-x1,.07,.07],mats.yellow);for(let x=x1+.1;x<x2-.04;x+=.16)box(scene,name+' mesh upright',[x,1.18,z],[.012,1.9,.018],fenceMeshMat);for(let y=.34;y<2.1;y+=.18)box(scene,name+' mesh crosswire',[(x1+x2)/2,y,z],[x2-x1-.08,.012,.018],fenceMeshMat)}\nfunction addRobotFenceZ(name,x,z1,z2){box(scene,name+' upper rail',[x,2.18,(z1+z2)/2],[.07,.07,z2-z1],mats.yellow);box(scene,name+' lower rail',[x,.18,(z1+z2)/2],[.07,.07,z2-z1],mats.yellow);for(let z=z1+.1;z<z2-.04;z+=.16)box(scene,name+' mesh upright',[x,1.18,z],[.018,1.9,.012],fenceMeshMat);for(let y=.34;y<2.1;y+=.18)box(scene,name+' mesh crosswire',[x,y,(z1+z2)/2],[.018,.012,z2-z1-.08],fenceMeshMat)}\naddRobotFenceX('robot rear safety panel',-1.22,.82,-1.82);addRobotFenceZ('robot left safety panel',-1.22,-1.82,.22);addRobotFenceZ('robot right safety panel',.82,-1.82,.22);addRobotFenceX('robot access gate left leaf',-1.22,-.22,.22);addRobotFenceX('robot access gate right leaf',-.22,.82,.22);cyl(scene,'robot gate hinge upper',[-1.16,2.0,.22],.045,.045,.22,mats.dark,'y',12);cyl(scene,'robot gate hinge lower',[-1.16,.35,.22],.045,.045,.22,mats.dark,'y',12);box(scene,'robot gate latch',[-.22,1.15,.22],[.07,.28,.12],mats.dark);
 box(scene,'robot cell status tower',[1.42,1.65,-1.15],[.18,3.3,.18],mats.dark);cyl(scene,'robot status green',[1.42,2.8,-1.15],.09,.09,.2,mats.green);cyl(scene,'robot status amber',[1.42,2.5,-1.15],.09,.09,.2,mats.yellow);cyl(scene,'robot status red',[1.42,2.2,-1.15],.09,.09,.2,mats.red);
 // Robot base ring, axis covers, service conduit and wrist details.
 cyl(robot,'robot base turntable',[0,.92,0],.53,.53,.14,mats.dark,'y',24);cyl(robot,'robot base trim',[0,.99,0],.46,.46,.045,mats.yellow,'y',24);
@@ -343,13 +343,13 @@ function updateRobotTransfer(dt){
 // Auxiliary equipment and conveyor.
 const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
 box(scene,'temperature controller',[-8, .8,-1.8],[1.1,1.5,.65],mats.steel,true);
-box(scene,'conveyor',[2,.7,2.05],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.88,2.05);scene.add(roller);conveyorRollers.push(roller)}
+box(scene,'conveyor',[2,.7,2.05],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.88,2.05);roller.castShadow=true;roller.receiveShadow=true;scene.add(roller);conveyorRollers.push(roller)}\n// Four bolted support legs carry the conveyor frame to the factory floor.\nfor(const x of [-.85,1.15,3.15,4.85])for(const z of [1.62,2.48]){box(scene,'conveyor support leg',[x,.38,z],[.12,.76,.12],mats.steel);box(scene,'conveyor support foot',[x,.055,z],[.3,.11,.28],mats.dark);cyl(scene,'conveyor foot anchor',[x,.12,z],.035,.035,.025,mats.yellow,'y',8)}\nconst conveyorDrive=cyl(scene,'conveyor drive motor',[5.45,.62,2.05],.24,.24,.62,mats.dark,'x',18);cyl(scene,'conveyor gearbox',[5.08,.68,2.05],.18,.18,.25,mats.steel,'x',16);cyl(scene,'conveyor drive coupling',[4.92,.88,2.05],.075,.075,.22,mats.yellow,'x',12);
 // Side rails, end stops and a guarded discharge chute make the conveyor read as a real take-away line.
 for(const z of [1.38,2.72])box(scene,'conveyor side guard',[2,.94,z],[7,.22,.09],mats.steel);
 for(const x of [-1.55,5.55]){box(scene,'conveyor end frame',[x,.77,2.05],[.14,.55,1.55],mats.steel);for(const z of [1.5,2.6])cyl(scene,'conveyor frame bolt',[x,.78,z],.045,.045,.035,mats.yellow,'x',10)}
 box(scene,'conveyor discharge sensor',[5.15,1.35,2.05],[.16,.55,.18],mats.dark);cyl(scene,'conveyor photoeye',[5.05,1.48,2.05],.07,.07,.08,mats.green,'x',12);
 box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
-box(scene,'cell identification sign backing',[0,4.8,-15.58],[3.2,.72,.12],mats.dark);const sign=labelSprite('MOULDING CELL 01');sign.scale.set(2.8,.7,1);sign.position.set(0,4.8,-15.49);scene.add(sign);
+box(scene,'cell identification sign backing',[0,4.8,-15.58],[3.2,.72,.12],mats.dark);const sign=labelPlane('MOULDING CELL 01',2.8,.58);sign.position.set(0,4.8,-15.505);scene.add(sign);
 // Peripheral cabinets, compressed-air drop, cooling manifolds and warning beacons.
 const utility=box(scene,'electrical distribution cabinet',[10,1.55,-7],[1.4,3.1,.9],mats.white,true);for(let i=0;i<5;i++)box(scene,'cabinet vent',[10,2.45+i*.12,-6.53],[.8,.025,.025],mats.dark);cyl(scene,'cabinet indicator green',[9.55,2.85,-6.5],.055,.055,.04,mats.green,'z',12);cyl(scene,'cabinet indicator amber',[9.75,2.85,-6.5],.055,.055,.04,mats.yellow,'z',12);
 box(scene,'compressed air drop',[11.8,2.5,-2],[.16,4.8,.16],mats.steel);tube(scene,'air hose',[[11.8,3.8,-2],[11.5,3.7,-1.5],[11.5,2.4,-1.2],[10.8,2.2,-1.2]],.035,mats.yellow);
@@ -369,7 +369,7 @@ let lookId=null,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdow
 addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
 // Collision volumes are conservative walk-space footprints, not machine geometry.
 const PLAYER_RADIUS=.34;
-const obstacles=[
+const obstacles=[\n  {minX:-1.65,maxX:1.25,minZ:-2.25,maxZ:.65,name:'ABB robot safety enclosure'},
   {minX:-5.95,maxX:-.05,minZ:-4.32,maxZ:-1.68,name:'ENGEL machine'},
   {minX:-8.72,maxX:-7.28,minZ:-4.72,maxZ:-3.28,name:'material dryer'},
   {minX:-8.72,maxX:-7.28,minZ:-2.25,maxZ:-1.35,name:'temperature controller'},
