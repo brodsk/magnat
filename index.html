@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
@@ -29,12 +29,12 @@
 </head>
 <body>
 <div id="scene"></div>
-<div id="topbar"><div class="brand"><b>MAGNA</b><small>INDUSTRIAL SIMULATOR · ALPHA 0.1</small></div><div class="status">CELL STATUS<br><strong id="cellStatus">SETUP REQUIRED</strong></div></div>
-<div id="help">Move: left stick<br>Look: drag right side<br>Walk to a machine and tap INTERACT</div>
-<div id="crosshair"></div><div id="hint">Explore the cell. Find the <strong>ENGEL machine</strong>.</div>
+<div id="topbar"><div class="brand"><b>MAGNA</b><small>ПРОМЫШЛЕННЫЙ СИМУЛЯТОР · АЛЬФА 0.1</small></div><div class="status">СОСТОЯНИЕ ЯЧЕЙКИ<br><strong id="cellStatus">ТРЕБУЕТСЯ НАСТРОЙКА</strong></div></div>
+<div id="help">Движение: левый джойстик<br>Обзор: проведите пальцем справа<br>Подойдите к оборудованию и нажмите «ДЕЙСТВИЕ»</div>
+<div id="crosshair"></div><div id="hint">Осмотритесь и найдите <strong>термопластавтомат ENGEL</strong>.</div>
 <div id="joystick"><div id="stick"></div></div>
-<div id="looktip">DRAG TO LOOK</div>
-<button id="interact">INTERACT</button>
+<div id="looktip">ПРОВЕДИТЕ ДЛЯ ОБЗОРА</div>
+<button id="interact">ДЕЙСТВИЕ</button>
 <div id="toast"></div>
 <section id="panel"><button id="close">✕</button><div id="panelContent"></div></section>
 <script>
@@ -121,7 +121,7 @@ for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(n
  tube(engel,'mould cooling return hose',[[-1.55,1.0,1.16],[-1.28,.78,1.34],[-.32,.78,1.34],[.18,1.02,1.16]],.025,mats.yellow);
  for(const [x,y,z] of [[-1.55,1.15,1.12],[-1.55,1.0,1.16],[.1,1.2,1.16],[.18,1.02,1.16]])cyl(engel,'service hose coupling',[x,y,z],.065,.065,.09,mats.steel,'z',12);
  // Fixed operator-side machine identification and emergency-stop station.
- box(engel,'ENGEL machine nameplate',[.55,2.85,1.14],[.9,.28,.045],mats.dark);
+ box(engel,'термопластавтомат ENGEL nameplate',[.55,2.85,1.14],[.9,.28,.045],mats.dark);
  const machineLabel=labelPlane('ENGEL · INJECTION',.82,.22);machineLabel.position.set(.55,2.85,1.17);engel.add(machineLabel);
  cyl(engel,'machine emergency stop bezel',[1.12,2.48,1.16],.105,.105,.05,mats.dark,'z',16);
  cyl(engel,'machine emergency stop button',[1.12,2.48,1.2],.075,.075,.045,mats.red,'z',16);
@@ -185,20 +185,20 @@ const rackOldPosition={x:-6.35,y:1.62,z:1.2};
 const craneTarget={x:-3.45,z:-3};
 let mouldHookY=3,mouldStep=-1,mouldIsolated=false,servicesConnected=true,clampsSecured=true,mouldChangeComplete=false;
 const mouldSteps=[
- 'Stop the machine and select the mould-change training mode',
- 'Verify the isolated energy state and confirm the work area is clear',
- 'Disconnect cooling, hydraulic and electrical services from the mould',
- 'Release the mould clamps and verify all retainers are clear',
- 'Position the crane and attach the approved lifting arrangement',
- 'Lift the existing mould clear of the tie bars',
- 'Traverse the crane and lower the old mould onto storage bay A',
- 'Inspect the replacement mould and confirm its lifting points',
- 'Attach the lifting arrangement to the replacement mould',
- 'Lift the replacement mould and align it with the machine centreline',
- 'Lower the mould into position and secure the retaining clamps',
- 'Reconnect the required cooling circuits and service connections',
- 'Inspect connections, clear tools and verify guards and access',
- 'Complete the training checklist and return the cell to setup mode'
+ 'Остановить машину и выбрать учебный режим смены пресс-формы',
+ 'Проверить условное отключение энергий и освободить рабочую зону',
+ 'Отсоединить от формы охлаждение, гидравлику и электрику',
+ 'Освободить крепления формы и проверить фиксаторы',
+ 'Подвести кран и закрепить предусмотренную грузовую оснастку',
+ 'Поднять установленную форму, освободив колонны',
+ 'Переместить кран и опустить старую форму в ячейку хранения А',
+ 'Осмотреть новую форму и проверить точки подъёма',
+ 'Закрепить грузовую оснастку на новой форме',
+ 'Поднять новую форму и совместить её с осью машины',
+ 'Опустить форму на место и закрепить прижимами',
+ 'Подсоединить необходимые контуры охлаждения и коммуникации',
+ 'Проверить соединения, убрать инструмент и проверить ограждения и доступ',
+ 'Завершить учебный контрольный список и вернуть ячейку в режим настройки'
 ];
 function setCraneForMould(m){craneTarget.x=m.group.position.x;craneTarget.z=m.group.position.z}
 function setMouldTarget(item,x,y,z){item.target={x,y,z};craneTarget.x=x;craneTarget.z=z}
@@ -225,15 +225,15 @@ function showMouldChangePanel(){
  const completed=Math.max(0,mouldStep+1),current=Math.min(mouldStep+1,mouldSteps.length-1);
  const list=mouldSteps.map((s,i)=>'<div class="step-item '+(i<=mouldStep?'done':i===current?'active':'')+'"><span class="step-num">'+(i<mouldStep?'✓':String(i+1).padStart(2,'0'))+'</span><span>'+s+'</span></div>').join('');
  const pct=Math.min(100,completed/mouldSteps.length*100);
- const next=mouldStep<0?'Begin by stopping the machine and selecting mould-change mode.':mouldStep>=mouldSteps.length-1?'Mould-change training complete.':'Next: '+mouldSteps[mouldStep+1];
- const button=mouldStep<0?'BEGIN MOULD CHANGE':mouldStep>=mouldSteps.length-1?'RESTART TRAINING':'COMPLETE STEP & CONTINUE';
- const body='<p>Guided mould-change workflow using a virtual overhead crane. Work through each stage in order. This is a training simulation, not a substitute for site LOTO procedures, lifting plans, machine manuals or qualified supervision.</p><div class="hmi-note">Safety boundary · the training isolation flag is not a real energy-isolation system. Never use this simulation to plan or perform a real lift.</div><div class="field"><strong>PROGRESS · '+Math.min(completed,mouldSteps.length)+' / '+mouldSteps.length+'</strong><div class="progress-track"><span style="width:'+pct+'%"></span></div><small style="color:var(--muted)">Machine: '+(mouldIsolated?'ISOLATION CONFIRMED (SIMULATED)':'STOPPED / NOT VERIFIED')+' · Cooling: '+(servicesConnected?'CONNECTED':'DISCONNECTED')+' · Clamps: '+(clampsSecured?'SECURED':'RELEASED')+'</small></div><div class="step-list">'+list+'</div><p id="mouldAction">'+next+'</p><button class="action" id="mouldNext">'+button+'</button><button class="action secondary" id="mouldReset">RESET TRAINING SCENARIO</button>';
- showPanel('ENGEL · Mould change training',body);
+ const next=mouldStep<0?'Начните с остановки машины и выбора режима смены формы.':mouldStep>=mouldSteps.length-1?'Учебная смена пресс-формы завершена.':'Далее: '+mouldSteps[mouldStep+1];
+ const button=mouldStep<0?'НАЧАТЬ СМЕНУ ФОРМЫ':mouldStep>=mouldSteps.length-1?'НАЧАТЬ ЗАНОВО':'ЗАВЕРШИТЬ ЭТАП И ПРОДОЛЖИТЬ';
+ const body='<p>Пошаговая учебная смена пресс-формы с использованием виртуального мостового крана. Проходите этапы по порядку. Симулятор не заменяет реальные процедуры блокировки энергий, планы подъёма, руководства машины и надзор квалифицированного персонала.</p><div class="hmi-note">Граница безопасности · отметка изоляции в симуляторе не является реальной системой отключения энергий. Не используйте симуляцию для планирования или выполнения настоящего подъёма.</div><div class="field"><strong>ХОД РАБОТ · '+Math.min(completed,mouldSteps.length)+' / '+mouldSteps.length+'</strong><div class="progress-track"><span style="width:'+pct+'%"></span></div><small style="color:var(--muted)">Машина: '+(mouldIsolated?'ИЗОЛЯЦИЯ ПОДТВЕРЖДЕНА (ИМИТАЦИЯ)':'ОСТАНОВЛЕНО / НЕ ПРОВЕРЕНО')+' · Охлаждение: '+(servicesConnected?'ПОДКЛЮЧЕНО':'DISПОДКЛЮЧЕНО')+' · Крепления: '+(clampsSecured?'ЗАКРЕПЛЕНО':'ОСВОБОЖДЕНО')+'</small></div><div class="step-list">'+list+'</div><p id="mouldAction">'+next+'</p><button class="action" id="mouldNext">'+button+'</button><button class="action secondary" id="mouldReset">RESET TRAINING SCENARIO</button>';
+ showPanel('ENGEL · Учебная смена пресс-формы',body);
  content.querySelector('#mouldNext').onclick=()=>{
-  if(machineCycleActive){toast('Training cycle must be stopped first');return}
-  if(mouldStep>=mouldSteps.length-1){toast('Training scenario already complete');return}
+  if(machineCycleActive){toast('Сначала необходимо остановить учебный цикл');return}
+  if(mouldStep>=mouldSteps.length-1){toast('Учебный сценарий уже завершён');return}
   mouldStep++;
-  if(mouldStep===0){mouldIsolated=false;servicesConnected=true;clampsSecured=true;safetyGateClosed=false;trainingSettingsApplied=false;cyclePhase='IDLE';document.querySelector('#cellStatus').textContent='MOULD CHANGE · STOPPED'}
+  if(mouldStep===0){mouldIsolated=false;servicesConnected=true;clampsSecured=true;safetyGateClosed=false;trainingSettingsApplied=false;cyclePhase='IDLE';document.querySelector('#cellStatus').textContent='СМЕНА ФОРМЫ · ОСТАНОВЛЕНО'}
   if(mouldStep===1)mouldIsolated=true;
   if(mouldStep===2)servicesConnected=false;
   if(mouldStep===3)clampsSecured=false;
@@ -244,13 +244,13 @@ function showMouldChangePanel(){
   if(mouldStep===9)setMouldTarget(newMould,-3.45,2.9,-3);
   if(mouldStep===10){setMouldTarget(newMould,-3.45,1.85,-3);newMould.slings.visible=false;clampsSecured=true}
   if(mouldStep===11)servicesConnected=true;
-  if(mouldStep===13){mouldChangeComplete=true;mouldIsolated=false;safetyGateClosed=true;document.querySelector('#cellStatus').textContent='MOULD CHANGE COMPLETE'}
+  if(mouldStep===13){mouldChangeComplete=true;mouldIsolated=false;safetyGateClosed=true;document.querySelector('#cellStatus').textContent='СМЕНА ФОРМЫ ЗАВЕРШЕНА'}
   showMouldChangePanel();
  };
  content.querySelector('#mouldReset').onclick=()=>{
   mouldStep=-1;mouldIsolated=false;servicesConnected=true;clampsSecured=true;mouldChangeComplete=false;oldMould.slings.visible=false;newMould.slings.visible=false;
   oldMould.target={x:-3.45,y:1.85,z:-3};newMould.target={x:-4.8,y:1.62,z:1.2};craneTarget.x=-3.45;craneTarget.z=-3;
-  showMouldChangePanel();document.querySelector('#cellStatus').textContent='SETUP REQUIRED';
+  showMouldChangePanel();document.querySelector('#cellStatus').textContent='ТРЕБУЕТСЯ НАСТРОЙКА';
  };
 }
 
@@ -306,7 +306,7 @@ box(engel,'HMI bezel',[1.45,2.28,1.265],[.62,.5,.06],mats.steel);for(let i=0;i<3
  box(engel,'clamping unit trim',[-.55,3.08,1.04],[1.82,.12,.16],mats.orange);
  box(engel,'injection unit side panel',[2.05,2.36,.69],[1.85,.08,.06],mats.dark);
  for(const x of [-2.5,-1.1,.7,2.5]){box(engel,'machine foot pad',[x,.08,.82],[.48,.16,.62],mats.dark);cyl(engel,'machine anchor bolt',[x,.17,1.08],.055,.055,.04,mats.yellow,'y',10)}
- box(engel,'ENGEL machine identification plate',[-2.15,2.95,1.19],[1.62,.42,.08],mats.dark);const machineBadge=labelPlane('ENGEL · MOULDING CELL',1.48,.31);machineBadge.position.set(-2.15,2.95,1.236);engel.add(machineBadge);
+ box(engel,'термопластавтомат ENGEL identification plate',[-2.15,2.95,1.19],[1.62,.42,.08],mats.dark);const machineBadge=labelPlane('ENGEL · MOULDING CELL',1.48,.31);machineBadge.position.set(-2.15,2.95,1.236);engel.add(machineBadge);
  // Cooling connection blocks and colour-coded mould circuits.
  for(let i=0;i<4;i++){cyl(engel,'mould cooling connector',[-.45+i*.3,1.15,1.22],.075,.075,.09,i%2?mats.green:mats.yellow,'z',14);cyl(engel,'cooling connector collar',[-.45+i*.3,1.15,1.28],.095,.095,.035,mats.steel,'z',14)}
  // Flexible hydraulic and cooling hoses, routed along the machine frame.
@@ -323,9 +323,28 @@ const elbow=new THREE.Group();elbow.position.set(1.25,.55,0);shoulder.add(elbow)
 const fore=box(elbow,'ABB forearm',[.62,0,0],[1.3,.3,.32],mats.orange,true);
 const wrist=new THREE.Group();wrist.position.set(1.25,0,0);elbow.add(wrist);
 box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
-box(wrist,'gripper mount',[.48,0,0],[.28,.2,.24],mats.dark,true);
-const gripperFingerA=box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
-const gripperFingerB=box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
+const robotToolMount=new THREE.Group();robotToolMount.name='quick-change end-effector mount';robotToolMount.position.set(.48,0,0);wrist.add(robotToolMount);
+const toolTip=new THREE.Object3D();toolTip.position.set(.48,0,0);robotToolMount.add(toolTip);
+let gripperFingerA=null,gripperFingerB=null,toolVacuumLamp=null,robotToolType='suction4';
+function setRobotTool(type){
+ robotToolType=type;
+ while(robotToolMount.children.length>1)robotToolMount.remove(robotToolMount.children[0]);
+ gripperFingerA=null;gripperFingerB=null;toolVacuumLamp=null;
+ if(type==='parallel'){
+  box(robotToolMount,'parallel gripper housing',[.12,0,0],[.34,.24,.28],mats.dark,true);
+  gripperFingerA=box(robotToolMount,'parallel gripper movable jaw',[.35,.13,0],[.38,.075,.13],mats.yellow);
+  gripperFingerB=box(robotToolMount,'parallel gripper movable jaw',[.35,-.13,0],[.38,.075,.13],mats.yellow);
+  box(robotToolMount,'gripper finger pad',[.54,.13,0],[.06,.11,.15],mats.dark);
+  box(robotToolMount,'gripper finger pad',[.54,-.13,0],[.06,.11,.15],mats.dark);
+ }else{
+  const count=type==='suction6'?6:4,cols=type==='suction6'?3:2,rows=2;
+  box(robotToolMount,'vacuum tool mounting plate',[.12,0,0],[.22,type==='suction6'?.48:.36,.48],mats.steel,true);
+  for(let i=0;i<count;i++){const y=(i%cols-(cols-1)/2)*.16,z=(Math.floor(i/cols)-(rows-1)/2)*.18;cyl(robotToolMount,'vacuum cup stem',[.27,y,z],.035,.035,.12,mats.dark,'x',12);cyl(robotToolMount,'silicone vacuum suction cup',[.36,y,z],.085,.065,.12,mats.dark,'x',18);cyl(robotToolMount,'vacuum cup sealing lip',[.425,y,z],.075,.075,.025,mats.yellow,'x',18)}
+  tube(robotToolMount,'vacuum supply hose',[[.08,.12,.18],[0,.2,.28],[-.05,.18,.36],[-.12,.12,.4]],.025,mats.dark);
+  toolVacuumLamp=cyl(robotToolMount,'vacuum status indicator',[.13,-.22,.23],.045,.045,.07,mats.red,'y',12);
+ }
+}
+setRobotTool('suction4');
 const robotNameplate=box(robot,'ABB robot nameplate',[0,1.12,.58],[.82,.25,.055],mats.dark);const robotLabel=labelPlane('ABB · IRB',.72,.19);robotLabel.position.set(0,1.12,.611);robot.add(robotLabel);
 // Robot extraction station: machine-side hand-off, guarding posts and local status stack.
 const robotPad=box(scene,'ABB robot foundation',[-.2,.08,-.8],[2.05,.16,2.05],mats.dark);
@@ -354,10 +373,10 @@ const transferPick=new THREE.Vector3(-2.85,2.65,-2.75);
 const transferPlace=new THREE.Vector3(1.25,1.0,1.75);
 function smooth01(v){v=clamp(v,0,1);return v*v*(3-2*v)}
 function startRobotTransfer(){
- if(robotTransfer.active){toast('Robot transfer is already running');return}
+ if(robotTransfer.active){toast('Робот уже выполняет перенос');return}
  robotTransfer.active=true;robotTransfer.phase=0;robotTransfer.elapsed=0;robotPart.visible=true;robotPart.position.copy(transferPick);robotPart.rotation.set(0,0,0);
  conveyorRunning=true;
- toast('ABB pick-and-place sequence started');
+ toast('Запущена демонстрация захвата и укладки ABB');
 }
 function updateRobotTransfer(dt){
  if(!robotTransfer.active)return;
@@ -373,9 +392,9 @@ function updateRobotTransfer(dt){
  shoulder.rotation.z=from[1]+(to[1]-from[1])*t;
  elbow.rotation.z=from[2]+(to[2]-from[2])*t;
  wrist.rotation.z=from[3]+(to[3]-from[3])*t;
- const tool=new THREE.Vector3();wrist.getWorldPosition(tool);tool.add(new THREE.Vector3(.48,0,0).applyQuaternion(wrist.getWorldQuaternion(new THREE.Quaternion())));
- if(robotTransfer.phase===0){robotPart.position.lerpVectors(transferPick,tool,t);gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}
- else if(robotTransfer.phase===1){robotPart.position.copy(tool);gripperFingerA.position.y=.075;gripperFingerB.position.y=-.075}
+ const tool=new THREE.Vector3();toolTip.getWorldPosition(tool);
+ if(robotTransfer.phase===0){robotPart.position.lerpVectors(transferPick,tool,t);if(gripperFingerA){gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}if(toolVacuumLamp)toolVacuumLamp.material=mats.green}
+ else if(robotTransfer.phase===1){robotPart.position.copy(tool);if(gripperFingerA){gripperFingerA.position.y=.075;gripperFingerB.position.y=-.075}if(toolVacuumLamp)toolVacuumLamp.material=mats.green}
  else if(robotTransfer.phase===2){robotPart.position.copy(tool)}
  else if(robotTransfer.phase===3){robotPart.position.lerpVectors(tool,transferPlace,t)}
  else if(robotTransfer.phase===4){robotPart.position.copy(transferPlace);gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}
@@ -385,7 +404,7 @@ function updateRobotTransfer(dt){
   if(robotTransfer.phase>=6){
    robotTransfer.active=false;robotTransfer.phase=0;robotTransfer.partCount++;partCount++;robotPart.visible=false;
    document.querySelector('#cellStatus').textContent='ROBOT CYCLE · '+robotTransfer.partCount+' PARTS';
-   toast('Part placed on conveyor · '+robotTransfer.partCount);
+   toast('Деталь уложена на конвейер · '+robotTransfer.partCount);
    const result=document.querySelector('#robotResult');if(result)result.textContent='Transfer complete. Parts placed on conveyor: '+robotTransfer.partCount+'. Start again to repeat the demonstration.';
   }
  }
@@ -432,7 +451,7 @@ addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>key
 const PLAYER_RADIUS=.34;
 const obstacles=[
   {minX:-1.65,maxX:1.25,minZ:-2.25,maxZ:.65,name:'ABB robot safety enclosure'},
-  {minX:-5.95,maxX:-.05,minZ:-4.32,maxZ:-1.68,name:'ENGEL machine'},
+  {minX:-5.95,maxX:-.05,minZ:-4.32,maxZ:-1.68,name:'термопластавтомат ENGEL'},
   {minX:-8.72,maxX:-7.28,minZ:-4.72,maxZ:-3.28,name:'material dryer'},
   {minX:-8.72,maxX:-7.28,minZ:-2.25,maxZ:-1.35,name:'temperature controller'},
   {minX:-7.35,maxX:-3.75,minZ:.05,maxZ:2.35,name:'mould storage rack'},
@@ -477,14 +496,14 @@ function closePanel(){panel.classList.remove('open');activePanel=false}
 document.querySelector('#close').onclick=closePanel;
 function startTrainingCycle(){
  const result=document.querySelector('#cycleResult'),report=m=>{if(result)result.textContent=m};
- if(machineCycleActive){report('Cycle already running.');return}
- if(!trainingSettingsApplied){report('START BLOCKED · apply the training settings first.');toast('Interlock: settings not applied');return}
- if(!materialPrepared){report('START BLOCKED · complete material preparation first.');toast('Interlock: material not prepared');return}
- if(!safetyGateClosed){report('START BLOCKED · close the safety gate first.');toast('Interlock: safety gate open');return}
+ if(machineCycleActive){report('Цикл уже выполняется.');return}
+ if(!trainingSettingsApplied){report('ЗАПУСК ЗАПРЕЩЁН · сначала примените учебные параметры.');toast('Блокировка: параметры не применены');return}
+ if(!materialPrepared){report('ЗАПУСК ЗАПРЕЩЁН · сначала завершите подготовку материала.');toast('Блокировка: материал не подготовлен');return}
+ if(!safetyGateClosed){report('ЗАПУСК ЗАПРЕЩЁН · сначала закройте защитную дверь.');toast('Блокировка: защитная дверь открыта');return}
  machineCycleActive=true;
  document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=true);
  const phases=[['CLAMPING','CLAMPING · simulated'],['INJECTION','INJECTION · simulated'],['HOLDING','HOLDING · simulated'],['COOLING','COOLING · simulated'],['EJECTION','MOULD OPEN / EJECTION · simulated']];
- let i=0;const advance=()=>{if(i<phases.length){cyclePhase=phases[i][0];document.querySelector('#cellStatus').textContent=cyclePhase;report('Cycle running: '+phases[i++][1]);cycleTimer=setTimeout(advance,1500)}else{machineCycleActive=false;cycleTimer=null;cyclePhase='IDLE';document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=false);partCount++;movingPlaten.position.x=.55;screw.position.x=2.05;document.querySelector('#cellStatus').textContent='READY · '+partCount+' PART'+(partCount===1?'':'S');report('Cycle complete. Virtual part count: '+partCount+'. Inspect the process state before starting another training cycle.');toast('Training cycle complete · part '+partCount)}};
+ let i=0;const advance=()=>{if(i<phases.length){cyclePhase=phases[i][0];document.querySelector('#cellStatus').textContent=cyclePhase;report('Выполняется цикл: '+phases[i++][1]);cycleTimer=setTimeout(advance,1500)}else{machineCycleActive=false;cycleTimer=null;cyclePhase='IDLE';document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=false);partCount++;movingPlaten.position.x=.55;screw.position.x=2.05;document.querySelector('#cellStatus').textContent='READY · '+partCount+' PART'+(partCount===1?'':'S');report('Цикл завершён. Количество виртуальных деталей: '+partCount+'. Inspect the process state before starting another training cycle.');toast('Учебный цикл завершён · деталь '+partCount)}};
  advance();
 }
 function updateMachineMotion(dt){
@@ -494,47 +513,49 @@ function updateMachineMotion(dt){
  screw.position.x+=(screwTarget-screw.position.x)*Math.min(1,dt*3.5);
  if(conveyorRunning)for(const roller of conveyorRollers)roller.rotation.z+=dt*5;
 }
-function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('No equipment in reach. Move closer and aim at an interactive part.');return}const n=hit.name;
+function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('Оборудование вне досягаемости. Подойдите ближе и наведитесь на интерактивный объект.');return}const n=hit.name;
 if(n==='control console'||n==='ENGEL base'||n==='clamping unit'||n==='mold'||n==='injection unit'){
-showPanel('ENGEL · Machine setup',`<p>Training HMI for the virtual ENGEL injection moulding machine. All values are illustrative controls, not a material-specific recipe.</p><div class="hmi-note">Training mode only · never transfer these example values to a real machine. Use the machine and resin supplier documentation for actual setup.</div><div class="grid">
- <div class="section-label">PLASTICISING UNIT</div>
- <div class="field"><label>Barrel zone 1 <output id="v1">220 °C</output></label><input type="range" min="160" max="300" value="220" data-unit=" °C" id="s1"></div>
- <div class="field"><label>Barrel zone 2 <output id="v2">230 °C</output></label><input type="range" min="160" max="300" value="230" data-unit=" °C" id="s2"></div>
- <div class="field"><label>Barrel zone 3 <output id="v7">225 °C</output></label><input type="range" min="160" max="300" value="225" data-unit=" °C" id="s7"></div>
- <div class="field"><label>Nozzle temperature <output id="v8">230 °C</output></label><input type="range" min="160" max="300" value="230" data-unit=" °C" id="s8"></div>
- <div class="field"><label>Screw speed <output id="v9">80 rpm</output></label><input type="range" min="10" max="250" value="80" data-unit=" rpm" id="s9"></div>
- <div class="field"><label>Back pressure <output id="v10">8 %</output></label><input type="range" min="0" max="100" value="8" data-unit=" %" id="s10"></div>
- <div class="section-label">INJECTION & HOLDING</div>
- <div class="field"><label>Injection speed <output id="v3">45 mm/s</output></label><input type="range" min="5" max="150" value="45" data-unit=" mm/s" id="s3"></div>
- <div class="field"><label>V/P transfer position <output id="v11">12 mm</output></label><input type="range" min="1" max="80" value="12" data-unit=" mm" id="s11"></div>
- <div class="field"><label>Holding pressure <output id="v4">55 %</output></label><input type="range" min="10" max="100" value="55" data-unit=" %" id="s4"></div>
- <div class="field"><label>Holding time <output id="v12">5 s</output></label><input type="range" min="1" max="20" value="5" data-unit=" s" id="s12"></div>
- <div class="section-label">CLAMPING & COOLING</div>
- <div class="field"><label>Cooling time <output id="v5">18 s</output></label><input type="range" min="5" max="60" value="18" data-unit=" s" id="s5"></div>
- <div class="field"><label>Clamping force <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">APPLY TRAINING SETTINGS</button><button class="action" id="startCycle">START TRAINING CYCLE</button><p id="hmiResult">Machine is in setup mode. Apply settings, prepare material and close the safety gate before starting.</p><p id="cycleResult">Cycle status: STOPPED · interlocks not satisfied.</p>`);
- content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit;trainingSettingsApplied=false;document.querySelector('#cellStatus').textContent='SETUP REQUIRED';content.querySelector('#hmiResult').textContent='Parameter changed. Apply the training settings again before starting a cycle.'}));
- content.querySelector('#apply').onclick=()=>{if(machineCycleActive){toast('Cannot apply settings during a cycle');return}trainingSettingsApplied=true;document.querySelector('#cellStatus').textContent='PARAMETERS LOADED';content.querySelector('#hmiResult').textContent='Settings loaded. Prepare the selected resin and close the safety gate before starting a cycle.';toast('Training parameters applied')};content.querySelector('#startCycle').onclick=startTrainingCycle;
+showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуального термопластавтомата ENGEL. Все значения приведены для демонстрации и не являются рецептом для конкретного материала.</p><div class="hmi-note">Только учебный режим · не переносите эти значения на реальную машину. Для настройки используйте документацию производителя оборудования и поставщика материала.</div><div class="grid">
+ <div class="section-label">ПЛАСТИКАЦИОННЫЙ УЗЕЛ</div>
+ <div class="field"><label>Зона цилиндра 1 <output id="v1">220 °C</output></label><input type="range" min="160" max="300" value="220" data-unit=" °C" id="s1"></div>
+ <div class="field"><label>Зона цилиндра 2 <output id="v2">230 °C</output></label><input type="range" min="160" max="300" value="230" data-unit=" °C" id="s2"></div>
+ <div class="field"><label>Зона цилиндра 3 <output id="v7">225 °C</output></label><input type="range" min="160" max="300" value="225" data-unit=" °C" id="s7"></div>
+ <div class="field"><label>Температура сопла <output id="v8">230 °C</output></label><input type="range" min="160" max="300" value="230" data-unit=" °C" id="s8"></div>
+ <div class="field"><label>Скорость шнека <output id="v9">80 rpm</output></label><input type="range" min="10" max="250" value="80" data-unit=" rpm" id="s9"></div>
+ <div class="field"><label>Противодавление <output id="v10">8 %</output></label><input type="range" min="0" max="100" value="8" data-unit=" %" id="s10"></div>
+ <div class="section-label">ВПРЫСК И ВЫДЕРЖКА</div>
+ <div class="field"><label>Скорость впрыска <output id="v3">45 mm/s</output></label><input type="range" min="5" max="150" value="45" data-unit=" mm/s" id="s3"></div>
+ <div class="field"><label>Положение переключения впрыск/выдержка <output id="v11">12 mm</output></label><input type="range" min="1" max="80" value="12" data-unit=" mm" id="s11"></div>
+ <div class="field"><label>Давление выдержки <output id="v4">55 %</output></label><input type="range" min="10" max="100" value="55" data-unit=" %" id="s4"></div>
+ <div class="field"><label>Время выдержки <output id="v12">5 s</output></label><input type="range" min="1" max="20" value="5" data-unit=" s" id="s12"></div>
+ <div class="section-label">СМЫКАНИЕ И ОХЛАЖДЕНИЕ</div>
+ <div class="field"><label>Время охлаждения <output id="v5">18 s</output></label><input type="range" min="5" max="60" value="18" data-unit=" s" id="s5"></div>
+ <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
+ content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit;trainingSettingsApplied=false;document.querySelector('#cellStatus').textContent='ТРЕБУЕТСЯ НАСТРОЙКА';content.querySelector('#hmiResult').textContent='Параметр изменён. Перед запуском цикла примените учебные настройки повторно.'}));
+ content.querySelector('#apply').onclick=()=>{if(machineCycleActive){toast('Нельзя применять настройки во время цикла');return}trainingSettingsApplied=true;document.querySelector('#cellStatus').textContent='PARAMETERS LOADED';content.querySelector('#hmiResult').textContent='Параметры загружены. Подготовьте выбранный материал и закройте защитную дверь перед запуском цикла.';toast('Учебные параметры применены')};content.querySelector('#startCycle').onclick=startTrainingCycle;
 }else if(n.includes('ABB')||n.includes('gripper')||n==='robot pedestal'){
-showPanel('ABB · Robot training',`<p>Six-axis robot teaching panel. Adjust each virtual joint to understand axis movement. This is not an ABB controller, a validated kinematic model or a RAPID compiler.</p><div class="hmi-note">Robot movement is illustrative. No real robot program or safety-rated motion is generated.</div><div class="grid">
- <div class="field"><label>Axis 1 · base <output id="a1">0°</output></label><input id="r1" type="range" min="-170" max="170" value="0"></div>
- <div class="field"><label>Axis 2 · shoulder <output id="a2">-15°</output></label><input id="r2" type="range" min="-100" max="100" value="-15"></div>
- <div class="field"><label>Axis 3 · elbow <output id="a3">35°</output></label><input id="r3" type="range" min="-120" max="120" value="35"></div>
- <div class="field"><label>Axis 4 · wrist 1 <output id="a4">0°</output></label><input id="r4" type="range" min="-200" max="200" value="0"></div>
- <div class="field"><label>Axis 5 · wrist 2 <output id="a5">0°</output></label><input id="r5" type="range" min="-125" max="125" value="0"></div>
- <div class="field"><label>Axis 6 · wrist 3 <output id="a6">0°</output></label><input id="r6" type="range" min="-350" max="350" value="0"></div></div><button class="action" id="home">MOVE TO SAFE HOME (SIMULATED)</button><p id="robotResult">Teaching mode · virtual axes ready for adjustment.</p>`);
+showPanel('ABB · Обучение робота',`<p>Панель обучения шестиосевого робота. Меняйте положение виртуальных осей, чтобы изучить их движение. Это не пульт ABB, не проверенная кинематическая модель и не компилятор RAPID.</p><div class="hmi-note">Движение робота показано условно. Реальная программа и безопасное движение промышленного робота не создаются.</div><div class="grid">
+ <div class="field"><label>Ось 1 · основание <output id="a1">0°</output></label><input id="r1" type="range" min="-170" max="170" value="0"></div>
+ <div class="field"><label>Ось 2 · плечо <output id="a2">-15°</output></label><input id="r2" type="range" min="-100" max="100" value="-15"></div>
+ <div class="field"><label>Ось 3 · локоть <output id="a3">35°</output></label><input id="r3" type="range" min="-120" max="120" value="35"></div>
+ <div class="field"><label>Ось 4 · запястье 1 <output id="a4">0°</output></label><input id="r4" type="range" min="-200" max="200" value="0"></div>
+ <div class="field"><label>Ось 5 · запястье 2 <output id="a5">0°</output></label><input id="r5" type="range" min="-125" max="125" value="0"></div>
+ <div class="field"><label>Ось 6 · запястье 3 <output id="a6">0°</output></label><input id="r6" type="range" min="-350" max="350" value="0"></div></div><button class="action" id="home">ВЕРНУТЬ В БЕЗОПАСНУЮ ПОЗУ (ИМИТАЦИЯ)</button><p id="robotResult">Режим обучения · виртуальные оси готовы к настройке.</p>`);
  const applyRobotAxes=()=>{base.rotation.y=Number(content.querySelector('#r1').value)*Math.PI/180;shoulder.rotation.z=Number(content.querySelector('#r2').value)*Math.PI/180;elbow.rotation.z=Number(content.querySelector('#r3').value)*Math.PI/180;wrist.rotation.x=Number(content.querySelector('#r4').value)*Math.PI/180;wrist.rotation.y=Number(content.querySelector('#r5').value)*Math.PI/180;wrist.rotation.z=Number(content.querySelector('#r6').value)*Math.PI/180};
  content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#a'+input.id.slice(1)).textContent=input.value+'°';applyRobotAxes()}));
  applyRobotAxes();
- content.querySelector('#robotResult').insertAdjacentHTML('beforebegin','<button class="action" id="pickPlace">START PICK & PLACE DEMO</button><p class="hmi-note">Demonstration only: the virtual robot extracts a sample part from the open mould area and transfers it to the conveyor. No real robot program is generated.</p>');
+ content.querySelector('#robotResult').insertAdjacentHTML('beforebegin','<div class="field"><label for="robotToolSelect">Сменный захват / инструмент</label><select id="robotToolSelect" style="width:100%;padding:11px;background:#263843;color:white;border:1px solid #536773;border-radius:8px"><option value="suction4">Вакуумная плита · 4 присоски</option><option value="suction6">Вакуумная плита · 6 присосок</option><option value="parallel">Механический параллельный захват</option></select><p id="toolDescription">Четыре присоски для плоских и средних по размеру пластиковых деталей.</p></div><button class="action" id="pickPlace">ЗАПУСТИТЬ ДЕМОНСТРАЦИЮ ЗАБОРА И УКЛАДКИ</button><p class="hmi-note">Учебная демонстрация: робот забирает образец из открытой формы и переносит его на конвейер. Реальная программа робота не создаётся.</p>');
+ content.querySelector('#robotToolSelect').value=robotToolType;
+ content.querySelector('#robotToolSelect').onchange=e=>{if(robotTransfer.active){toast('Нельзя менять инструмент во время движения робота');e.target.value=robotToolType;return}setRobotTool(e.target.value);const d={suction4:'Четыре присоски для плоских и средних деталей.',suction6:'Шесть присосок для крупных деталей с несколькими точками захвата.',parallel:'Двухпальцевый механический захват для деталей с подходящими боковыми поверхностями.'};content.querySelector('#toolDescription').textContent=d[robotToolType];content.querySelector('#robotResult').textContent='Установлен инструмент: '+e.target.options[e.target.selectedIndex].text+'.';toast('Концевой инструмент заменён')};
  content.querySelector('#pickPlace').onclick=startRobotTransfer;
- content.querySelector('#home').onclick=()=>{const values=[0,-15,35,0,0,0];values.forEach((v,i)=>{content.querySelector('#r'+(i+1)).value=v;content.querySelector('#a'+(i+1)).textContent=v+'°'});applyRobotAxes();content.querySelector('#robotResult').textContent='Virtual home pose selected. Validate real robot limits, tooling and safety zones independently.';toast('Virtual ABB home position selected')};
-}else if(n==='material dryer'||n==='dryer hopper'||n==='temperature controller'){showPanel('Material preparation',`<p>Material drying is part of the process setup. Select the resin and verify the supplier's technical data sheet before choosing a real drying recipe.</p><div class="field"><label>Training material</label><select id="resin" style="width:100%;padding:10px;background:#263843;color:white;border:1px solid #536773;border-radius:7px"><option>ABS</option><option>PA6</option><option>PA66</option><option>PBT</option><option>PC/ABS</option><option>PP</option></select></div><button class="action" id="dry">START DRYER (SIMULATED)</button><p id="dryResult">Dryer idle.</p>`);content.querySelector('#dry').onclick=()=>{materialPrepared=true;content.querySelector('#dryResult').textContent='Training dryer started for '+content.querySelector('#resin').value+'. Material preparation acknowledged in the training model; actual conditions must come from the resin supplier specification.';toast('Virtual material preparation complete')};
-}else if(n==='safety gate'){showPanel('Cell safety',`<p>Safety is a prerequisite for every setup and automatic cycle. This is a training-only interlock; it does not represent a certified safety circuit.</p><div class="field"><label>Training interlock state</label><strong id="gateState" style="color:var(--warn)">${safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED'}</strong></div><button class="action" id="gateToggle">${safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)'}</button><p id="gateResult">${machineCycleActive?'Cycle active. Gate opening is inhibited.':'The virtual gate state controls whether a training cycle may start.'}</p>`);content.querySelector('#gateToggle').onclick=()=>{if(machineCycleActive){content.querySelector('#gateResult').textContent='Opening blocked: the training cycle is active.';toast('Safety interlock: cycle active');return}safetyGateClosed=!safetyGateClosed;content.querySelector('#gateState').textContent=safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED';content.querySelector('#gateState').style.color=safetyGateClosed?'var(--accent)':'var(--warn)';content.querySelector('#gateToggle').textContent=safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)';content.querySelector('#gateResult').textContent=safetyGateClosed?'Gate closed in the training model.':'Gate open. Automatic cycle is inhibited.';toast(safetyGateClosed?'Virtual gate closed':'Virtual gate opened')}}
+ content.querySelector('#home').onclick=()=>{const values=[0,-15,35,0,0,0];values.forEach((v,i)=>{content.querySelector('#r'+(i+1)).value=v;content.querySelector('#a'+(i+1)).textContent=v+'°'});applyRobotAxes();content.querySelector('#robotResult').textContent='Выбрана условная исходная поза. Реальные пределы робота, инструмент и зоны безопасности требуют отдельной проверки.';toast('Выбрана исходная поза ABB (имитация)')};
+}else if(n==='material dryer'||n==='dryer hopper'||n==='temperature controller'){showPanel('Подготовка материала',`<p>Material drying is part of the process setup. Select the resin and verify the supplier's technical data sheet before choosing a real drying recipe.</p><div class="field"><label>Материал для обучения</label><select id="resin" style="width:100%;padding:10px;background:#263843;color:white;border:1px solid #536773;border-radius:7px"><option>ABS</option><option>PA6</option><option>PA66</option><option>PBT</option><option>PC/ABS</option><option>PP</option></select></div><button class="action" id="dry">ЗАПУСТИТЬ СУШИЛКУ (ИМИТАЦИЯ)</button><p id="dryResult">Сушилка остановлена.</p>`);content.querySelector('#dry').onclick=()=>{materialPrepared=true;content.querySelector('#dryResult').textContent='Training dryer started for '+content.querySelector('#resin').value+'. Подготовка материала acknowledged in the training model; actual conditions must come from the resin supplier specification.';toast('Подготовка материала в симуляторе завершена')};
+}else if(n==='safety gate'){showPanel('Безопасность ячейки',`<p>Безопасность обязательна при настройке и автоматическом цикле. Это только учебная блокировка, а не сертифицированная цепь безопасности.</p><div class="field"><label>Состояние учебной блокировки</label><strong id="gateState" style="color:var(--warn)">${safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED'}</strong></div><button class="action" id="gateToggle">${safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)'}</button><p id="gateResult">${machineCycleActive?'Цикл выполняется. Открытие двери заблокировано.':'Состояние виртуальной двери определяет, разрешён ли запуск учебного цикла.'}</p>`);content.querySelector('#gateToggle').onclick=()=>{if(machineCycleActive){content.querySelector('#gateResult').textContent='Открытие заблокировано: учебный цикл выполняется.';toast('Safety interlock: cycle active');return}safetyGateClosed=!safetyGateClosed;content.querySelector('#gateState').textContent=safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED';content.querySelector('#gateState').style.color=safetyGateClosed?'var(--accent)':'var(--warn)';content.querySelector('#gateToggle').textContent=safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)';content.querySelector('#gateResult').textContent=safetyGateClosed?'В учебной модели дверь закрыта.':'Дверь открыта. Автоматический цикл заблокирован.';toast(safetyGateClosed?'Виртуальная дверь закрыта':'Виртуальная дверь открыта')}}
 else if(n==='crane pendant'||n==='mold'||n==='replacement mould'){showMouldChangePanel()}
- else if(n==='conveyor'){showPanel('Conveyor and part handling',`<p>Downstream handling equipment for moulded parts.</p><div class="field"><label>Training conveyor status</label><strong id="convState" style="color:var(--accent)">${conveyorRunning?'RUNNING':'STOPPED'}</strong></div><button class="action" id="conv">${conveyorRunning?'STOP CONVEYOR':'START CONVEYOR'}</button><p id="convResult">Virtual parts produced: ${partCount}.</p>`);content.querySelector('#conv').onclick=()=>{conveyorRunning=!conveyorRunning;content.querySelector('#convState').textContent=conveyorRunning?'RUNNING':'STOPPED';content.querySelector('#conv').textContent=conveyorRunning?'STOP CONVEYOR':'START CONVEYOR';content.querySelector('#convResult').textContent=conveyorRunning?'Conveyor rollers moving in the training model.':'Conveyor stopped.';toast(conveyorRunning?'Conveyor started':'Conveyor stopped')}}
-else{showPanel('Equipment',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
+ else if(n==='conveyor'){showPanel('Конвейер и перемещение деталей',`<p>Оборудование для дальнейшего перемещения отлитых деталей.</p><div class="field"><label>Состояние учебного конвейера</label><strong id="convState" style="color:var(--accent)">${conveyorRunning?'RUNNING':'STOPPED'}</strong></div><button class="action" id="conv">${conveyorRunning?'ОСТАНОВИТЬ КОНВЕЙЕР':'ЗАПУСТИТЬ КОНВЕЙЕР'}</button><p id="convResult">Virtual parts produced: ${partCount}.</p>`);content.querySelector('#conv').onclick=()=>{conveyorRunning=!conveyorRunning;content.querySelector('#convState').textContent=conveyorRunning?'RUNNING':'STOPPED';content.querySelector('#conv').textContent=conveyorRunning?'ОСТАНОВИТЬ КОНВЕЙЕР':'ЗАПУСТИТЬ КОНВЕЙЕР';content.querySelector('#convResult').textContent=conveyorRunning?'Ролики конвейера движутся в учебной модели.':'Конвейер остановлен.';toast(conveyorRunning?'Конвейер запущен':'Конвейер остановлен')}}
+else{showPanel('Оборудование',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
 document.querySelector('#interact').addEventListener('click',interact);addEventListener('keydown',e=>{if(e.code==='KeyE'&&!activePanel)interact();if(e.code==='Escape')closePanel()});
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);updateMouldMotion(dt);updateRobotTransfer(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);updateMouldMotion(dt);updateRobotTransfer(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Осматривайте ячейку. Подойдите к оборудованию и наведитесь на него.';renderer.render(scene,camera)}
 const clock=new THREE.Clock();updateCamera();animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight)});
 </script>
