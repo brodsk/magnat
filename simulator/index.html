@@ -363,6 +363,54 @@ tube(robot,'robot dress pack',[[.25,1.25,.28],[.5,2.0,.32],[1.0,2.5,.32],[1.7,2.
 for(let i=0;i<3;i++){cyl(wrist,'wrist joint ring',[.12+i*.17,0,0],.19,.19,.045,i===1?mats.yellow:mats.steel,'x',16)}
 
 const robotPartMat=new THREE.MeshStandardMaterial({color:0x6f9fa8,metalness:.12,roughness:.34});
+
+// Process feedback: machine stack light and a dedicated inspection sample on the outfeed.
+const processBeacon=new THREE.Group();processBeacon.position.set(-3,3.45,-3);scene.add(processBeacon);
+const beaconBase=new THREE.Mesh(new THREE.CylinderGeometry(.13,.16,.12,16),mats.dark);beaconBase.position.y=0;processBeacon.add(beaconBase);
+const beaconRedMat=new THREE.MeshStandardMaterial({color:0x6b2424,emissive:0x260000});
+const beaconAmberMat=new THREE.MeshStandardMaterial({color:0x6b5420,emissive:0x241600});
+const beaconGreenMat=new THREE.MeshStandardMaterial({color:0x285b31,emissive:0x09200c});
+const beaconRed=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.18,16),beaconRedMat);beaconRed.position.y=.15;processBeacon.add(beaconRed);
+const beaconAmber=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.18,16),beaconAmberMat);beaconAmber.position.y=.34;processBeacon.add(beaconAmber);
+const beaconGreen=new THREE.Mesh(new THREE.CylinderGeometry(.105,.105,.18,16),beaconGreenMat);beaconGreen.position.y=.53;processBeacon.add(beaconGreen);
+const inspectionSample=new THREE.Group();inspectionSample.position.set(1.25,.98,2.25);scene.add(inspectionSample);
+const sampleBodyMat=new THREE.MeshStandardMaterial({color:0x6f9fa8,metalness:.1,roughness:.35});
+const sampleBody=new THREE.Mesh(new THREE.BoxGeometry(.66,.22,.44),sampleBodyMat);inspectionSample.add(sampleBody);
+const sampleRib=new THREE.Mesh(new THREE.BoxGeometry(.5,.045,.07),mats.dark);sampleRib.position.y=.13;inspectionSample.add(sampleRib);
+inspectionSample.visible=false;
+let processAlarm='none',processPulse=0,lastProcessReport=null;
+function readProcessSettings(){
+ const ids=['s1','s2','s7','s8','s9','s10','s3','s11','s4','s12','s5','s6'];
+ const defaults={s1:220,s2:230,s7:225,s8:230,s9:80,s10:8,s3:45,s11:12,s4:55,s12:5,s5:18,s6:70};
+ const values={};for(const id of ids){const el=document.getElementById(id);values[id]=el?Number(el.value):defaults[id]}
+ return values;
+}
+function diagnoseProcess(v=readProcessSettings()){
+ const faults=[];
+ const avg=(v.s1+v.s2+v.s7+v.s8)/4;
+ if(avg<205)faults.push(['недостаточная температура расплава','Риск затруднённого заполнения и холодных спаев.']);
+ if(avg>255)faults.push(['чрезмерная температура расплава','Риск термической деградации и потемнения материала.']);
+ if(v.s3<20)faults.push(['низкая скорость впрыска','Возможен недолив или заметные линии спая.']);
+ if(v.s3>105)faults.push(['чрезмерная скорость впрыска','Возможны следы потока, перегрев от сдвига и облой при недостаточном смыкании.']);
+ if(v.s4<30)faults.push(['низкое давление выдержки','Вероятны усадочные раковины и недостаточная компенсация усадки.']);
+ if(v.s4>88)faults.push(['чрезмерное давление выдержки','Риск переуплотнения, остаточных напряжений и облоя.']);
+ if(v.s5<12)faults.push(['недостаточное время охлаждения','Деталь может деформироваться при извлечении.']);
+ if(v.s5>42)faults.push(['чрезмерное время охлаждения','Цикл становится неоправданно длинным.']);
+ if(v.s6<42)faults.push(['низкое усилие смыкания','При высоком давлении возможен облой по разъёму формы.']);
+ if(v.s6>94)faults.push(['чрезмерное усилие смыкания','Повышенная нагрузка на форму и узел смыкания.']);
+ if(v.s11<4||v.s11>30)faults.push(['сомнительное положение переключения V/P','Возможны недоуплотнение или избыточное давление в конце заполнения.']);
+ if(v.s12<2)faults.push(['короткая выдержка','Усадка может не компенсироваться до замерзания литника.']);
+ if(v.s9>190)faults.push(['высокая скорость вращения шнека','Возможен избыточный нагрев материала и нестабильная пластикация.']);
+ if(v.s10>45)faults.push(['высокое противодавление','Возможен дополнительный нагрев и увеличение времени пластикации.']);
+ return {faults,quality:faults.length===0?'OK':faults.length<=2?'WARNING':'REJECT',avg};
+}
+function renderProcessFeedback(v=readProcessSettings()){
+ const d=diagnoseProcess(v);processAlarm=d.quality==='OK'?'none':d.quality==='WARNING'?'warning':'alarm';
+ const panel=document.querySelector('#processDiagnosis');
+ if(panel){panel.innerHTML=d.faults.length?'<strong>ДИАГНОСТИКА · '+(d.quality==='REJECT'?'КРИТИЧЕСКИЕ ОТКЛОНЕНИЯ':'ЕСТЬ ОТКЛОНЕНИЯ')+'</strong><ul>'+d.faults.map(f=>'<li><b>'+f[0]+'</b> — '+f[1]+'</li>').join('')+'</ul>':'<strong>ПРЕДВАРИТЕЛЬНАЯ ОЦЕНКА · БЕЗ ЯВНЫХ ОТКЛОНЕНИЙ</strong><p>Параметры находятся в условной учебной зоне. Это не подтверждение технологической пригодности.</p>'}
+ return d;
+}
+
 const robotPart=new THREE.Group();scene.add(robotPart);
 box(robotPart,'moulded plastic housing',[0,0,0],[.62,.24,.42],robotPartMat);
 box(robotPart,'part rib',[0,.13,0],[.48,.035,.06],mats.dark);
@@ -498,19 +546,40 @@ function startTrainingCycle(){
  const result=document.querySelector('#cycleResult'),report=m=>{if(result)result.textContent=m};
  if(machineCycleActive){report('Цикл уже выполняется.');return}
  if(!trainingSettingsApplied){report('ЗАПУСК ЗАПРЕЩЁН · сначала примените учебные параметры.');toast('Блокировка: параметры не применены');return}
- if(!materialPrepared){report('ЗАПУСК ЗАПРЕЩЁН · сначала завершите подготовку материала.');toast('Блокировка: материал не подготовлен');return}
+ if(!materialPrepared){report('ЗАПУСК ЗАПРЕЩЁН · материал должен быть подготовлен грануловщиком.');toast('Блокировка: нет подтверждения готовности материала');return}
  if(!safetyGateClosed){report('ЗАПУСК ЗАПРЕЩЁН · сначала закройте защитную дверь.');toast('Блокировка: защитная дверь открыта');return}
- machineCycleActive=true;
+ const diagnosis=renderProcessFeedback();
+ machineCycleActive=true;inspectionSample.visible=false;
  document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=true);
- const phases=[['CLAMPING','СМЫКАНИЕ · имитация'],['INJECTION','ВПРЫСК · имитация'],['HOLDING','ВЫДЕРЖКА · имитация'],['COOLING','ОХЛАЖДЕНИЕ · имитация'],['EJECTION','РАСКРЫТИЕ ФОРМЫ / ИЗВЛЕЧЕНИЕ · имитация']];
- let i=0;const advance=()=>{if(i<phases.length){cyclePhase=phases[i][0];document.querySelector('#cellStatus').textContent=({CLAMPING:'СМЫКАНИЕ',INJECTION:'ВПРЫСК',HOLDING:'ВЫДЕРЖКА',COOLING:'ОХЛАЖДЕНИЕ',EJECTION:'ИЗВЛЕЧЕНИЕ'})[cyclePhase]||cyclePhase;report('Выполняется цикл: '+phases[i++][1]);cycleTimer=setTimeout(advance,1500)}else{machineCycleActive=false;cycleTimer=null;cyclePhase='IDLE';document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=false);partCount++;movingPlaten.position.x=.55;screw.position.x=2.05;document.querySelector('#cellStatus').textContent='ГОТОВО · ДЕТАЛЕЙ: '+partCount;report('Цикл завершён. Количество виртуальных деталей: '+partCount+'. Inspect the process state before starting another training cycle.');toast('Учебный цикл завершён · деталь '+partCount)}};
+ const phases=[['CLAMPING','СМЫКАНИЕ · плиты сходятся'],['INJECTION','ВПРЫСК · шнек движется вперёд'],['HOLDING','ВЫДЕРЖКА · компенсация усадки'],['COOLING','ОХЛАЖДЕНИЕ · деталь стабилизируется'],['EJECTION','РАСКРЫТИЕ ФОРМЫ / ИЗВЛЕЧЕНИЕ']];
+ let i=0;const durations=[900,1100,900,Math.max(900,Number(document.getElementById('s5')?.value||18)*75),1000];
+ const advance=()=>{if(i<phases.length){
+  cyclePhase=phases[i][0];document.querySelector('#cellStatus').textContent=({CLAMPING:'СМЫКАНИЕ',INJECTION:'ВПРЫСК',HOLDING:'ВЫДЕРЖКА',COOLING:'ОХЛАЖДЕНИЕ',EJECTION:'ИЗВЛЕЧЕНИЕ'})[cyclePhase];
+  report('Выполняется цикл: '+phases[i][1]+'.');cycleTimer=setTimeout(advance,durations[i++]);
+ }else{
+  machineCycleActive=false;cycleTimer=null;cyclePhase='IDLE';
+  document.querySelectorAll('#panel input[type=range]').forEach(input=>input.disabled=false);
+  partCount++;inspectionSample.visible=true;
+  const bad=diagnosis.quality!=='OK';
+  sampleBodyMat.color.set(bad?0xc65b45:0x6f9fa8);
+  sampleBody.scale.set(1,bad&&diagnosis.faults.some(f=>f[0].includes('охлаждения'))?.72:1,1);
+  inspectionSample.position.y=bad&&diagnosis.faults.some(f=>f[0].includes('охлаждения'))?.91:.98;
+  if(bad){document.querySelector('#cellStatus').textContent='БРАК / НУЖНА КОРРЕКЦИЯ';report('Цикл завершён. Деталь №'+partCount+' отмечена как подозрительная/брак. '+diagnosis.faults.map(f=>f[0]).join('; ')+'. Исправьте причины и повторите пробный цикл.');toast('ВНИМАНИЕ · обнаружены признаки брака')}
+  else{document.querySelector('#cellStatus').textContent='ЦИКЛ ЗАВЕРШЁН · ДЕТАЛЕЙ: '+partCount;report('Цикл завершён. Учебная деталь №'+partCount+' прошла условную проверку.');toast('Учебная деталь изготовлена')}
+ }
+ };
  advance();
 }
 function updateMachineMotion(dt){
  const closed=['CLAMPING','INJECTION','HOLDING','COOLING'].includes(cyclePhase),clampTarget=closed?.15:.55;
  movingPlaten.position.x+=(clampTarget-movingPlaten.position.x)*Math.min(1,dt*4.5);
- const screwTarget=['INJECTION','HOLDING'].includes(cyclePhase)?2.22:2.05;
+ const screwTarget=cyclePhase==='INJECTION'?2.42:['HOLDING'].includes(cyclePhase)?2.22:2.05;
  screw.position.x+=(screwTarget-screw.position.x)*Math.min(1,dt*3.5);
+ processPulse+=dt;
+ const active=processAlarm!=='none'&&machineCycleActive;
+ beaconRedMat.emissiveIntensity=active?(processAlarm==='alarm'?(Math.sin(processPulse*9)>0?2.5:.08):(Math.sin(processPulse*4)>0?1.1:.05)):.02;
+ beaconAmberMat.emissiveIntensity=processAlarm==='warning'&&!machineCycleActive?.65:.02;
+ beaconGreenMat.emissiveIntensity=processAlarm==='none'&&!machineCycleActive?.55:.02;
  if(conveyorRunning)for(const roller of conveyorRollers)roller.rotation.z+=dt*5;
 }
 function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('Оборудование вне досягаемости. Подойдите ближе и наведитесь на интерактивный объект.');return}const n=hit.name;
@@ -530,8 +599,13 @@ showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуа�
  <div class="field"><label>Время выдержки <output id="v12">5 s</output></label><input type="range" min="1" max="20" value="5" data-unit=" s" id="s12"></div>
  <div class="section-label">СМЫКАНИЕ И ОХЛАЖДЕНИЕ</div>
  <div class="field"><label>Время охлаждения <output id="v5">18 s</output></label><input type="range" min="5" max="60" value="18" data-unit=" s" id="s5"></div>
- <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
- content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit;trainingSettingsApplied=false;document.querySelector('#cellStatus').textContent='ТРЕБУЕТСЯ НАСТРОЙКА';content.querySelector('#hmiResult').textContent='Параметр изменён. Перед запуском цикла примените учебные настройки повторно.'}));
+ <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><div id="processDiagnosis" class="hmi-note"><strong>ДИАГНОСТИКА</strong><p>Изменяйте параметры: здесь будут появляться технологические последствия.</p></div><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
+ content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{
+  content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit;
+  trainingSettingsApplied=false;document.querySelector('#cellStatus').textContent='ТРЕБУЕТСЯ НАСТРОЙКА';
+  content.querySelector('#hmiResult').textContent='Параметр изменён. Примените учебные настройки повторно.';
+  renderProcessFeedback();
+ }));
  content.querySelector('#apply').onclick=()=>{if(machineCycleActive){toast('Нельзя применять настройки во время цикла');return}trainingSettingsApplied=true;document.querySelector('#cellStatus').textContent='ПАРАМЕТРЫ ЗАГРУЖЕНЫ';content.querySelector('#hmiResult').textContent='Параметры загружены. Подготовьте выбранный материал и закройте защитную дверь перед запуском цикла.';toast('Учебные параметры применены')};content.querySelector('#startCycle').onclick=startTrainingCycle;
 }else if(n.includes('ABB')||n.includes('gripper')||n==='robot pedestal'){
 showPanel('ABB · Обучение робота',`<p>Панель обучения шестиосевого робота. Меняйте положение виртуальных осей, чтобы изучить их движение. Это не пульт ABB, не проверенная кинематическая модель и не компилятор RAPID.</p><div class="hmi-note">Движение робота показано условно. Реальная программа и безопасное движение промышленного робота не создаются.</div><div class="grid">
