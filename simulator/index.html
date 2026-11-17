@@ -276,7 +276,6 @@ function renderMachineDisplay(){
  c.fillStyle='#8da6af';c.font='18px Arial';c.fillText(processAlarm==='alarm'?'PROCESS ALARM':processAlarm==='warning'?'CHECK PROCESS':'CELL READY',30,319);
  machineDisplayTexture.needsUpdate=true;
 }
-renderMachineDisplay();
 // The machine identity is mounted on the physical cabinet badge below; no floating billboard.
 // Machine detailing: cooling ribs, hydraulic hardware, fasteners, guards and service lines.
 for(let i=0;i<9;i++){box(engel,'cabinet ventilation slot',[-2.15,1.05+i*.19,1.14],[.82,.035,.018],mats.dark)}
