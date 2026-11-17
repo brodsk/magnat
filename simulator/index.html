@@ -71,7 +71,8 @@ try {
 }renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;mount.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xe8f4ff,0x35414a,2.0));
 const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
-const mats={floor:new THREE.MeshStandardMaterial({color:0x65747a,roughness:.9}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,roughness:.85}),steel:new THREE.MeshStandardMaterial({color:0x53636a,metalness:.55,roughness:.4}),dark:new THREE.MeshStandardMaterial({color:0x202a30,metalness:.25,roughness:.65}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,metalness:.2,roughness:.45}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,metalness:.15,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:0x6d9ba7,transparent:true,opacity:.42,metalness:.2,roughness:.15}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f}),red:new THREE.MeshStandardMaterial({color:0xf05c54})};
+const floorCanvas=document.createElement('canvas');floorCanvas.width=floorCanvas.height=256;const floorCtx=floorCanvas.getContext('2d');floorCtx.fillStyle='#68777c';floorCtx.fillRect(0,0,256,256);let floorSeed=417;for(let i=0;i<5200;i++){floorSeed=(floorSeed*1664525+1013904223)>>>0;const x=floorSeed&255;floorSeed=(floorSeed*1664525+1013904223)>>>0;const y=floorSeed&255;const shade=90+(floorSeed%45);floorCtx.fillStyle='rgba('+shade+','+(shade+7)+','+(shade+10)+','+(0.08+(floorSeed%18)/100)+')';floorCtx.fillRect(x,y,1+(floorSeed%3),1+(floorSeed%2))}const floorTexture=new THREE.CanvasTexture(floorCanvas);floorTexture.wrapS=floorTexture.wrapT=THREE.RepeatWrapping;floorTexture.repeat.set(6,6);floorTexture.colorSpace=THREE.SRGBColorSpace;
+const mats={floor:new THREE.MeshStandardMaterial({color:0xffffff,map:floorTexture,roughness:.96}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,roughness:.85}),steel:new THREE.MeshStandardMaterial({color:0x53636a,metalness:.55,roughness:.4}),dark:new THREE.MeshStandardMaterial({color:0x202a30,metalness:.25,roughness:.65}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,metalness:.2,roughness:.45}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,metalness:.15,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:0x6d9ba7,transparent:true,opacity:.42,metalness:.2,roughness:.15}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f}),red:new THREE.MeshStandardMaterial({color:0xf05c54})};
 function box(parent,name,pos,size,mat,interactive=false){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.name=name;m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(interactive)targets.push(m);return m}
 function cyl(parent,name,pos,r1,r2,len,mat,axis='y',segments=16){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,len,segments),mat);m.name=name;m.position.set(...pos);if(axis==='x')m.rotation.z=Math.PI/2;else if(axis==='z')m.rotation.x=Math.PI/2;m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 function tube(parent,name,points,radius,mat){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const m=new THREE.Mesh(new THREE.TubeGeometry(curve,32,radius,8,false),mat);m.name=name;m.castShadow=true;parent.add(m);return m}
@@ -90,7 +91,7 @@ box(scene,'back wall',[0,3,-15.8],[32,6,.3],mats.wall);box(scene,'left wall',[-1
 for(let x=-12;x<=12;x+=4){box(scene,'roof beam',[x,5.8,0],[.18,.18,30],mats.steel);const light=new THREE.PointLight(0xfff4d9,28,12);light.position.set(x,5.2,0);scene.add(light);box(scene,'LED fixture',[x,5.3,0],[1.3,.08,.3],mats.white);box(scene,'LED diffuser',[x,5.245,0],[1.18,.025,.24],new THREE.MeshStandardMaterial({color:0xfff5d9,emissive:0xffe7b2,emissiveIntensity:.45}))}
 // Roof purlins and utility cable trays.
 for(let z=-12;z<=12;z+=4){box(scene,'roof purlin',[0,5.62,z],[30,.12,.12],mats.steel)}
-box(scene,'overhead cable tray',[-11,4.9,-1],[.35,.12,27],mats.dark);box(scene,'overhead pipe rack',[11,4.75,-1],[.28,.18,27],mats.steel);
+box(scene,'overhead cable tray',[-11,4.9,-1],[.35,.12,27],mats.dark);box(scene,'overhead pipe rack',[11,4.75,-1],[.28,.18,27],mats.steel);for(const z of [-12,-6,0,6,12]){box(scene,'cable tray hanger',[-11,5.28,z],[.08,.62,.08],mats.steel);box(scene,'pipe rack hanger',[11,5.18,z],[.08,.86,.08],mats.steel)}
 // Safety fence around the rear half of the cell.
 for(let x=-7;x<=7;x+=2.5){box(scene,'safety fence post',[x,1.25,-5],[.09,2.5,.09],mats.yellow);box(scene,'fence rail',[x,2.35,-5],[2.5,.06,.06],mats.yellow);box(scene,'fence lower rail',[x,.12,-5],[2.5,.06,.06],mats.yellow)}
 const meshMat=new THREE.MeshStandardMaterial({color:0x71848a,metalness:.35,roughness:.6});for(let x=-8.1;x<=8.1;x+=.18)box(scene,'fence mesh vertical',[x,1.25,-5],[.012,2.12,.018],meshMat);for(let y=.25;y<=2.25;y+=.18)box(scene,'fence mesh horizontal',[0,y,-5],[16.2,.012,.018],meshMat);
@@ -152,7 +153,7 @@ box(mouldRack,'mould storage rack base',[0,.32,0],[3.3,.64,1.9],craneSteel);
 for(const x of [-1.35,-.15,1.05]){box(mouldRack,'rack upright',[x,.92,-.72],[.12,1.2,.12],craneYellow);box(mouldRack,'rack upright',[x,.92,.72],[.12,1.2,.12],craneYellow)}
 for(const z of [-.62,.62])box(mouldRack,'mould storage rail',[0,.72,z],[3.1,.12,.12],craneYellow);
 
- const rackLabel=labelSprite('MOULD STORAGE · A / B');rackLabel.position.set(0,2.0,0);mouldRack.add(rackLabel);
+ box(mouldRack,'rack identification plate',[0,1.72,-.79],[1.8,.34,.08],mats.dark);const rackLabel=labelSprite('MOULD STORAGE · A / B');rackLabel.scale.set(1.45,.34,1);rackLabel.position.set(0,1.72,-.84);mouldRack.add(rackLabel);
  for(const x of [-1.45,1.45])for(const z of [-.72,.72]){box(mouldRack,'rack foot',[x,.06,z],[.28,.12,.28],mats.dark);cyl(mouldRack,'rack anchor',[x,.14,z],.045,.045,.035,mats.yellow,'y',10)}
  for(let i=0;i<12;i++)box(craneBridge,'crane hazard stripe',[-6.7+i*.62,4.82,.32],[.28,.12,.025],i%2?mats.dark:craneYellow);
  cyl(craneTrolley,'hoist drum',[0,-.22,.42],.22,.22,.55,craneSteel,'z',20);
@@ -279,10 +280,10 @@ box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
 box(wrist,'gripper mount',[.48,0,0],[.28,.2,.24],mats.dark,true);
 const gripperFingerA=box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
 const gripperFingerB=box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
-const robotLabel=labelSprite('ABB · 6 AXIS ROBOT');robotLabel.position.set(0,3.6,0);robot.add(robotLabel);
+const robotNameplate=box(robot,'ABB robot nameplate',[0,1.12,.58],[.82,.25,.055],mats.dark);const robotLabel=labelSprite('ABB · IRB');robotLabel.scale.set(1.0,.25,1);robotLabel.position.set(0,1.12,.62);robot.add(robotLabel);
 // Robot extraction station: machine-side hand-off, guarding posts and local status stack.
-const robotPad=box(scene,'ABB robot foundation', [.25,.08,-1.15],[2.05,.16,2.05],mats.dark);robotPad.position.y=.08;
-for(const [x,z] of [[-.72,-2.12],[1.22,-2.12],[-.72,-.18],[1.22,-.18]]){box(scene,'robot cell guard post',[x,1.12,z],[.09,2.24,.09],mats.yellow);cyl(scene,'robot guard anchor',[x,.18,z],.08,.08,.06,mats.steel,'y',12)}
+const robotPad=box(scene,'ABB robot foundation',[-.2,.08,-.8],[2.05,.16,2.05],mats.dark);
+for(const [x,z] of [[-1.22,-1.82],[.82,-1.82],[-1.22,.22],[.82,.22]]){box(scene,'robot cell guard post',[x,1.12,z],[.09,2.24,.09],mats.yellow);cyl(scene,'robot guard anchor',[x,.18,z],.08,.08,.06,mats.steel,'y',12)}
 box(scene,'robot cell status tower',[1.42,1.65,-1.15],[.18,3.3,.18],mats.dark);cyl(scene,'robot status green',[1.42,2.8,-1.15],.09,.09,.2,mats.green);cyl(scene,'robot status amber',[1.42,2.5,-1.15],.09,.09,.2,mats.yellow);cyl(scene,'robot status red',[1.42,2.2,-1.15],.09,.09,.2,mats.red);
 // Robot base ring, axis covers, service conduit and wrist details.
 cyl(robot,'robot base turntable',[0,.92,0],.53,.53,.14,mats.dark,'y',24);cyl(robot,'robot base trim',[0,.99,0],.46,.46,.045,mats.yellow,'y',24);
@@ -299,7 +300,7 @@ for(const x of [-.2,.2])for(const z of [-.12,.12])cyl(robotPart,'part boss',[x,.
 robotPart.visible=false;
 const robotTransfer={active:false,phase:0,elapsed:0,phaseDuration:1.25,partCount:0,baseY:2.35,shoulderZ:0,elbowZ:0,wristZ:0};
 const transferPick=new THREE.Vector3(-2.85,2.65,-2.75);
-const transferPlace=new THREE.Vector3(1.25,.82,1.75);
+const transferPlace=new THREE.Vector3(1.25,1.0,1.75);
 function smooth01(v){v=clamp(v,0,1);return v*v*(3-2*v)}
 function startRobotTransfer(){
  if(robotTransfer.active){toast('Robot transfer is already running');return}
@@ -342,19 +343,19 @@ function updateRobotTransfer(dt){
 // Auxiliary equipment and conveyor.
 const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
 box(scene,'temperature controller',[-8, .8,-1.8],[1.1,1.5,.65],mats.steel,true);
-box(scene,'conveyor',[2,.7,2.05],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.55,2.05);scene.add(roller);conveyorRollers.push(roller)}
+box(scene,'conveyor',[2,.7,2.05],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.88,2.05);scene.add(roller);conveyorRollers.push(roller)}
 // Side rails, end stops and a guarded discharge chute make the conveyor read as a real take-away line.
 for(const z of [1.38,2.72])box(scene,'conveyor side guard',[2,.94,z],[7,.22,.09],mats.steel);
-for(const x of [-1.55,5.55]){box(scene,'conveyor end frame',[x,.77,2.75],[.14,.55,1.55],mats.steel);for(const z of [1.5,2.6])cyl(scene,'conveyor frame bolt',[x,.78,z],.045,.045,.035,mats.yellow,'x',10)}
+for(const x of [-1.55,5.55]){box(scene,'conveyor end frame',[x,.77,2.05],[.14,.55,1.55],mats.steel);for(const z of [1.5,2.6])cyl(scene,'conveyor frame bolt',[x,.78,z],.045,.045,.035,mats.yellow,'x',10)}
 box(scene,'conveyor discharge sensor',[5.15,1.35,2.05],[.16,.55,.18],mats.dark);cyl(scene,'conveyor photoeye',[5.05,1.48,2.05],.07,.07,.08,mats.green,'x',12);
 box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
-const sign=labelSprite('MOULDING CELL 01');sign.position.set(0,4.8,-15.5);scene.add(sign);
+box(scene,'cell identification sign backing',[0,4.8,-15.58],[3.2,.72,.12],mats.dark);const sign=labelSprite('MOULDING CELL 01');sign.scale.set(2.8,.7,1);sign.position.set(0,4.8,-15.49);scene.add(sign);
 // Peripheral cabinets, compressed-air drop, cooling manifolds and warning beacons.
 const utility=box(scene,'electrical distribution cabinet',[10,1.55,-7],[1.4,3.1,.9],mats.white,true);for(let i=0;i<5;i++)box(scene,'cabinet vent',[10,2.45+i*.12,-6.53],[.8,.025,.025],mats.dark);cyl(scene,'cabinet indicator green',[9.55,2.85,-6.5],.055,.055,.04,mats.green,'z',12);cyl(scene,'cabinet indicator amber',[9.75,2.85,-6.5],.055,.055,.04,mats.yellow,'z',12);
 box(scene,'compressed air drop',[11.8,2.5,-2],[.16,4.8,.16],mats.steel);tube(scene,'air hose',[[11.8,3.8,-2],[11.5,3.7,-1.5],[11.5,2.4,-1.2],[10.8,2.2,-1.2]],.035,mats.yellow);
-box(scene,'cooling water manifold',[8,1.1,-3],[1.5,.28,.45],mats.steel);for(let i=0;i<4;i++){cyl(scene,'manifold valve',[7.45+i*.35,1.35,-3],.09,.09,.22,mats.yellow);cyl(scene,'manifold port',[7.45+i*.35,.95,-2.75],.055,.055,.12,mats.green,'z',12)}
+for(const x of [7.4,8.6]){box(scene,'manifold support leg',[x,.52,-3],[.09,1.0,.09],mats.steel);box(scene,'manifold foot',[x,.06,-3],[.28,.12,.3],mats.dark)}box(scene,'cooling water manifold',[8,1.1,-3],[1.5,.28,.45],mats.steel);for(let i=0;i<4;i++){cyl(scene,'manifold valve',[7.45+i*.35,1.35,-3],.09,.09,.22,mats.yellow);cyl(scene,'manifold port',[7.45+i*.35,.95,-2.75],.055,.055,.12,mats.green,'z',12)}
 // Warning beacon on a short post.
-cyl(scene,'beacon post',[6,2.6,2],.045,.045,.7,mats.steel);cyl(scene,'beacon base',[6,2.98,2],.16,.16,.12,mats.dark);cyl(scene,'red warning beacon',[6,3.15,2],.13,.13,.24,mats.red);
+cyl(scene,'beacon post',[6,.78,2],.045,.045,1.5,mats.steel);cyl(scene,'beacon base',[6,1.58,2],.16,.16,.12,mats.dark);cyl(scene,'red warning beacon',[6,1.76,2],.13,.13,.24,mats.red);
 // Player movement and look controls.
 const player={x:0,z:7,yaw:0,pitch:0,moveX:0,moveY:0};const keys={};let activePanel=false;
 let safetyGateClosed=false,trainingSettingsApplied=false,materialPrepared=false,machineCycleActive=false,cycleTimer=null,cyclePhase='IDLE',conveyorRunning=false,partCount=0;
