@@ -266,12 +266,35 @@ for(let z of [-.92,.92]){for(let y of [1.0,2.72]){cyl(engel,'tie-bar lock nut',[
 for(let i=0;i<5;i++){box(engel,'clamping unit cooling rib',[-.55+i*.28,.52,1.13],[.035,.42,.025],mats.steel)}
 // Hydraulic cylinders mounted below the clamping unit.
 for(let z of [-.72,.72]){cyl(engel,'hydraulic cylinder body',[-.35,.58,z],.14,.14,1.45,mats.steel,'x',16);cyl(engel,'hydraulic rod',[.48,.58,z],.055,.055,.45,mats.white,'x',12);}
-// Injection drive motor, gearbox and barrel heater bands.
-cyl(engel,'injection drive motor',[2.8,1.55,0],.48,.48,.8,mats.dark,'x',20);cyl(engel,'motor end cap',[3.22,1.55,0],.34,.34,.08,mats.steel,'x',20);
-for(let i=0;i<4;i++){const band=cyl(engel,'barrel heater band',[1.05+i*.34,1.8,0],.19,.19,.12,i%2?mats.yellow:mats.orange,'x',20);band.scale.set(1,1,1)}
+// Plasticising barrel, nozzle assembly, heater bands and injection drive.
+cyl(engel,'plasticising barrel',[1.82,1.8,0],.225,.225,1.92,mats.steel,'x',24);
+cyl(engel,'barrel rear flange',[2.78,1.8,0],.29,.29,.12,mats.dark,'x',20);
+cyl(engel,'barrel front flange',[.86,1.8,0],.29,.29,.12,mats.dark,'x',20);
+cyl(engel,'nozzle body',[.66,1.8,0],.16,.22,.34,mats.steel,'x',20);
+cyl(engel,'nozzle retaining nut',[.47,1.8,0],.19,.19,.1,mats.dark,'x',20);
+cyl(engel,'nozzle tip',[.34,1.8,0],.075,.13,.18,mats.yellow,'x',16);
+for(let i=0;i<5;i++){
+ const x=1.02+i*.34;
+ cyl(engel,'barrel heater band',[x,1.8,0],.255,.255,.13,i%2?mats.yellow:mats.orange,'x',24);
+ cyl(engel,'heater band clamp',[x-.075,1.8,0],.266,.266,.025,mats.dark,'x',24);
+}
+for(let i=0;i<5;i++){
+ const guard=box(engel,'heater terminal cover',[1.03+i*.34,2.075,.12],[.16,.09,.22],mats.dark);
+ guard.rotation.z=-.12;
+}
+cyl(engel,'injection drive motor',[2.8,1.55,0],.48,.48,.8,mats.dark,'x',20);
+cyl(engel,'motor end cap',[3.22,1.55,0],.34,.34,.08,mats.steel,'x',20);
+cyl(engel,'gearbox coupling',[2.55,1.55,0],.29,.29,.16,mats.steel,'x',20);
 for(let i=0;i<6;i++)box(engel,'motor cooling fin',[2.8,1.55+i*.09,-.43],[.58,.025,.035],mats.steel);
-// Granulate feed throat and guarded hopper lid.
-cyl(engel,'hopper throat',[2.4,2.35,0],.2,.2,.28,mats.dark);box(engel,'hopper lid',[2.4,3.27,0],[.88,.1,.88],mats.dark);
+// Hopper feed throat lands directly on the barrel feed opening.
+cyl(engel,'hopper throat',[2.4,2.35,0],.2,.2,.28,mats.dark);
+box(engel,'feed throat support',[2.4,2.19,0],[.52,.12,.5],mats.steel);
+
+// Granulate hopper with lid and a visible tapered outlet.
+const hopperBody=box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
+box(engel,'hopper lid',[2.4,3.27,0],[.88,.1,.88],mats.dark);
+box(engel,'hopper inspection window',[2.4,2.82,.382],[.28,.42,.025],mats.green);
+
 // HMI bezel, status lamps and emergency stop.
 box(engel,'HMI bezel',[1.45,2.28,1.265],[.62,.5,.06],mats.steel);for(let i=0;i<3;i++)cyl(engel,'HMI status lamp',[1.2+i*.22,1.72,1.3],.045,.045,.035,[mats.green,mats.yellow,mats.red][i],'z',12);cyl(engel,'emergency stop button',[1.82,2.48,1.3],.09,.09,.07,mats.red,'z',16);
 
