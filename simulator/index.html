@@ -256,7 +256,7 @@ function showMouldChangePanel(){
 
 box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
 const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
-box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
+// Hopper geometry is assembled below with its inspection window and lid.
 box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
 box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],mats.green);
 // The machine identity is mounted on the physical cabinet badge below; no floating billboard.
