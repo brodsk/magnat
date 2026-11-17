@@ -68,7 +68,7 @@ try {
   panel.hidden=false;
   panel.textContent='WEBGL INITIALIZATION FAILED. '+error.message+'\\nTry enabling hardware acceleration / WebGL in the browser.';
   throw error;
-}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;mount.appendChild(renderer.domElement);
+}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;mount.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xe8f4ff,0x35414a,2.0));
 const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
 const mats={floor:new THREE.MeshStandardMaterial({color:0x65747a,roughness:.9}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,roughness:.85}),steel:new THREE.MeshStandardMaterial({color:0x53636a,metalness:.55,roughness:.4}),dark:new THREE.MeshStandardMaterial({color:0x202a30,metalness:.25,roughness:.65}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,metalness:.2,roughness:.45}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,metalness:.15,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:0x6d9ba7,transparent:true,opacity:.42,metalness:.2,roughness:.15}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f}),red:new THREE.MeshStandardMaterial({color:0xf05c54})};
@@ -151,7 +151,12 @@ const mouldRack=new THREE.Group();mouldRack.position.set(-5.55,0,1.2);scene.add(
 box(mouldRack,'mould storage rack base',[0,.32,0],[3.3,.64,1.9],craneSteel);
 for(const x of [-1.35,-.15,1.05]){box(mouldRack,'rack upright',[x,.92,-.72],[.12,1.2,.12],craneYellow);box(mouldRack,'rack upright',[x,.92,.72],[.12,1.2,.12],craneYellow)}
 for(const z of [-.62,.62])box(mouldRack,'mould storage rail',[0,.72,z],[3.1,.12,.12],craneYellow);
-const rackLabel=labelSprite('MOULD STORAGE · A / B');rackLabel.position.set(0,2.0,0);mouldRack.add(rackLabel);
+
+ const rackLabel=labelSprite('MOULD STORAGE · A / B');rackLabel.position.set(0,2.0,0);mouldRack.add(rackLabel);
+ for(const x of [-1.45,1.45])for(const z of [-.72,.72]){box(mouldRack,'rack foot',[x,.06,z],[.28,.12,.28],mats.dark);cyl(mouldRack,'rack anchor',[x,.14,z],.045,.045,.035,mats.yellow,'y',10)}
+ for(let i=0;i<12;i++)box(craneBridge,'crane hazard stripe',[-6.7+i*.62,4.82,.32],[.28,.12,.025],i%2?mats.dark:craneYellow);
+ cyl(craneTrolley,'hoist drum',[0,-.22,.42],.22,.22,.55,craneSteel,'z',20);
+ for(const z of [-.42,.42])cyl(craneTrolley,'trolley end wheel',[.42,.08,z],.15,.15,.11,craneYellow,'z',16);
 const rackOldPosition={x:-6.35,y:1.62,z:1.2};
 const craneTarget={x:-3.45,z:-3};
 let mouldHookY=3,mouldStep=-1,mouldIsolated=false,servicesConnected=true,clampsSecured=true,mouldChangeComplete=false;
@@ -188,6 +193,9 @@ function updateMouldMotion(dt){
   item.group.position.y+=(item.target.y-item.group.position.y)*speed;
   item.group.position.z+=(item.target.z-item.group.position.z)*speed;
  }
+ const craneMoving=Math.abs(craneTrolley.position.x-craneTarget.x)>.01||Math.abs(craneBridge.position.z-craneTarget.z)>.01;
+ const mouldMoving=[oldMould,newMould].some(item=>item.target&&Math.hypot(item.target.x-item.group.position.x,item.target.y-item.group.position.y,item.target.z-item.group.position.z)>.01);
+ if(craneMoving||mouldMoving)renderer.shadowMap.needsUpdate=true;
 }
 function showMouldChangePanel(){
  const completed=Math.max(0,mouldStep+1),current=Math.min(mouldStep+1,mouldSteps.length-1);
@@ -242,7 +250,19 @@ for(let i=0;i<6;i++)box(engel,'motor cooling fin',[2.8,1.55+i*.09,-.43],[.58,.02
 cyl(engel,'hopper throat',[2.4,2.35,0],.2,.2,.28,mats.dark);box(engel,'hopper lid',[2.4,3.27,0],[.88,.1,.88],mats.dark);
 // HMI bezel, status lamps and emergency stop.
 box(engel,'HMI bezel',[1.45,2.28,1.265],[.62,.5,.06],mats.steel);for(let i=0;i<3;i++)cyl(engel,'HMI status lamp',[1.2+i*.22,1.72,1.3],.045,.045,.035,[mats.green,mats.yellow,mats.red][i],'z',12);cyl(engel,'emergency stop button',[1.82,2.48,1.3],.09,.09,.07,mats.red,'z',16);
-// Flexible hydraulic and cooling hoses, routed along the machine frame.
+
+ // Additional machine finish: service doors, recessed handles, feet, fasteners and warning labels.
+ box(engel,'lower service access door',[-2.15,.66,1.205],[.98,.68,.055],mats.dark);
+ box(engel,'service door inset',[-2.15,.66,1.239],[.82,.51,.012],mats.steel);
+ box(engel,'service door handle',[-1.78,.66,1.27],[.045,.22,.045],mats.yellow);
+ for(const x of [-2.55,-1.75])for(const y of [.38,.94])cyl(engel,'service door fastener',[x,y,1.26],.035,.035,.025,mats.white,'z',8);
+ box(engel,'clamping unit trim',[-.55,3.08,1.04],[1.82,.12,.16],mats.orange);
+ box(engel,'injection unit side panel',[2.05,2.36,.69],[1.85,.08,.06],mats.dark);
+ for(const x of [-2.5,-1.1,.7,2.5]){box(engel,'machine foot pad',[x,.08,.82],[.48,.16,.62],mats.dark);cyl(engel,'machine anchor bolt',[x,.17,1.08],.055,.055,.04,mats.yellow,'y',10)}
+ const machineBadge=labelSprite('ENGEL · MOULDING CELL');machineBadge.position.set(-2.15,2.95,1.24);machineBadge.scale.set(1.45,.36,1);engel.add(machineBadge);
+ // Cooling connection blocks and colour-coded mould circuits.
+ for(let i=0;i<4;i++){cyl(engel,'mould cooling connector',[-.45+i*.3,1.15,1.22],.075,.075,.09,i%2?mats.green:mats.yellow,'z',14);cyl(engel,'cooling connector collar',[-.45+i*.3,1.15,1.28],.095,.095,.035,mats.steel,'z',14)}
+ // Flexible hydraulic and cooling hoses, routed along the machine frame.
 tube(engel,'hydraulic hose',[[1.0,1.15,.98],[1.35,.85,1.0],[2.0,.9,.95],[2.55,1.2,.72]],.035,mats.dark);tube(engel,'cooling hose',[[.1,2.85,1.0],[.55,3.05,1.05],[1.0,2.8,1.05],[1.2,2.45,1.05]],.025,mats.green);
 // ABB six-axis robot, with articulated links and visible gripper.
 const robot=new THREE.Group();robot.position.set(4,0,-1.5);scene.add(robot);
