@@ -265,7 +265,7 @@ box(engel,'HMI bezel',[1.45,2.28,1.265],[.62,.5,.06],mats.steel);for(let i=0;i<3
  // Flexible hydraulic and cooling hoses, routed along the machine frame.
 tube(engel,'hydraulic hose',[[1.0,1.15,.98],[1.35,.85,1.0],[2.0,.9,.95],[2.55,1.2,.72]],.035,mats.dark);tube(engel,'cooling hose',[[.1,2.85,1.0],[.55,3.05,1.05],[1.0,2.8,1.05],[1.2,2.45,1.05]],.025,mats.green);
 // ABB six-axis robot, with articulated links and visible gripper.
-const robot=new THREE.Group();robot.position.set(4,0,-1.5);scene.add(robot);
+const robot=new THREE.Group();robot.position.set(.25,0,-1.15);robot.rotation.y=2.35;scene.add(robot);
 box(robot,'robot pedestal',[0,.45,0],[1.1,.9,1.1],mats.steel,true);
 const base=new THREE.Group();base.position.y=.9;robot.add(base);
 const axis1=new THREE.Mesh(new THREE.CylinderGeometry(.43,.5,.55,20),mats.orange);axis1.position.y=.25;base.add(axis1);
@@ -277,19 +277,76 @@ const fore=box(elbow,'ABB forearm',[.62,0,0],[1.3,.3,.32],mats.orange,true);
 const wrist=new THREE.Group();wrist.position.set(1.25,0,0);elbow.add(wrist);
 box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
 box(wrist,'gripper mount',[.48,0,0],[.28,.2,.24],mats.dark,true);
-box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
-box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
+const gripperFingerA=box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
+const gripperFingerB=box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
 const robotLabel=labelSprite('ABB · 6 AXIS ROBOT');robotLabel.position.set(0,3.6,0);robot.add(robotLabel);
+// Robot extraction station: machine-side hand-off, guarding posts and local status stack.
+const robotPad=box(scene,'ABB robot foundation', [.25,.08,-1.15],[2.05,.16,2.05],mats.dark);robotPad.position.y=.08;
+for(const [x,z] of [[-.72,-2.12],[1.22,-2.12],[-.72,-.18],[1.22,-.18]]){box(scene,'robot cell guard post',[x,1.12,z],[.09,2.24,.09],mats.yellow);cyl(scene,'robot guard anchor',[x,.18,z],.08,.08,.06,mats.steel,'y',12)}
+box(scene,'robot cell status tower',[1.42,1.65,-1.15],[.18,3.3,.18],mats.dark);cyl(scene,'robot status green',[1.42,2.8,-1.15],.09,.09,.2,mats.green);cyl(scene,'robot status amber',[1.42,2.5,-1.15],.09,.09,.2,mats.yellow);cyl(scene,'robot status red',[1.42,2.2,-1.15],.09,.09,.2,mats.red);
 // Robot base ring, axis covers, service conduit and wrist details.
 cyl(robot,'robot base turntable',[0,.92,0],.53,.53,.14,mats.dark,'y',24);cyl(robot,'robot base trim',[0,.99,0],.46,.46,.045,mats.yellow,'y',24);
 for(let a=0;a<8;a++){const ang=a*Math.PI/4;const bolt=cyl(robot,'base anchor bolt',[Math.cos(ang)*.43,.16,Math.sin(ang)*.43],.045,.045,.035,mats.white,'y',10)}
 cyl(base,'axis 1 upper cover',[0,.62,0],.31,.31,.18,mats.dark,'y',20);cyl(shoulder,'axis 2 joint cap',[0,1.7,0],.28,.28,.18,mats.dark,'z',20);cyl(elbow,'axis 3 joint cap',[1.25,.55,0],.25,.25,.16,mats.dark,'z',20);
 tube(robot,'robot dress pack',[[.25,1.25,.28],[.5,2.0,.32],[1.0,2.5,.32],[1.7,2.45,.28],[2.0,1.9,.25]],.045,mats.dark);
 for(let i=0;i<3;i++){cyl(wrist,'wrist joint ring',[.12+i*.17,0,0],.19,.19,.045,i===1?mats.yellow:mats.steel,'x',16)}
+
+const robotPartMat=new THREE.MeshStandardMaterial({color:0x6f9fa8,metalness:.12,roughness:.34});
+const robotPart=new THREE.Group();scene.add(robotPart);
+box(robotPart,'moulded plastic housing',[0,0,0],[.62,.24,.42],robotPartMat);
+box(robotPart,'part rib',[0,.13,0],[.48,.035,.06],mats.dark);
+for(const x of [-.2,.2])for(const z of [-.12,.12])cyl(robotPart,'part boss',[x,.14,z],.045,.045,.06,robotPartMat,'y',10);
+robotPart.visible=false;
+const robotTransfer={active:false,phase:0,elapsed:0,phaseDuration:1.25,partCount:0,baseY:2.35,shoulderZ:0,elbowZ:0,wristZ:0};
+const transferPick=new THREE.Vector3(-2.85,2.65,-2.75);
+const transferPlace=new THREE.Vector3(1.75,1.25,2.72);
+function smooth01(v){v=clamp(v,0,1);return v*v*(3-2*v)}
+function startRobotTransfer(){
+ if(robotTransfer.active){toast('Robot transfer is already running');return}
+ robotTransfer.active=true;robotTransfer.phase=0;robotTransfer.elapsed=0;robotPart.visible=true;robotPart.position.copy(transferPick);robotPart.rotation.set(0,0,0);
+ conveyorRunning=true;
+ toast('ABB pick-and-place sequence started');
+}
+function updateRobotTransfer(dt){
+ if(!robotTransfer.active)return;
+ robotTransfer.elapsed+=dt;
+ const t=smooth01(robotTransfer.elapsed/robotTransfer.phaseDuration);
+ const poses=[
+  [2.35,-.42,.82,-.35], [2.35,-.62,1.05,-.4],
+  [2.35,-.62,1.05,-.4], [-1.05,.38,-.72,.25],
+  [-1.05,.38,-.72,.25], [-1.05,.2,-.45,.1]
+ ];
+ const from=poses[Math.max(0,robotTransfer.phase-1)]||poses[0],to=poses[Math.min(robotTransfer.phase,poses.length-1)];
+ base.rotation.y=from[0]+(to[0]-from[0])*t;
+ shoulder.rotation.z=from[1]+(to[1]-from[1])*t;
+ elbow.rotation.z=from[2]+(to[2]-from[2])*t;
+ wrist.rotation.z=from[3]+(to[3]-from[3])*t;
+ const tool=new THREE.Vector3();wrist.getWorldPosition(tool);tool.add(new THREE.Vector3(.48,0,0).applyQuaternion(wrist.getWorldQuaternion(new THREE.Quaternion())));
+ if(robotTransfer.phase===0){robotPart.position.lerpVectors(transferPick,tool,t);gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}
+ else if(robotTransfer.phase===1){robotPart.position.copy(tool);gripperFingerA.position.y=.075;gripperFingerB.position.y=-.075}
+ else if(robotTransfer.phase===2){robotPart.position.copy(tool)}
+ else if(robotTransfer.phase===3){robotPart.position.lerpVectors(tool,transferPlace,t)}
+ else if(robotTransfer.phase===4){robotPart.position.copy(transferPlace);gripperFingerA.position.y=.13;gripperFingerB.position.y=-.13}
+ else {robotPart.position.copy(transferPlace)}
+ if(robotTransfer.elapsed>=robotTransfer.phaseDuration){
+  robotTransfer.elapsed=0;robotTransfer.phase++;
+  if(robotTransfer.phase>=6){
+   robotTransfer.active=false;robotTransfer.phase=0;robotTransfer.partCount++;partCount++;robotPart.visible=false;
+   document.querySelector('#cellStatus').textContent='ROBOT CYCLE · '+robotTransfer.partCount+' PARTS';
+   toast('Part placed on conveyor · '+robotTransfer.partCount);
+   const result=document.querySelector('#robotResult');if(result)result.textContent='Transfer complete. Parts placed on conveyor: '+robotTransfer.partCount+'. Start again to repeat the demonstration.';
+  }
+ }
+}
+
 // Auxiliary equipment and conveyor.
 const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
 box(scene,'temperature controller',[-8, .8,-1.8],[1.1,1.5,.65],mats.steel,true);
-box(scene,'conveyor',[2,.7,4],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.55,4);scene.add(roller);conveyorRollers.push(roller)}
+box(scene,'conveyor',[2,.7,2.75],[7,.3,1.2],mats.dark,true);const conveyorRollers=[];for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.55,2.75);scene.add(roller);conveyorRollers.push(roller)}
+// Side rails, end stops and a guarded discharge chute make the conveyor read as a real take-away line.
+for(const z of [2.08,3.42])box(scene,'conveyor side guard',[2,.94,z],[7,.22,.09],mats.steel);
+for(const x of [-1.55,5.55]){box(scene,'conveyor end frame',[x,.77,2.75],[.14,.55,1.55],mats.steel);for(const z of [2.2,3.3])cyl(scene,'conveyor frame bolt',[x,.78,z],.045,.045,.035,mats.yellow,'x',10)}
+box(scene,'conveyor discharge sensor',[5.15,1.35,2.75],[.16,.55,.18],mats.dark);cyl(scene,'conveyor photoeye',[5.05,1.48,2.75],.07,.07,.08,mats.green,'x',12);
 box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
 const sign=labelSprite('MOULDING CELL 01');sign.position.set(0,4.8,-15.5);scene.add(sign);
 // Peripheral cabinets, compressed-air drop, cooling manifolds and warning beacons.
@@ -316,8 +373,9 @@ const obstacles=[
   {minX:-8.72,maxX:-7.28,minZ:-4.72,maxZ:-3.28,name:'material dryer'},
   {minX:-8.72,maxX:-7.28,minZ:-2.25,maxZ:-1.35,name:'temperature controller'},
   {minX:-7.35,maxX:-3.75,minZ:.05,maxZ:2.35,name:'mould storage rack'},
-  {minX:3.15,maxX:7.05,minZ:-2.35,maxZ:-.65,name:'ABB robot cell'},
-  {minX:-1.72,maxX:5.72,minZ:3.28,maxZ:4.72,name:'conveyor'},
+  {minX:-.65,maxX:1.15,minZ:-2.15,maxZ:-.15,name:'ABB robot pedestal'},
+  {minX:-1.72,maxX:5.72,minZ:2.0,maxZ:3.5,name:'conveyor'}, 
+  
   {minX:9.18,maxX:10.82,minZ:-7.52,maxZ:-6.48,name:'electrical cabinet'},
   {minX:7.18,maxX:8.82,minZ:-3.38,maxZ:-2.62,name:'cooling manifold'},
   {minX:11.58,maxX:12.02,minZ:-2.22,maxZ:-1.78,name:'compressed-air drop'},
@@ -404,6 +462,8 @@ showPanel('ABB · Robot training',`<p>Six-axis robot teaching panel. Adjust each
  const applyRobotAxes=()=>{base.rotation.y=Number(content.querySelector('#r1').value)*Math.PI/180;shoulder.rotation.z=Number(content.querySelector('#r2').value)*Math.PI/180;elbow.rotation.z=Number(content.querySelector('#r3').value)*Math.PI/180;wrist.rotation.x=Number(content.querySelector('#r4').value)*Math.PI/180;wrist.rotation.y=Number(content.querySelector('#r5').value)*Math.PI/180;wrist.rotation.z=Number(content.querySelector('#r6').value)*Math.PI/180};
  content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#a'+input.id.slice(1)).textContent=input.value+'°';applyRobotAxes()}));
  applyRobotAxes();
+ content.querySelector('#robotResult').insertAdjacentHTML('beforebegin','<button class="action" id="pickPlace">START PICK & PLACE DEMO</button><p class="hmi-note">Demonstration only: the virtual robot extracts a sample part from the open mould area and transfers it to the conveyor. No real robot program is generated.</p>');
+ content.querySelector('#pickPlace').onclick=startRobotTransfer;
  content.querySelector('#home').onclick=()=>{const values=[0,-15,35,0,0,0];values.forEach((v,i)=>{content.querySelector('#r'+(i+1)).value=v;content.querySelector('#a'+(i+1)).textContent=v+'°'});applyRobotAxes();content.querySelector('#robotResult').textContent='Virtual home pose selected. Validate real robot limits, tooling and safety zones independently.';toast('Virtual ABB home position selected')};
 }else if(n==='material dryer'||n==='dryer hopper'||n==='temperature controller'){showPanel('Material preparation',`<p>Material drying is part of the process setup. Select the resin and verify the supplier's technical data sheet before choosing a real drying recipe.</p><div class="field"><label>Training material</label><select id="resin" style="width:100%;padding:10px;background:#263843;color:white;border:1px solid #536773;border-radius:7px"><option>ABS</option><option>PA6</option><option>PA66</option><option>PBT</option><option>PC/ABS</option><option>PP</option></select></div><button class="action" id="dry">START DRYER (SIMULATED)</button><p id="dryResult">Dryer idle.</p>`);content.querySelector('#dry').onclick=()=>{materialPrepared=true;content.querySelector('#dryResult').textContent='Training dryer started for '+content.querySelector('#resin').value+'. Material preparation acknowledged in the training model; actual conditions must come from the resin supplier specification.';toast('Virtual material preparation complete')};
 }else if(n==='safety gate'){showPanel('Cell safety',`<p>Safety is a prerequisite for every setup and automatic cycle. This is a training-only interlock; it does not represent a certified safety circuit.</p><div class="field"><label>Training interlock state</label><strong id="gateState" style="color:var(--warn)">${safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED'}</strong></div><button class="action" id="gateToggle">${safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)'}</button><p id="gateResult">${machineCycleActive?'Cycle active. Gate opening is inhibited.':'The virtual gate state controls whether a training cycle may start.'}</p>`);content.querySelector('#gateToggle').onclick=()=>{if(machineCycleActive){content.querySelector('#gateResult').textContent='Opening blocked: the training cycle is active.';toast('Safety interlock: cycle active');return}safetyGateClosed=!safetyGateClosed;content.querySelector('#gateState').textContent=safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED';content.querySelector('#gateState').style.color=safetyGateClosed?'var(--accent)':'var(--warn)';content.querySelector('#gateToggle').textContent=safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)';content.querySelector('#gateResult').textContent=safetyGateClosed?'Gate closed in the training model.':'Gate open. Automatic cycle is inhibited.';toast(safetyGateClosed?'Virtual gate closed':'Virtual gate opened')}}
@@ -411,7 +471,7 @@ else if(n==='crane pendant'||n==='mold'||n==='replacement mould'){showMouldChang
  else if(n==='conveyor'){showPanel('Conveyor and part handling',`<p>Downstream handling equipment for moulded parts.</p><div class="field"><label>Training conveyor status</label><strong id="convState" style="color:var(--accent)">${conveyorRunning?'RUNNING':'STOPPED'}</strong></div><button class="action" id="conv">${conveyorRunning?'STOP CONVEYOR':'START CONVEYOR'}</button><p id="convResult">Virtual parts produced: ${partCount}.</p>`);content.querySelector('#conv').onclick=()=>{conveyorRunning=!conveyorRunning;content.querySelector('#convState').textContent=conveyorRunning?'RUNNING':'STOPPED';content.querySelector('#conv').textContent=conveyorRunning?'STOP CONVEYOR':'START CONVEYOR';content.querySelector('#convResult').textContent=conveyorRunning?'Conveyor rollers moving in the training model.':'Conveyor stopped.';toast(conveyorRunning?'Conveyor started':'Conveyor stopped')}}
 else{showPanel('Equipment',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
 document.querySelector('#interact').addEventListener('click',interact);addEventListener('keydown',e=>{if(e.code==='KeyE'&&!activePanel)interact();if(e.code==='Escape')closePanel()});
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);updateMouldMotion(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);updateMouldMotion(dt);updateRobotTransfer(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
 const clock=new THREE.Clock();updateCamera();animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight)});
 </script>
