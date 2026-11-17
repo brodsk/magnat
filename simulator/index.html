@@ -105,6 +105,28 @@ box(engel,'fixed platen',[-1.45,1.85,0],[.25,2.35,2.35],mats.steel);
 const movingPlaten=box(engel,'moving platen',[.55,1.85,0],[.28,2.35,2.35],mats.steel);
 for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.1,12),mats.yellow);tie.rotation.z=Math.PI/2;tie.position.set(-.45,y,z);engel.add(tie)}
 
+ // Grounded machine feet and anchor hardware transfer the base load to the floor.
+ for(const x of [-2.48,2.48])for(const z of [-.96,.96]){
+  box(engel,'machine levelling foot',[x,.105,z],[.48,.18,.48],mats.steel);
+  box(engel,'machine anti-vibration pad',[x,.025,z],[.54,.05,.54],mats.dark);
+  cyl(engel,'machine floor anchor',[x,.035,z],.075,.075,.045,mats.yellow,'y',8);
+ }
+ // Service-side cabinet ventilation and hinged access-panel seams.
+ for(let i=0;i<9;i++)box(engel,'rear cabinet ventilation louvre',[-2.15,1.05+i*.105,1.135],[.72,.025,.018],mats.dark);
+ box(engel,'cabinet access seam',[-2.77,2.0,1.19],[.018,2.25,.012],mats.dark);
+ for(const y of [1.05,2.95])cyl(engel,'cabinet door latch',[-2.72,y,1.22],.035,.035,.035,mats.yellow,'z',10);
+ // Hydraulic and cooling service lines follow the frame to visible connection points.
+ tube(engel,'clamping hydraulic hose',[[-2.25,.82,.98],[-1.95,.72,1.18],[-1.1,.72,1.18],[-.78,1.05,1.12]],.035,mats.dark);
+ tube(engel,'mould cooling supply hose',[[-1.55,1.15,1.12],[-1.35,.92,1.3],[-.45,.92,1.3],[.1,1.2,1.16]],.025,mats.green);
+ tube(engel,'mould cooling return hose',[[-1.55,1.0,1.16],[-1.28,.78,1.34],[-.32,.78,1.34],[.18,1.02,1.16]],.025,mats.yellow);
+ for(const [x,y,z] of [[-1.55,1.15,1.12],[-1.55,1.0,1.16],[.1,1.2,1.16],[.18,1.02,1.16]])cyl(engel,'service hose coupling',[x,y,z],.065,.065,.09,mats.steel,'z',12);
+ // Fixed operator-side machine identification and emergency-stop station.
+ box(engel,'ENGEL machine nameplate',[.55,2.85,1.14],[.9,.28,.045],mats.dark);
+ const machineLabel=labelPlane('ENGEL · INJECTION',.82,.22);machineLabel.position.set(.55,2.85,1.17);engel.add(machineLabel);
+ cyl(engel,'machine emergency stop bezel',[1.12,2.48,1.16],.105,.105,.05,mats.dark,'z',16);
+ cyl(engel,'machine emergency stop button',[1.12,2.48,1.2],.075,.075,.045,mats.red,'z',16);
+
+
 function makeMould(name,position,bodyColor){
  const g=new THREE.Group();g.name=name;g.position.set(position[0],position[1],position[2]);scene.add(g);
  const bodyMat=new THREE.MeshStandardMaterial({color:bodyColor,metalness:.72,roughness:.3});
@@ -365,6 +387,13 @@ box(scene,'compressed air drop',[11.8,2.5,-2],[.16,4.8,.16],mats.steel);tube(sce
 for(const x of [7.4,8.6]){box(scene,'manifold support leg',[x,.52,-3],[.09,1.0,.09],mats.steel);box(scene,'manifold foot',[x,.06,-3],[.28,.12,.3],mats.dark)}box(scene,'cooling water manifold',[8,1.1,-3],[1.5,.28,.45],mats.steel);for(let i=0;i<4;i++){cyl(scene,'manifold valve',[7.45+i*.35,1.35,-3],.09,.09,.22,mats.yellow);cyl(scene,'manifold port',[7.45+i*.35,.95,-2.75],.055,.055,.12,mats.green,'z',12)}
 // Warning beacon on a short post.
 cyl(scene,'beacon post',[6,.78,2],.045,.045,1.5,mats.steel);cyl(scene,'beacon base',[6,1.58,2],.16,.16,.12,mats.dark);cyl(scene,'red warning beacon',[6,1.76,2],.13,.13,.24,mats.red);
+
+ // Flush floor drainage in the service aisle: channel, grate and inspection cover.
+ box(scene,'floor drain channel',[12.4,-.018,4.2],[3.4,.035,.22],mats.dark);
+ for(let i=0;i<17;i++)box(scene,'floor drain grate bar',[10.9+i*.19,.006,4.2],[.035,.018,.2],mats.steel);
+ box(scene,'floor drain inspection cover',[14.25,-.005,4.2],[.48,.025,.42],mats.steel);
+ for(let i=0;i<4;i++)box(scene,'inspection cover slot',[14.25,-.001,4.08+i*.08],[.32,.008,.018],mats.dark);
+
 // Player movement and look controls.
 const player={x:0,z:7,yaw:0,pitch:0,moveX:0,moveY:0};const keys={};let activePanel=false;
 let safetyGateClosed=false,trainingSettingsApplied=false,materialPrepared=false,machineCycleActive=false,cycleTimer=null,cyclePhase='IDLE',conveyorRunning=false,partCount=0;
