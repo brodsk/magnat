@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>MAGNA — Industrial Simulator</title>
+<style>
+:root{color-scheme:dark;--bg:#101820;--panel:#17242d;--line:#3b505c;--text:#e9f0f3;--muted:#a8bac3;--accent:#b8ef69;--warn:#ffc36b;--danger:#ff7770}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+#scene{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+#topbar{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px;pointer-events:none;gap:10px}
+.brand,.status{background:#101820d9;border:1px solid #52636b;border-radius:10px;padding:9px 11px;backdrop-filter:blur(8px)}.brand b{letter-spacing:.13em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.status{font-size:11px;color:var(--muted);text-align:right}.status strong{color:var(--accent);font-size:13px}
+#crosshair{position:fixed;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border:1px solid #eaffffb8;border-radius:50%;pointer-events:none;box-shadow:0 0 8px #000}
+#hint{position:fixed;left:50%;bottom:calc(116px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#101820df;border:1px solid var(--line);border-radius:9px;padding:9px 13px;text-align:center;max-width:88vw;font-size:12px;pointer-events:none;white-space:nowrap}
+#hint strong{color:var(--accent)}
+#joystick{position:fixed;left:20px;bottom:calc(22px + env(safe-area-inset-bottom));width:116px;height:116px;border-radius:50%;border:1px solid #c6d8df66;background:#13232d99;touch-action:none}
+#stick{position:absolute;width:48px;height:48px;border-radius:50%;left:33px;top:33px;background:#b8ef6970;border:1px solid #d9ff9e;box-shadow:0 3px 12px #0008}
+#looktip{position:fixed;right:16px;bottom:calc(26px + env(safe-area-inset-bottom));color:#d9e4e9a8;font-size:10px;pointer-events:none;text-align:right}
+#interact{position:fixed;right:20px;bottom:calc(70px + env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;border:2px solid #d9ff9e;background:#b8ef69e8;color:#14200e;font-weight:800;font-size:12px;box-shadow:0 5px 18px #0008;touch-action:manipulation}
+#panel{position:fixed;inset:auto 0 0 0;max-height:82dvh;background:#101a22f5;border:1px solid #536773;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .22s ease;overflow:auto;touch-action:pan-y;z-index:5}
+#panel.open{transform:translateY(0)}#panel h2{margin:0 36px 8px 0;font-size:18px}#panel p{color:var(--muted);line-height:1.5;font-size:13px}#close{position:absolute;right:14px;top:12px;border:1px solid var(--line);background:#263843;color:white;border-radius:8px;padding:8px 11px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.field{background:#1b2a34;border:1px solid #3b505c;border-radius:9px;padding:10px}.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.field input{width:100%;accent-color:var(--accent)}.field output{float:right;color:var(--accent);font-weight:700}
+.action{background:#b8ef69;color:#15200e;border:0;border-radius:9px;padding:12px 15px;font-weight:800;width:100%;margin-top:8px}.secondary{background:#263843;color:var(--text);border:1px solid var(--line)}
+#toast{position:fixed;top:82px;left:50%;transform:translateX(-50%);background:#17242df2;border:1px solid var(--line);border-radius:9px;padding:10px 13px;max-width:90vw;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}#toast.show{opacity:1}
+#help{position:fixed;left:12px;top:86px;max-width:190px;background:#101820b8;border:1px solid #52636b;border-radius:8px;padding:8px 10px;color:#bdcbd1;font-size:10px;line-height:1.5;pointer-events:none}
+@media(min-width:800px){#joystick{width:130px;height:130px}#stick{left:39px;top:39px}#hint{bottom:28px}#interact{right:30px;bottom:30px}#looktip{right:120px;bottom:42px}}
+</style>
+</head>
+<body>
+<div id="scene"></div>
+<div id="topbar"><div class="brand"><b>MAGNA</b><small>INDUSTRIAL SIMULATOR · ALPHA 0.1</small></div><div class="status">CELL STATUS<br><strong id="cellStatus">SETUP REQUIRED</strong></div></div>
+<div id="help">Move: left stick<br>Look: drag right side<br>Walk to a machine and tap INTERACT</div>
+<div id="crosshair"></div><div id="hint">Explore the cell. Find the <strong>ENGEL machine</strong>.</div>
+<div id="joystick"><div id="stick"></div></div>
+<div id="looktip">DRAG TO LOOK</div>
+<button id="interact">INTERACT</button>
+<div id="toast"></div>
+<section id="panel"><button id="close">✕</button><div id="panelContent"></div></section>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const mount=document.querySelector('#scene');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9aadb6);scene.fog=new THREE.Fog(0x9aadb6,18,58);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,100);camera.position.set(0,1.68,7);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;mount.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe8f4ff,0x35414a,2.0));
+const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const mats={floor:new THREE.MeshStandardMaterial({color:0x65747a,roughness:.9}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,roughness:.85}),steel:new THREE.MeshStandardMaterial({color:0x53636a,metalness:.55,roughness:.4}),dark:new THREE.MeshStandardMaterial({color:0x202a30,metalness:.25,roughness:.65}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,metalness:.2,roughness:.45}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,metalness:.15,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:0x6d9ba7,transparent:true,opacity:.42,metalness:.2,roughness:.15}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f}),red:new THREE.MeshStandardMaterial({color:0xf05c54})};
+function box(parent,name,pos,size,mat,interactive=false){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.name=name;m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(interactive)targets.push(m);return m}
+const targets=[];
+function labelSprite(text){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.fillStyle='#14212a';x.fillRect(0,0,512,128);x.fillStyle='#c7f18a';x.font='bold 42px Arial';x.textAlign='center';x.fillText(text,256,80);const tex=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));s.scale.set(2.2,.55,1);return s}
+box(scene,'factory floor',[0,-.12,0],[32,.2,32],mats.floor);
+for(let x=-15;x<=15;x+=3)box(scene,'floor marking',[x,-.012,0],[.025,.01,31],new THREE.MeshStandardMaterial({color:0x9aa6a8}));
+box(scene,'back wall',[0,3,-15.8],[32,6,.3],mats.wall);box(scene,'left wall',[-16,3,0],[.3,6,32],mats.wall);box(scene,'right wall',[16,3,0],[.3,6,32],mats.wall);
+for(let x=-12;x<=12;x+=4){box(scene,'roof beam',[x,5.8,0],[.18,.18,30],mats.steel);const light=new THREE.PointLight(0xfff4d9,35,11);light.position.set(x,5.2,0);scene.add(light);box(scene,'LED fixture',[x,5.3,0],[1.3,.08,.3],mats.white)}
+// Safety fence around the rear half of the cell.
+for(let x=-7;x<=7;x+=2.5){box(scene,'safety fence post',[x,1.25,-5],[.09,2.5,.09],mats.yellow);box(scene,'fence rail',[x,2.35,-5],[2.5,.06,.06],mats.yellow)}
+// ENGEL injection molding machine: simplified but recognisable machine architecture.
+const engel=new THREE.Group();engel.position.set(-3,0,-3);scene.add(engel);
+box(engel,'ENGEL base',[0,.65,0],[5.8,1.1,2.5],mats.dark,true);
+box(engel,'ENGEL rear cabinet',[-2.15,2.0,-.05],[1.25,2.9,2.35],mats.orange);
+box(engel,'clamping unit',[-.55,1.8,0],[2.0,2.5,2.25],mats.white,true);
+box(engel,'fixed platen',[-1.45,1.85,0],[.25,2.35,2.35],mats.steel);
+box(engel,'moving platen',[.55,1.85,0],[.28,2.35,2.35],mats.steel);
+for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.1,12),mats.yellow);tie.rotation.z=Math.PI/2;tie.position.set(-.45,y,z);engel.add(tie)}
+box(engel,'mold',[ -.45,1.85,0],[.8,1.55,1.45],mats.dark,true);
+box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
+const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
+box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
+box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
+box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],mats.green);
+const engelLabel=labelSprite('ENGEL · INJECTION MOULDING');engelLabel.position.set(0,3.7,0);engel.add(engelLabel);
+// ABB six-axis robot, with articulated links and visible gripper.
+const robot=new THREE.Group();robot.position.set(4,0,-1.5);scene.add(robot);
+box(robot,'robot pedestal',[0,.45,0],[1.1,.9,1.1],mats.steel,true);
+const base=new THREE.Group();base.position.y=.9;robot.add(base);
+const axis1=new THREE.Mesh(new THREE.CylinderGeometry(.43,.5,.55,20),mats.orange);axis1.position.y=.25;base.add(axis1);
+const arm1=box(base,'ABB axis 2',[0,1.0,0],[.55,1.5,.55],mats.orange,true);arm1.rotation.z=-.25;
+const shoulder=new THREE.Group();shoulder.position.set(0,1.7,0);base.add(shoulder);
+const upper=box(shoulder,'ABB upper arm',[.65,.25,0],[1.45,.38,.42],mats.orange,true);upper.rotation.z=-.25;
+const elbow=new THREE.Group();elbow.position.set(1.25,.55,0);shoulder.add(elbow);
+const fore=box(elbow,'ABB forearm',[.62,0,0],[1.3,.3,.32],mats.orange,true);
+const wrist=new THREE.Group();wrist.position.set(1.25,0,0);elbow.add(wrist);
+box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
+box(wrist,'gripper mount',[.48,0,0],[.28,.2,.24],mats.dark,true);
+box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
+box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
+const robotLabel=labelSprite('ABB · 6 AXIS ROBOT');robotLabel.position.set(0,3.6,0);robot.add(robotLabel);
+// Auxiliary equipment and conveyor.
+const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
+box(scene,'temperature controller',[-8, .8,-1.8],[1.1,1.5,.65],mats.steel,true);
+box(scene,'conveyor',[2,.7,4],[7,.3,1.2],mats.dark,true);for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.55,4);scene.add(roller)}
+box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
+const sign=labelSprite('MOULDING CELL 01');sign.position.set(0,4.8,-15.5);scene.add(sign);
+// Player movement and look controls.
+const player={x:0,z:7,yaw:0,pitch:0,moveX:0,moveY:0};const keys={};let activePanel=false;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function updateCamera(){camera.position.set(player.x,1.68,player.z);camera.rotation.order='YXZ';camera.rotation.y=player.yaw;camera.rotation.x=player.pitch}
+function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2200)}
+const joy=document.querySelector('#joystick'),stick=document.querySelector('#stick');let joyId=null;
+function joystickMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=37,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max}stick.style.transform='translate('+dx+'px,'+dy+'px)';player.moveX=dx/max;player.moveY=dy/max}
+joy.addEventListener('pointerdown',e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joystickMove(e)});joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joystickMove(e)});function joyEnd(e){if(e.pointerId===joyId){joyId=null;player.moveX=0;player.moveY=0;stick.style.transform='translate(0,0)'}}joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+let lookId=null,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{if(e.clientX<innerWidth*.42||activePanel)return;lookId=e.pointerId;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(lookId)});renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookId)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;player.yaw-=dx*.004;player.pitch=clamp(player.pitch-dy*.003,-1.15,1.15)});renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null});
+addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
+function move(dt){let forward=player.moveY+(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0);let strafe=player.moveX+(keys.KeyD||keys.ArrowRight?1:0)+(keys.KeyA||keys.ArrowLeft?-1:0);const len=Math.hypot(forward,strafe);if(len>1){forward/=len;strafe/=len}const speed=3.5*dt;player.x+=(-Math.sin(player.yaw)*(-forward)+Math.cos(player.yaw)*strafe)*speed;player.z+=(-Math.cos(player.yaw)*(-forward)-Math.sin(player.yaw)*strafe)*speed;player.x=clamp(player.x,-14.5,14.5);player.z=clamp(player.z,-14.5,14.5);updateCamera()}
+const raycaster=new THREE.Raycaster();let currentTarget=null;
+function nearestTarget(){raycaster.setFromCamera(new THREE.Vector2(0,0),camera);const hits=raycaster.intersectObjects(targets,false);if(!hits.length||hits[0].distance>3.4)return null;return hits[0].object}
+const panel=document.querySelector('#panel'),content=document.querySelector('#panelContent');
+function showPanel(title,body){activePanel=true;content.innerHTML='<h2>'+title+'</h2>'+body;panel.classList.add('open')}
+function closePanel(){panel.classList.remove('open');activePanel=false}
+document.querySelector('#close').onclick=closePanel;
+function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('No equipment in reach. Move closer and aim at an interactive part.');return}const n=hit.name;
+if(n==='control console'||n==='ENGEL base'||n==='clamping unit'||n==='mold'||n==='injection unit'){
+showPanel('ENGEL · Machine setup',`<p>Training HMI for the virtual ENGEL injection moulding machine. Values are illustrative and must not be copied to production equipment.</p><div class="grid">
+<div class="field"><label>Barrel zone 1 <output id="v1">220 °C</output></label><input type="range" min="180" max="280" value="220" data-unit=" °C" id="s1"></div>
+<div class="field"><label>Barrel zone 2 <output id="v2">230 °C</output></label><input type="range" min="180" max="280" value="230" data-unit=" °C" id="s2"></div>
+<div class="field"><label>Injection speed <output id="v3">45 mm/s</output></label><input type="range" min="5" max="120" value="45" data-unit=" mm/s" id="s3"></div>
+<div class="field"><label>Holding pressure <output id="v4">55 %</output></label><input type="range" min="10" max="100" value="55" data-unit=" %" id="s4"></div>
+<div class="field"><label>Cooling time <output id="v5">18 s</output></label><input type="range" min="5" max="45" value="18" data-unit=" s" id="s5"></div>
+<div class="field"><label>Clamping force <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">APPLY TRAINING SETTINGS</button><p id="hmiResult">Machine is in setup mode. Verify the mould, material and safety conditions before enabling a cycle.</p>`);
+content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit}));
+content.querySelector('#apply').onclick=()=>{document.querySelector('#cellStatus').textContent='PARAMETERS LOADED';content.querySelector('#hmiResult').textContent='Settings loaded into the training model. Next: verify material preparation, mould connections and robot clear position.';toast('Training parameters applied')};
+}else if(n.includes('ABB')||n.includes('gripper')||n==='robot pedestal'){
+showPanel('ABB · Robot training',`<p>Six-axis robot cell. This panel demonstrates a safe, simplified teaching workflow; it is not a real ABB controller or RAPID compiler.</p><div class="grid"><div class="field"><label>Axis 1 <output id="a1">0°</output></label><input id="r1" type="range" min="-170" max="170" value="0"></div><div class="field"><label>Axis 2 <output id="a2">-15°</output></label><input id="r2" type="range" min="-100" max="100" value="-15"></div><div class="field"><label>Axis 3 <output id="a3">35°</output></label><input id="r3" type="range" min="-120" max="120" value="35"></div><div class="field"><label>Axis 4 <output id="a4">0°</output></label><input id="r4" type="range" min="-200" max="200" value="0"></div></div><button class="action" id="home">MOVE TO SAFE HOME (SIMULATED)</button><p id="robotResult">Robot state: teaching mode · gripper open · cell interlocks not validated.</p>`);
+content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#a'+input.id.slice(1)).textContent=input.value+'°'}));content.querySelector('#home').onclick=()=>{content.querySelector('#robotResult').textContent='Simulated home position selected. In a real cell, validate the robot program and safety zone before motion.';toast('Virtual ABB home position selected')};
+}else if(n==='material dryer'||n==='dryer hopper'||n==='temperature controller'){showPanel('Material preparation',`<p>Material drying is part of the process setup. Select the resin and verify the supplier's technical data sheet before choosing a real drying recipe.</p><div class="field"><label>Training material</label><select id="resin" style="width:100%;padding:10px;background:#263843;color:white;border:1px solid #536773;border-radius:7px"><option>ABS</option><option>PA6</option><option>PA66</option><option>PBT</option><option>PC/ABS</option><option>PP</option></select></div><button class="action" id="dry">START DRYER (SIMULATED)</button><p id="dryResult">Dryer idle.</p>`);content.querySelector('#dry').onclick=()=>{content.querySelector('#dryResult').textContent='Training dryer started for '+content.querySelector('#resin').value+'. Check the resin supplier specification for actual conditions.';toast('Virtual dryer started')};
+}else if(n==='safety gate'){showPanel('Cell safety',`<p>Safety is a prerequisite for every setup and automatic cycle. A real machine must be isolated and secured according to site procedures and manufacturer instructions before entering hazardous areas.</p><div class="field"><label>Training interlock state</label><strong style="color:var(--warn)">GATE OPEN · AUTOMATIC MODE INHIBITED</strong></div><p>Later training modules will include lockout/tagout, stored-energy checks, mould handling plans and safety validation.</p>`)}
+else if(n==='conveyor'){showPanel('Conveyor and part handling',`<p>Downstream handling equipment for moulded parts.</p><div class="field"><label>Conveyor status</label><strong style="color:var(--accent)">READY · SIMULATION</strong></div><button class="action" id="conv">START CONVEYOR</button><p id="convResult">Conveyor stopped.</p>`);content.querySelector('#conv').onclick=()=>{content.querySelector('#convResult').textContent='Conveyor running in the training cell.';toast('Conveyor started')}}
+else{showPanel('Equipment',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
+document.querySelector('#interact').addEventListener('click',interact);addEventListener('keydown',e=>{if(e.code==='KeyE'&&!activePanel)interact();if(e.code==='Escape')closePanel()});
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
+const clock=new THREE.Clock();updateCamera();animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight)});
+</script>
+</body>
+</html>
