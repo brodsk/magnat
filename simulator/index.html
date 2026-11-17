@@ -103,6 +103,9 @@ box(engel,'ENGEL rear cabinet',[-2.15,2.0,-.05],[1.25,2.9,2.35],mats.orange);
 box(engel,'clamping unit',[-.55,1.8,0],[2.0,2.5,2.25],mats.white,true);
 box(engel,'fixed platen',[-1.45,1.85,0],[.25,2.35,2.35],mats.steel);
 const movingPlaten=box(engel,'moving platen',[.55,1.85,0],[.28,2.35,2.35],mats.steel);
+// Floor-mounted hazard perimeter: flat, anchored markings around the mould-change working envelope.
+for(let x=-5.55;x<=-.45;x+=.42){box(scene,'ENGEL floor hazard stripe',[x,.012,-4.42],[.24,.018,.075],mats.yellow);box(scene,'ENGEL floor hazard stripe',[x,.012,-1.58],[.24,.018,.075],mats.yellow)}
+for(let z=-4.1;z<=-1.9;z+=.42){box(scene,'ENGEL floor hazard stripe',[-5.88,.012,z],[.075,.018,.24],mats.yellow);box(scene,'ENGEL floor hazard stripe',[-.12,.012,z],[.075,.018,.24],mats.yellow)}
 for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.1,12),mats.yellow);tie.rotation.z=Math.PI/2;tie.position.set(-.45,y,z);engel.add(tie)}
 
  // Grounded machine feet and anchor hardware transfer the base load to the floor.
@@ -258,7 +261,22 @@ box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
 const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
 // Hopper geometry is assembled below with its inspection window and lid.
 box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
-box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],mats.green);
+const machineDisplayCanvas=document.createElement('canvas');machineDisplayCanvas.width=512;machineDisplayCanvas.height=384;const machineDisplayCtx=machineDisplayCanvas.getContext('2d');
+const machineDisplayTexture=new THREE.CanvasTexture(machineDisplayCanvas);machineDisplayTexture.colorSpace=THREE.SRGBColorSpace;
+const machineDisplayMat=new THREE.MeshStandardMaterial({map:machineDisplayTexture,emissive:0x20352a,emissiveMap:machineDisplayTexture,roughness:.32});
+box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],machineDisplayMat);
+function renderMachineDisplay(){
+ const c=machineDisplayCtx;if(!c)return;const phase=cyclePhase||'IDLE';
+ c.fillStyle='#08151b';c.fillRect(0,0,512,384);c.fillStyle='#17313a';c.fillRect(14,14,484,54);
+ c.fillStyle='#b8ef69';c.font='bold 27px Arial';c.fillText('ENGEL  ·  MAGNA',30,51);
+ c.fillStyle='#dce8eb';c.font='bold 31px Arial';c.fillText(({IDLE:'SETUP',CLAMPING:'CLAMP',INJECTION:'INJECTION',HOLDING:'HOLDING',COOLING:'COOLING',EJECTION:'EJECTION',PLASTICISING:'METERING'})[phase]||phase,28,124);
+ c.fillStyle='#90aab4';c.font='21px Arial';c.fillText('PARTS  '+String(partCount||0).padStart(4,'0'),30,177);
+ c.fillText('CYCLE  '+Math.round((cycleProgress||0)*100)+'%',30,213);
+ c.fillStyle='#263c45';c.fillRect(28,244,456,24);c.fillStyle=processAlarm==='alarm'?'#f05c54':processAlarm==='warning'?'#ffc36b':'#b8ef69';c.fillRect(28,244,456*clamp(cycleProgress||0,0,1),24);
+ c.fillStyle='#8da6af';c.font='18px Arial';c.fillText(processAlarm==='alarm'?'PROCESS ALARM':processAlarm==='warning'?'CHECK PROCESS':'CELL READY',30,319);
+ machineDisplayTexture.needsUpdate=true;
+}
+renderMachineDisplay();
 // The machine identity is mounted on the physical cabinet badge below; no floating billboard.
 // Machine detailing: cooling ribs, hydraulic hardware, fasteners, guards and service lines.
 for(let i=0;i<9;i++){box(engel,'cabinet ventilation slot',[-2.15,1.05+i*.19,1.14],[.82,.035,.018],mats.dark)}
@@ -596,7 +614,7 @@ function updateProcessTrend(v=readProcessSettings()){
  const phase=document.querySelector('#trendPhase'),fill=document.querySelector('#cycleFill'),pct=document.querySelector('#cyclePercent'),phaseText=document.querySelector('#cyclePhaseText');
  const labels={IDLE:'ОЖИДАНИЕ',CLAMPING:'СМЫКАНИЕ',INJECTION:'ВПРЫСК',HOLDING:'ВЫДЕРЖКА',COOLING:'ОХЛАЖДЕНИЕ',EJECTION:'ИЗВЛЕЧЕНИЕ',PLASTICISING:'ДОЗИРОВАНИЕ'};
  if(phase)phase.textContent=labels[cyclePhase]||'НАСТРОЙКА';
- if(fill)fill.style.width=(cycleProgress*100)+'%';if(pct)pct.textContent=Math.round(cycleProgress*100)+'%';
+ if(fill)fill.style.width=(cycleProgress*100)+'%';if(pct)pct.textContent=Math.round(cycleProgress*100)+'%';renderMachineDisplay();
  if(phaseText)phaseText.textContent=machineCycleActive?'Фаза: '+(labels[cyclePhase]||cyclePhase):'Цикл не запущен';
  const p=clamp(v.s4/100,0,1),sp=clamp(v.s3/150,0,1),p2=clamp(v.s16/100,0,1),sp2=clamp(v.s15/150,0,1);
  const pressure=[0,.08,.24,.55,.82,1,1,.9,.72,.5,.25,.08].map((n,i)=>{const y=94-n*(25+p*50);return (8+i*27)+','+y}).join(' ');
@@ -637,7 +655,7 @@ function startTrainingCycle(){
  advance();
 }
 function updateMachineMotion(dt){
- if(machineCycleActive){cyclePhaseProgress=Math.min(1,cyclePhaseProgress+dt/Math.max(.1,cyclePhaseDuration));cycleProgress=Math.min(1,cycleProgress+dt/Math.max(1,(cyclePhaseDuration*5)));updateProcessTrend()}
+ if(machineCycleActive){cyclePhaseProgress=Math.min(1,cyclePhaseProgress+dt/Math.max(.1,cyclePhaseDuration));cycleProgress=Math.min(1,cycleProgress+dt/Math.max(1,(cyclePhaseDuration*5)));updateProcessTrend();renderMachineDisplay()}else renderMachineDisplay();
  const closed=['CLAMPING','INJECTION','HOLDING','COOLING'].includes(cyclePhase),clampTarget=closed?.15:.55;
  movingPlaten.position.x+=(clampTarget-movingPlaten.position.x)*Math.min(1,dt*4.5);
  const screwTarget=cyclePhase==='INJECTION'?2.42:['HOLDING'].includes(cyclePhase)?2.22:2.05;
