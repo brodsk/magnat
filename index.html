@@ -1,190 +1,140 @@
-<!DOCTYPE html>
-<html lang="sk">
+<!doctype html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>MAGNA — Simulácia výrobnej zmeny</title>
-<meta name="theme-color" content="#151b21">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#101820">
+<title>MAGNA — Industrial Simulator</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=IBM+Plex+Mono:wght@400;600;700&display=swap');
-:root{--bg:#151b21;--panel:#202a32;--line:#394852;--text:#e6ecef;--muted:#91a1aa;--green:#8be05a;--orange:#ff9d42;--red:#ff625c;--blue:#78c8ff;--yellow:#ffd45e}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:'IBM Plex Mono',monospace}body{overflow-x:hidden}
-header{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 18px;background:#101519;border-bottom:3px solid #394852;position:sticky;top:0;z-index:5}
-.brand{font:14px 'Press Start 2P',monospace;letter-spacing:1px;color:#f2f4f4;white-space:nowrap}.brand b{color:var(--yellow)}
-.stats{display:flex;gap:18px;flex-wrap:wrap;justify-content:flex-end}.stat{min-width:64px}.stat small{display:block;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase}.stat strong{font-size:17px;color:var(--green)}
-main{max-width:1600px;margin:auto;padding:14px}.topline{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}.shift-title{font-size:12px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}.shift-title strong{color:var(--text)}
-.actions{display:flex;gap:8px;flex-wrap:wrap}.btn{border:2px solid var(--line);background:var(--panel);color:var(--text);font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.5px;padding:10px 12px;cursor:pointer;box-shadow:0 3px 0 #0b0e11;touch-action:manipulation}.btn:hover{border-color:var(--yellow)}.btn:active{transform:translateY(2px);box-shadow:0 1px 0 #0b0e11}.btn.primary{background:var(--green);color:#172018;border-color:var(--green)}.btn.warn{color:var(--orange)}.btn:disabled{opacity:.35;cursor:not-allowed}
-.factory-window{border:3px solid var(--line);background:#171f25;box-shadow:0 8px 0 #0b0e11;overflow:auto;position:relative}
-#factory{display:block;width:1500px;height:780px;image-rendering:pixelated;image-rendering:crisp-edges}
-.legend{display:flex;gap:14px;flex-wrap:wrap;padding:10px 12px;border:2px solid var(--line);border-top:0;background:#202a32;color:var(--muted);font-size:10px}.legend span{display:flex;align-items:center;gap:6px}.dot{width:9px;height:9px;display:inline-block;border:1px solid #101519}.dot.green{background:var(--green)}.dot.red{background:var(--red)}.dot.orange{background:var(--orange)}.dot.blue{background:var(--blue)}
-.bottom{display:grid;grid-template-columns:1.3fr 1fr;gap:12px;margin-top:14px}.panel{border:2px solid var(--line);background:var(--panel);padding:12px;min-width:0}.panel h2{font:10px 'Press Start 2P',monospace;color:var(--yellow);margin:0 0 12px;line-height:1.8}.roster{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px}.role{padding:8px;background:#182127;border:1px solid #394852;min-width:0}.role strong{display:block;font-size:15px}.role small{display:block;font-size:9px;line-height:1.5;color:var(--muted);margin-top:4px}.feed{height:178px;overflow:auto;font-size:11px;line-height:1.7;color:#b8c5cb}.feed div{border-bottom:1px dashed #394852;padding:3px 0}.feed .good{color:var(--green)}.feed .bad{color:var(--red)}.feed .notice{color:var(--orange)}
-.hint{color:var(--muted);font-size:10px;line-height:1.8;margin-top:10px}.overlay{position:fixed;inset:0;background:rgba(7,10,12,.9);display:flex;align-items:center;justify-content:center;z-index:10;padding:18px}.modal{max-width:480px;width:100%;background:#202a32;border:3px solid var(--yellow);padding:24px;box-shadow:8px 8px 0 #080b0d}.modal h1{font:18px 'Press Start 2P',monospace;line-height:1.8;margin:0 0 12px}.modal p{font-size:12px;line-height:1.8;color:#b9c6cc}.modal .btn{margin-top:8px}.hidden{display:none!important}
-@media(max-width:800px){header{align-items:flex-start;padding:10px;flex-direction:column}.stats{justify-content:flex-start;gap:12px}.stat strong{font-size:15px}.brand{font-size:11px}main{padding:8px}.bottom{grid-template-columns:1fr}.roster{grid-template-columns:repeat(3,minmax(0,1fr))}.topline{align-items:flex-start}.btn{padding:9px;font-size:10px}.factory-window{overscroll-behavior-x:contain}}
-
-/* Mobile-first controls: keep the factory map horizontally scrollable and the HUD compact. */
-.factory-window{width:100%;overflow:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-y;scrollbar-color:#64737b #171f25}
-#factory{width:100%;height:auto;max-width:100%;display:block}
-@media(max-width:600px){
-  header{gap:10px;padding:calc(9px + env(safe-area-inset-top)) 10px 10px;position:relative}
-  .brand{font-size:10px;letter-spacing:0}
-  .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));width:100%;gap:6px}
-  .stat{min-width:0;padding:7px 5px;background:#202a32;border:1px solid #394852}
-  .stat small{font-size:8px;letter-spacing:0;line-height:1.4}
-  .stat strong{font-size:14px}
-  main{padding:8px}
-  .topline{display:block}
-  .shift-title{font-size:10px;line-height:1.8;letter-spacing:.6px;margin-bottom:9px}
-  .actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-  .btn{width:100%;min-height:42px;padding:9px 6px;font-size:10px;white-space:normal}
-  .factory-window{margin:0 -1px;max-height:none;min-height:0;border-width:2px;scrollbar-width:none}
-  #factory{width:100%;height:auto;max-width:100%}
-  .stats{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .stat{display:flex;align-items:center;justify-content:space-between;gap:6px}
-  .stat small{font-size:8px}
-  .stat strong{font-size:13px}
-  .actions{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .shift-title{font-size:9px}
-  .legend{font-size:9px;gap:9px;padding:9px}
-  .legend span:last-child{width:100%;line-height:1.6}
-  .bottom{grid-template-columns:minmax(0,1fr);gap:9px;margin-top:10px}
-  .panel{padding:10px}
-  .panel h2{font-size:9px;margin-bottom:9px}
-  .roster{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
-  .role{padding:8px}
-  .role strong{font-size:16px}
-  .role small{font-size:10px}
-  .hint{font-size:10px}
-  .feed{height:155px;font-size:10px}
-  .overlay{padding:12px}
-  .modal{padding:18px;box-shadow:5px 5px 0 #080b0d}
-  .modal h1{font-size:15px}
-  .modal p{font-size:11px}
-}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+:root{color-scheme:dark;--bg:#101820;--panel:#17242d;--line:#3b505c;--text:#e9f0f3;--muted:#a8bac3;--accent:#b8ef69;--warn:#ffc36b;--danger:#ff7770}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,sans-serif;touch-action:none}
+#scene{position:fixed;inset:0}canvas{display:block;width:100%;height:100%}
+#topbar{position:fixed;top:env(safe-area-inset-top,0);left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:12px;pointer-events:none;gap:10px}
+.brand,.status{background:#101820d9;border:1px solid #52636b;border-radius:10px;padding:9px 11px;backdrop-filter:blur(8px)}.brand b{letter-spacing:.13em}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:3px}.status{font-size:11px;color:var(--muted);text-align:right}.status strong{color:var(--accent);font-size:13px}
+#crosshair{position:fixed;left:50%;top:50%;width:10px;height:10px;transform:translate(-50%,-50%);border:1px solid #eaffffb8;border-radius:50%;pointer-events:none;box-shadow:0 0 8px #000}
+#hint{position:fixed;left:50%;bottom:calc(116px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#101820df;border:1px solid var(--line);border-radius:9px;padding:9px 13px;text-align:center;max-width:88vw;font-size:12px;pointer-events:none;white-space:nowrap}
+#hint strong{color:var(--accent)}
+#joystick{position:fixed;left:20px;bottom:calc(22px + env(safe-area-inset-bottom));width:116px;height:116px;border-radius:50%;border:1px solid #c6d8df66;background:#13232d99;touch-action:none}
+#stick{position:absolute;width:48px;height:48px;border-radius:50%;left:33px;top:33px;background:#b8ef6970;border:1px solid #d9ff9e;box-shadow:0 3px 12px #0008}
+#looktip{position:fixed;right:16px;bottom:calc(26px + env(safe-area-inset-bottom));color:#d9e4e9a8;font-size:10px;pointer-events:none;text-align:right}
+#interact{position:fixed;right:20px;bottom:calc(70px + env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;border:2px solid #d9ff9e;background:#b8ef69e8;color:#14200e;font-weight:800;font-size:12px;box-shadow:0 5px 18px #0008;touch-action:manipulation}
+#panel{position:fixed;inset:auto 0 0 0;max-height:82dvh;background:#101a22f5;border:1px solid #536773;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .22s ease;overflow:auto;touch-action:pan-y;z-index:5}
+#panel.open{transform:translateY(0)}#panel h2{margin:0 36px 8px 0;font-size:18px}#panel p{color:var(--muted);line-height:1.5;font-size:13px}#close{position:absolute;right:14px;top:12px;border:1px solid var(--line);background:#263843;color:white;border-radius:8px;padding:8px 11px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.field{background:#1b2a34;border:1px solid #3b505c;border-radius:9px;padding:10px}.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.field input{width:100%;accent-color:var(--accent)}.field output{float:right;color:var(--accent);font-weight:700}
+.action{background:#b8ef69;color:#15200e;border:0;border-radius:9px;padding:12px 15px;font-weight:800;width:100%;margin-top:8px}.secondary{background:#263843;color:var(--text);border:1px solid var(--line)}
+#toast{position:fixed;top:82px;left:50%;transform:translateX(-50%);background:#17242df2;border:1px solid var(--line);border-radius:9px;padding:10px 13px;max-width:90vw;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}#toast.show{opacity:1}
+#help{position:fixed;left:12px;top:86px;max-width:190px;background:#101820b8;border:1px solid #52636b;border-radius:8px;padding:8px 10px;color:#bdcbd1;font-size:10px;line-height:1.5;pointer-events:none}
+@media(min-width:800px){#joystick{width:130px;height:130px}#stick{left:39px;top:39px}#hint{bottom:28px}#interact{right:30px;bottom:30px}#looktip{right:120px;bottom:42px}}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">MAGNA <b>///</b> FACTORY SHIFT</div>
-  <div class="stats">
-    <div class="stat"><small>Výroba</small><strong id="out">000</strong></div>
-    <div class="stat"><small>Kvalita</small><strong id="quality">100%</strong></div>
-    <div class="stat"><small>Prestoj</small><strong id="downtime">0</strong></div>
-    <div class="stat"><small>Čas zmeny</small><strong id="clock">08:00</strong></div>
-  </div>
-</header>
-<main>
-  <div class="topline">
-    <div class="shift-title">Vstrekolisovňa · <strong>30 strojov ENGEL</strong> · zmena 06:00–14:00</div>
-    <div class="actions">
-      <button class="btn primary" id="start">▶ SPUSTIŤ ZMENU</button>
-      <button class="btn warn" id="repair">🔧 OPRAVA <span id="repairCount">0</span></button>
-      <button class="btn" id="pause" disabled>Ⅱ PAUZA</button>
-      <button class="btn" id="reset">↻ RESET</button>
-    </div>
-  </div>
-  <div class="factory-window" id="viewport"><canvas id="factory" width="1500" height="780" aria-label="Pixelová mapa výrobnej haly"></canvas></div>
-  <div class="legend">
-    <span><i class="dot green"></i>V prevádzke</span><span><i class="dot red"></i>Porucha / nepodarok</span><span><i class="dot orange"></i>Materiál / prestavenie</span><span><i class="dot blue"></i>Kontrola kvality</span>
-    <span>Ťuknutím na stroj zobrazíš jeho stav.</span>
-  </div>
-  <div class="bottom">
-    <section class="panel"><h2>TÍM ZMENY / 24 ĽUDÍ</h2><div class="roster" id="roster"></div><div class="hint">Operátori obsluhujú svoje stroje. Zásobovači dopĺňajú materiál, kontrolóri preverujú diely, skladníci manipulujú s debničkami, nastavovači menia formy a hlavný technik odstraňuje poruchy.</div></section>
-    <section class="panel"><h2>PREVÁDZKOVÝ DENNÍK</h2><div class="feed" id="feed"><div>06:00 — Zmena je pripravená. Skontroluj halu a stlač „Spustiť zmenu“.</div></div></section>
-  </div>
-</main>
-<div class="overlay" id="welcome"><div class="modal"><h1>VÝROBNÁ<br>ZMENA_01</h1><p>Vitaj vo vstrekolisovni. Nájdeš tu 30 vstrekolisov ENGEL, dopravníky, debničky a celý tím.</p><p><b>Úloha:</b> udržať výrobu v chode, riešiť poruchy a odhaľovať chybné diely. Ťukaj na stroje a ovládacie tlačidlá. Ide o hernú simuláciu so zrýchleným časom.</p><button class="btn primary" id="welcomeStart">▶ VSTÚPIŤ DO HALY</button></div></div>
-<div class="overlay hidden" id="end"><div class="modal"><h1>ZMENA<br>UKONČENÁ</h1><p id="endText"></p><button class="btn primary" id="again">↻ NOVÁ ZMENA</button></div></div>
-<script>
-(function(){
-'use strict';
-const canvas=document.getElementById('factory'),ctx=canvas.getContext('2d');
-const mobileLayout=window.matchMedia('(max-width: 600px)').matches;
-const W=mobileLayout?390:1500,H=mobileLayout?1500:780;
-canvas.width=W;canvas.height=H;
-const C={floor:'#252f35',tile:'#2a353b',line:'#46545b',machine:'#64737b',dark:'#303c43',light:'#a9b5ba',green:'#8be05a',red:'#ff625c',orange:'#ff9d42',blue:'#78c8ff',yellow:'#ffd45e',skin:'#efbd91',shirt:'#56616a',white:'#e6ecef'};
-let running=false,paused=false,elapsed=0,output=0,good=100,downtime=0,repairs=0,qualityChecks=0,rejects=0,selected=-1,lastTick=0,spawnTimer=0,events=[];
-const machines=[],workers=[];
-const roleDefs=[
- {role:'Operátori',count:15,color:'#4c5962',desc:'pri strojoch'},
- {role:'Zásobovači materiálu',count:2,color:'#ff9d42',desc:'materiál'},
- {role:'Kontrola kvality',count:2,color:'#78c8ff',desc:'kontrola'},
- {role:'Skladníci',count:2,color:'#a8b4bd',desc:'debničky'},
- {role:'Nastavovači',count:2,color:'#ffd45e',desc:'výmena foriem'},
- {role:'Hlavný technik',count:1,color:'#ff625c',desc:'opravy'}
-];
-function log(msg,type){events.unshift({msg,type:type||''});events=events.slice(0,18);document.getElementById('feed').innerHTML=events.map(e=>'<div class="'+e.type+'">'+e.msg+'</div>').join('');}
-function makeMachine(i){let row,col,x,y;if(mobileLayout){row=Math.floor(i/5);col=i%5;x=9+col*75;y=mobileRowY(row);}else{row=i<15?0:1;col=i%15;x=80+col*94;y=row===0?155:465;}return{id:i+1,row,col,x,y,state:'running',cycle:0,material:100,wear:0,defects:0,box:0,needsRepair:false,form:1};}
-function mobileRowY(row){return 135+row*205+Math.floor(row/2)*22;}
-for(let i=0;i<30;i++)machines.push(makeMachine(i));
-function makeWorker(role,id,color,x,y){return{role,id,color,x,y,tx:x,ty:y,phase:Math.random()*6.28,task:'',machine:-1};}
-for(let i=0;i<15;i++){let m=machines[i];if(!mobileLayout||i%2===0)workers.push(makeWorker('operator',i+1,'#4c5962',m.x+26,m.y+68));}
-workers.push(makeWorker('material',1,'#ff9d42',mobileLayout?65:330,mobileLayout?500:320),makeWorker('material',2,'#ff9d42',mobileLayout?320:1120,mobileLayout?500:320));
-workers.push(makeWorker('quality',1,'#78c8ff',mobileLayout?65:710,mobileLayout?930:375),makeWorker('quality',2,'#78c8ff',mobileLayout?320:790,mobileLayout?930:375));
-workers.push(makeWorker('warehouse',1,'#a8b4bd',mobileLayout?65:190,mobileLayout?500:320),makeWorker('warehouse',2,'#a8b4bd',mobileLayout?320:1300,mobileLayout?930:375));
-workers.push(makeWorker('setup',1,'#ffd45e',mobileLayout?65:600,mobileLayout?930:375),makeWorker('setup',2,'#ffd45e',mobileLayout?320:950,mobileLayout?930:375));
-workers.push(makeWorker('chief',1,'#ff625c',mobileLayout?195:750,mobileLayout?720:420));
-function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),Math.round(w),Math.round(h));}
-function text(s,x,y,size,color,align){ctx.font=size+'px "IBM Plex Mono",monospace';ctx.fillStyle=color;ctx.textAlign=align||'left';ctx.fillText(s,x,y);}
-function pixelWorker(x,y,color,phase,scale){scale=scale||1;const bob=Math.sin(phase)*1.5,step=Math.sin(phase*2.2)*2.2*scale;rect(x-5*scale,y-19*scale+bob,10*scale,8*scale,C.skin);rect(x-6*scale,y-11*scale+bob,12*scale,12*scale,color);rect(x-5*scale,y+scale+bob,4*scale,7*scale+Math.max(0,step),'#20272c');rect(x+1*scale,y+scale+bob,4*scale,7*scale+Math.max(0,-step),'#20272c');rect(x-7*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x+4*scale,y-9*scale+bob,3*scale,7*scale,color);rect(x-5*scale,y-20*scale+bob,10*scale,3*scale,'#34302d');}
-function machineDraw(m){const x=m.x,y=m.y;const stateColor=m.state==='broken'?C.red:m.state==='setup'?C.orange:m.state==='material'?C.orange:C.green;
- // floor shadow and machine base
- rect(x-5,y+59,76,11,'#171d21');rect(x,y+13,66,47,C.dark);rect(x+5,y+8,55,48,C.machine);rect(x+10,y+14,44,29,'#29353b');
- // safety doors and mold window
- rect(x+13,y+17,18,22,'#52636a');rect(x+34,y+17,16,22,'#52636a');rect(x+18,y+22,24,12,'#1b262c');rect(x+23,y+25,13,6,'#83939a');
- // top cover
- rect(x+4,y+3,57,8,'#9aa6ab');rect(x+9,y-2,46,6,'#536169');
- // control panel
- rect(x+53,y+18,9,19,'#172126');rect(x+55,y+21,5,3,stateColor);rect(x+55,y+27,5,2,C.yellow);rect(x+55,y+32,5,2,C.green);
- // clamps
- rect(x+20,y+42,26,4,'#b3bec2');rect(x+16,y+48,34,5,'#3b474e');
- // warning beacon
- rect(x+58,y-8,6,6,stateColor);rect(x+59,y-12,4,4,stateColor);
- text('ENGEL',x+32,y+57,7,'#f1f4f5','center');text(String(m.id).padStart(2,'0'),x+33,y+79,10,m.id===selected?C.yellow:'#b3c0c5','center');
- // small status strip
- rect(x+4,y+65,58,4,'#172126');rect(x+5,y+66,56*Math.max(0,m.material)/100,2,stateColor);
- if(m.state==='broken'){rect(x+17,y-21,31,10,C.red);text('STOP',x+32,y-13,7,'#fff','center');}
- if(m.state==='setup'){rect(x+12,y-21,42,10,C.orange);text('FORM',x+33,y-13,7,'#172126','center');}
- if(m.id===selected){ctx.strokeStyle=C.yellow;ctx.lineWidth=2;ctx.strokeRect(x-7,y-24,72,108);}
-}
-function conveyor(y){rect(25,y,1450,24,'#141a1e');rect(25,y+3,1450,3,'#6a7b82');rect(25,y+17,1450,3,'#6a7b82');for(let x=30;x<1470;x+=24){rect(x,y+6,4,12,'#53646b');rect(x+9,y+6,4,12,'#53646b');} }
-function boxDraw(x,y,full){rect(x,y,31,25,full?'#9a6b40':'#b38b5e');rect(x+3,y+3,25,18,full?'#d7a15e':'#e5c08d');rect(x+13,y+3,4,18,'#8c643c');rect(x-2,y-3,35,4,'#d2b58a');}
-function background(){rect(0,0,W,H,C.floor);for(let y=0;y<H;y+=40)for(let x=0;x<W;x+=40){rect(x,y,39,39,((x/40+y/40)%2===0)?'#263138':'#242e34');}rect(0,0,W,48,'#182127');text('MAGNA / ENGEL',mobileLayout?10:28,30,mobileLayout?10:13,C.yellow);if(!mobileLayout)text('HALA 2 • ZMENA 01',1470,30,11,'#91a1aa','right');if(mobileLayout){for(let r=0;r<6;r++){const y=mobileRowY(r);text('ENGEL '+String(r*5+1).padStart(2,'0')+'–'+String(r*5+5).padStart(2,'0'),9,y-22,9,'#a8b4bd');if(r===1||r===3){conveyor(y+91);text(r===1?'ULIČKA 1 / MATERIÁL':'ULIČKA 2 / SERVIS',195,y+85,8,'#c3d0d5','center');}}rect(0,H-25,W,25,'#13191d');text('30 STROJOV ENGEL • 24 ĽUDÍ',W/2,H-9,8,C.green,'center');return;}rect(0,110,W,3,'#637078');rect(0,420,W,3,'#637078');rect(0,745,W,3,'#637078');text('RAD A / ENGEL 01–15',28,90,11,'#a8b4bd');text('RAD B / ENGEL 16–30',28,400,11,'#a8b4bd');conveyor(285);conveyor(385);text('ULIČKA 1 / MATERIÁL A LOGISTIKA',750,279,9,'#c3d0d5','center');text('ULIČKA 2 / SERVIS A KONTROLA',750,414,9,'#c3d0d5','center');for(let x=32;x<1470;x+=95){rect(x,115,2,290,'#3a464c');rect(x,425,2,310,'#3a464c');}}
-function draw(){ctx.clearRect(0,0,W,H);workers.forEach(w=>{const dx=w.tx-w.x,dy=w.ty-w.y;w.x+=dx*.11;w.y+=dy*.11;w.phase+=(Math.abs(dx)+Math.abs(dy)>.8)?.22:.035;});background();
- machines.forEach(machineDraw);
- // roller boxes along central line
- if(mobileLayout){machines.forEach((m,i)=>{if(i%3===0)boxDraw(m.x+18,m.y+91,(m.box%3)>0);});}else{machines.forEach((m,i)=>{if(i%3===0)boxDraw(m.x+18,310,(m.box%3)>0);if(i%4===0)boxDraw(m.x+22,405,m.box%2===1);});}
- workers.forEach(w=>{if(w.role==='operator')return;let c=w.color;pixelWorker(w.x,w.y,c,w.phase,1);});
- // operators on each machine
- workers.filter(w=>w.role==='operator').forEach(w=>pixelWorker(w.x,w.y,w.color,w.phase,.85));
- // tiny role labels for distinctive roles
- workers.filter(w=>w.role!=='operator').forEach(w=>{let label={material:'MAT',quality:'QC',warehouse:'BOX',setup:'SET',chief:'TECH'}[w.role];text(label,w.x,w.y+13,7,w.color,'center');});
- // tiny production sparks / animated parts
- machines.forEach(m=>{if(m.state==='running'&&running&&!paused&&Math.sin(m.cycle*8)>0.93){rect(m.x+29,m.y+42,5,4,C.yellow);}});
- // bottom status strip
- if(!mobileLayout){rect(0,752,W,28,'#13191d');text('SIMULÁCIA VÝROBY',20,770,9,'#74848c');text('AKTÍVNE STROJE: '+machines.filter(m=>m.state==='running').length+'/30',1480,770,9,C.green,'right');}
- requestAnimationFrame(draw);
-}
-function hud(){document.getElementById('out').textContent=String(output).padStart(3,'0');document.getElementById('quality').textContent=good+'%';document.getElementById('downtime').textContent=downtime;const total=6*60+Math.floor(elapsed/2);document.getElementById('clock').textContent=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');document.getElementById('repairCount').textContent=repairs;}
-function renderRoster(){const el=document.getElementById('roster');el.innerHTML=roleDefs.map(r=>'<div class="role"><strong style="color:'+r.color+'">'+r.count+'</strong><small>'+r.role+'<br>'+r.desc+'</small></div>').join('');}
-function start(){if(running&&!paused)return;document.getElementById('welcome').classList.add('hidden');document.getElementById('end').classList.add('hidden');running=true;paused=false;lastTick=Date.now();document.getElementById('pause').disabled=false;document.getElementById('pause').textContent='Ⅱ PAUZA';log('06:00 — Spustenie linky. Všetkých 30 strojov je v prevádzke.','good');}
-function tick(){if(!running||paused)return;const now=Date.now();if(now-lastTick<500)return;lastTick=now;elapsed++;spawnTimer++;
- machines.forEach(m=>{if(m.state==='running'){m.cycle++;m.wear+=Math.random()*.3;m.material-=Math.random()*.18;if(m.material<20&&m.state==='running'){m.state='material';log('ENGEL '+String(m.id).padStart(2,'0')+' — dochádza materiál. Zásobovač smeruje k stroju.','notice');moveRole('material',m);}if(Math.random()<0.0007+m.wear/200000){m.state='broken';m.needsRepair=true;downtime++;log('PORUCHA — ENGEL '+String(m.id).padStart(2,'0')+'. Je potrebný hlavný technik.','bad');moveRole('chief',m);}if(Math.random()<0.001){m.defects++;rejects++;good=Math.max(0,Math.round((output+1-rejects)/Math.max(1,output+1)*100));log('Kontrola kvality odhalila chybný diel na stroji ENGEL '+String(m.id).padStart(2,'0')+'. Diel bol vyradený z výroby.','bad');moveRole('quality',m);}if(m.cycle%8===0){output++;m.box++;if(m.box%6===0)moveRole('warehouse',m);}}else if(m.state==='material'&&Math.random()<.12){m.material=100;m.state='running';log('ENGEL '+String(m.id).padStart(2,'0')+' — materiál doplnený, výroba pokračuje.','good');resetRole('material');}else if(m.state==='setup'&&Math.random()<.08){m.form++;m.state='running';m.wear=0;log('ENGEL '+String(m.id).padStart(2,'0')+' — forma vymenená. Stroj opäť pracuje.','good');resetRole('setup');}});
- if(spawnTimer%18===0){const available=machines.filter(m=>m.state==='running');if(available.length&&Math.random()<.65){const m=available[Math.floor(Math.random()*available.length)];m.state='setup';log('Plánované prestavenie stroja ENGEL '+String(m.id).padStart(2,'0')+'. Privolaný nastavovač.','notice');moveRole('setup',m);}}
- // worker movement eases toward assigned task
- 
- hud();if(elapsed>=960){finish();}
-}
-function moveRole(role,m){const w=workers.find(x=>x.role===role&&(!x.task||x.task===''));if(!w)return;w.task='busy';w.machine=m.id;w.tx=m.x+32;w.ty=m.y+(mobileLayout?88:94);}
-function resetRole(role){const w=workers.find(x=>x.role===role&&x.task==='busy');if(!w)return;w.task='';w.machine=-1;const idx=workers.indexOf(w);w.tx=mobileLayout?(idx%2?320:65):(role==='material'?(idx%2?1120:330):role==='quality'?(idx%2?790:710):role==='setup'?(idx%2?950:600):role==='warehouse'?(idx%2?1300:190):750);w.ty=mobileLayout?(role==='chief'?720:(role==='quality'||role==='setup'||(role==='warehouse'&&idx%2)?930:500)):(role==='chief'?420:(role==='quality'||role==='setup'||(role==='warehouse'&&idx%2)?375:320));}
-function repair(){const m=machines.find(m=>m.state==='broken');if(!m){log('Oprava nie je potrebná — žiadny stroj nie je pokazený.','notice');return;}m.state='running';m.needsRepair=false;m.material=Math.max(m.material,50);m.wear=0;repairs++;downtime=Math.max(0,downtime-1);resetRole('chief');log('Hlavný technik opravil stroj ENGEL '+String(m.id).padStart(2,'0')+'. Výroba bola obnovená.','good');hud();}
-function pause(){if(!running)return;paused=!paused;document.getElementById('pause').textContent=paused?'▶ POKRAČOVAŤ':'Ⅱ PAUZA';log(paused?'Zmena je pozastavená.':'Zmena pokračuje.', 'notice');}
-function finish(){running=false;paused=false;document.getElementById('pause').disabled=true;document.getElementById('endText').textContent='Vyrobené diely: '+output+'. Kvalita: '+good+' %. Poruchy: '+downtime+'. Opravy: '+repairs+'. '+(good>=95?'Výborná zmena — kvalita je na vysokej úrovni.':good>=85?'Dobrá zmena, no stále je čo zlepšovať.':'Treba analyzovať príčiny nepodarkov a prestojov.');document.getElementById('end').classList.remove('hidden');log('14:00 — Zmena sa skončila. Výsledky sú zaznamenané.','good');}
-function reset(){running=false;paused=false;elapsed=output= downtime=repairs=qualityChecks=rejects=0;good=100;spawnTimer=0;machines.forEach((m,i)=>{Object.assign(m,makeMachine(i));});workers.forEach(w=>{w.task='';w.machine=-1;});workers.filter(w=>w.role==='operator').forEach((w,i)=>{const mi=mobileLayout?i*2:i;w.tx=machines[mi].x+26;w.ty=machines[mi].y+68;});workers.filter(w=>w.role!=='operator').forEach((w,i)=>{const coords=mobileLayout?{material:[[65,500],[320,500]],quality:[[65,930],[320,930]],warehouse:[[65,500],[320,930]],setup:[[65,930],[320,930]],chief:[[195,720]]}:{material:[[330,320],[1120,320]],quality:[[710,375],[790,375]],warehouse:[[190,320],[1300,375]],setup:[[600,375],[950,375]],chief:[[750,420]]};const p=coords[w.role][workers.filter(x=>x.role===w.role).indexOf(w)]||[750,350];w.tx=p[0];w.ty=p[1];});events=[];document.getElementById('end').classList.add('hidden');document.getElementById('welcome').classList.remove('hidden');document.getElementById('pause').disabled=true;hud();log('06:00 — Zmena je pripravená. Skontroluj halu a stlač „Spustiť zmenu“.');}
-canvas.addEventListener('click',function(e){const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,y=(e.clientY-r.top)*H/r.height;const m=machines.find(m=>x>=m.x-7&&x<=m.x+68&&y>=m.y-25&&y<=m.y+85);if(m){selected=m.id;const status={running:'funguje normálne',broken:'PORUCHA — stlač „Oprava“',material:'čaká na materiál',setup:'prebieha prestavenie'}[m.state];log('ENGEL '+String(m.id).padStart(2,'0')+' — '+status+'. Materiál: '+Math.round(m.material)+' %, forma č.'+m.form+'.',m.state==='broken'?'bad':'notice');}});
-document.getElementById('start').addEventListener('click',start);document.getElementById('welcomeStart').addEventListener('click',start);document.getElementById('repair').addEventListener('click',repair);document.getElementById('pause').addEventListener('click',pause);document.getElementById('reset').addEventListener('click',reset);document.getElementById('again').addEventListener('click',reset);
-setInterval(tick,100);renderRoster();hud();draw();
-})();
+<div id="scene"></div>
+<div id="topbar"><div class="brand"><b>MAGNA</b><small>INDUSTRIAL SIMULATOR · ALPHA 0.1</small></div><div class="status">CELL STATUS<br><strong id="cellStatus">SETUP REQUIRED</strong></div></div>
+<div id="help">Move: left stick<br>Look: drag right side<br>Walk to a machine and tap INTERACT</div>
+<div id="crosshair"></div><div id="hint">Explore the cell. Find the <strong>ENGEL machine</strong>.</div>
+<div id="joystick"><div id="stick"></div></div>
+<div id="looktip">DRAG TO LOOK</div>
+<button id="interact">INTERACT</button>
+<div id="toast"></div>
+<section id="panel"><button id="close">✕</button><div id="panelContent"></div></section>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+
+const mount=document.querySelector('#scene');
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9aadb6);scene.fog=new THREE.Fog(0x9aadb6,18,58);
+const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,100);camera.position.set(0,1.68,7);
+const renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.outputColorSpace=THREE.SRGBColorSpace;mount.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe8f4ff,0x35414a,2.0));
+const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const mats={floor:new THREE.MeshStandardMaterial({color:0x65747a,roughness:.9}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,roughness:.85}),steel:new THREE.MeshStandardMaterial({color:0x53636a,metalness:.55,roughness:.4}),dark:new THREE.MeshStandardMaterial({color:0x202a30,metalness:.25,roughness:.65}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,metalness:.2,roughness:.45}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,metalness:.15,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:0x6d9ba7,transparent:true,opacity:.42,metalness:.2,roughness:.15}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f}),red:new THREE.MeshStandardMaterial({color:0xf05c54})};
+function box(parent,name,pos,size,mat,interactive=false){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.name=name;m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(interactive)targets.push(m);return m}
+const targets=[];
+function labelSprite(text){const c=document.createElement('canvas');c.width=512;c.height=128;const x=c.getContext('2d');x.fillStyle='#14212a';x.fillRect(0,0,512,128);x.fillStyle='#c7f18a';x.font='bold 42px Arial';x.textAlign='center';x.fillText(text,256,80);const tex=new THREE.CanvasTexture(c);const s=new THREE.Sprite(new THREE.SpriteMaterial({map:tex,transparent:true}));s.scale.set(2.2,.55,1);return s}
+box(scene,'factory floor',[0,-.12,0],[32,.2,32],mats.floor);
+for(let x=-15;x<=15;x+=3)box(scene,'floor marking',[x,-.012,0],[.025,.01,31],new THREE.MeshStandardMaterial({color:0x9aa6a8}));
+box(scene,'back wall',[0,3,-15.8],[32,6,.3],mats.wall);box(scene,'left wall',[-16,3,0],[.3,6,32],mats.wall);box(scene,'right wall',[16,3,0],[.3,6,32],mats.wall);
+for(let x=-12;x<=12;x+=4){box(scene,'roof beam',[x,5.8,0],[.18,.18,30],mats.steel);const light=new THREE.PointLight(0xfff4d9,35,11);light.position.set(x,5.2,0);scene.add(light);box(scene,'LED fixture',[x,5.3,0],[1.3,.08,.3],mats.white)}
+// Safety fence around the rear half of the cell.
+for(let x=-7;x<=7;x+=2.5){box(scene,'safety fence post',[x,1.25,-5],[.09,2.5,.09],mats.yellow);box(scene,'fence rail',[x,2.35,-5],[2.5,.06,.06],mats.yellow)}
+// ENGEL injection molding machine: simplified but recognisable machine architecture.
+const engel=new THREE.Group();engel.position.set(-3,0,-3);scene.add(engel);
+box(engel,'ENGEL base',[0,.65,0],[5.8,1.1,2.5],mats.dark,true);
+box(engel,'ENGEL rear cabinet',[-2.15,2.0,-.05],[1.25,2.9,2.35],mats.orange);
+box(engel,'clamping unit',[-.55,1.8,0],[2.0,2.5,2.25],mats.white,true);
+box(engel,'fixed platen',[-1.45,1.85,0],[.25,2.35,2.35],mats.steel);
+box(engel,'moving platen',[.55,1.85,0],[.28,2.35,2.35],mats.steel);
+for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.1,12),mats.yellow);tie.rotation.z=Math.PI/2;tie.position.set(-.45,y,z);engel.add(tie)}
+box(engel,'mold',[ -.45,1.85,0],[.8,1.55,1.45],mats.dark,true);
+box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
+const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
+box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
+box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
+box(engel,'screen',[1.45,2.28,1.29],[.52,.42,.035],mats.green);
+const engelLabel=labelSprite('ENGEL · INJECTION MOULDING');engelLabel.position.set(0,3.7,0);engel.add(engelLabel);
+// ABB six-axis robot, with articulated links and visible gripper.
+const robot=new THREE.Group();robot.position.set(4,0,-1.5);scene.add(robot);
+box(robot,'robot pedestal',[0,.45,0],[1.1,.9,1.1],mats.steel,true);
+const base=new THREE.Group();base.position.y=.9;robot.add(base);
+const axis1=new THREE.Mesh(new THREE.CylinderGeometry(.43,.5,.55,20),mats.orange);axis1.position.y=.25;base.add(axis1);
+const arm1=box(base,'ABB axis 2',[0,1.0,0],[.55,1.5,.55],mats.orange,true);arm1.rotation.z=-.25;
+const shoulder=new THREE.Group();shoulder.position.set(0,1.7,0);base.add(shoulder);
+const upper=box(shoulder,'ABB upper arm',[.65,.25,0],[1.45,.38,.42],mats.orange,true);upper.rotation.z=-.25;
+const elbow=new THREE.Group();elbow.position.set(1.25,.55,0);shoulder.add(elbow);
+const fore=box(elbow,'ABB forearm',[.62,0,0],[1.3,.3,.32],mats.orange,true);
+const wrist=new THREE.Group();wrist.position.set(1.25,0,0);elbow.add(wrist);
+box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
+box(wrist,'gripper mount',[.48,0,0],[.28,.2,.24],mats.dark,true);
+box(wrist,'gripper finger A',[.68,.13,0],[.35,.08,.12],mats.yellow);
+box(wrist,'gripper finger B',[.68,-.13,0],[.35,.08,.12],mats.yellow);
+const robotLabel=labelSprite('ABB · 6 AXIS ROBOT');robotLabel.position.set(0,3.6,0);robot.add(robotLabel);
+// Auxiliary equipment and conveyor.
+const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
+box(scene,'temperature controller',[-8, .8,-1.8],[1.1,1.5,.65],mats.steel,true);
+box(scene,'conveyor',[2,.7,4],[7,.3,1.2],mats.dark,true);for(let x=-1;x<5;x+=.5){const roller=new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,1.15,12),mats.steel);roller.rotation.x=Math.PI/2;roller.position.set(x,.55,4);scene.add(roller)}
+box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
+const sign=labelSprite('MOULDING CELL 01');sign.position.set(0,4.8,-15.5);scene.add(sign);
+// Player movement and look controls.
+const player={x:0,z:7,yaw:0,pitch:0,moveX:0,moveY:0};const keys={};let activePanel=false;
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function updateCamera(){camera.position.set(player.x,1.68,player.z);camera.rotation.order='YXZ';camera.rotation.y=player.yaw;camera.rotation.x=player.pitch}
+function toast(s){const el=document.querySelector('#toast');el.textContent=s;el.classList.add('show');clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.classList.remove('show'),2200)}
+const joy=document.querySelector('#joystick'),stick=document.querySelector('#stick');let joyId=null;
+function joystickMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2,cy=r.top+r.height/2;let dx=e.clientX-cx,dy=e.clientY-cy;const max=37,len=Math.hypot(dx,dy);if(len>max){dx=dx/len*max;dy=dy/len*max}stick.style.transform='translate('+dx+'px,'+dy+'px)';player.moveX=dx/max;player.moveY=dy/max}
+joy.addEventListener('pointerdown',e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joystickMove(e)});joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joystickMove(e)});function joyEnd(e){if(e.pointerId===joyId){joyId=null;player.moveX=0;player.moveY=0;stick.style.transform='translate(0,0)'}}joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
+let lookId=null,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{if(e.clientX<innerWidth*.42||activePanel)return;lookId=e.pointerId;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(lookId)});renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookId)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;player.yaw-=dx*.004;player.pitch=clamp(player.pitch-dy*.003,-1.15,1.15)});renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null});
+addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
+function move(dt){let forward=player.moveY+(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0);let strafe=player.moveX+(keys.KeyD||keys.ArrowRight?1:0)+(keys.KeyA||keys.ArrowLeft?-1:0);const len=Math.hypot(forward,strafe);if(len>1){forward/=len;strafe/=len}const speed=3.5*dt;player.x+=(-Math.sin(player.yaw)*(-forward)+Math.cos(player.yaw)*strafe)*speed;player.z+=(-Math.cos(player.yaw)*(-forward)-Math.sin(player.yaw)*strafe)*speed;player.x=clamp(player.x,-14.5,14.5);player.z=clamp(player.z,-14.5,14.5);updateCamera()}
+const raycaster=new THREE.Raycaster();let currentTarget=null;
+function nearestTarget(){raycaster.setFromCamera(new THREE.Vector2(0,0),camera);const hits=raycaster.intersectObjects(targets,false);if(!hits.length||hits[0].distance>3.4)return null;return hits[0].object}
+const panel=document.querySelector('#panel'),content=document.querySelector('#panelContent');
+function showPanel(title,body){activePanel=true;content.innerHTML='<h2>'+title+'</h2>'+body;panel.classList.add('open')}
+function closePanel(){panel.classList.remove('open');activePanel=false}
+document.querySelector('#close').onclick=closePanel;
+function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('No equipment in reach. Move closer and aim at an interactive part.');return}const n=hit.name;
+if(n==='control console'||n==='ENGEL base'||n==='clamping unit'||n==='mold'||n==='injection unit'){
+showPanel('ENGEL · Machine setup',`<p>Training HMI for the virtual ENGEL injection moulding machine. Values are illustrative and must not be copied to production equipment.</p><div class="grid">
+<div class="field"><label>Barrel zone 1 <output id="v1">220 °C</output></label><input type="range" min="180" max="280" value="220" data-unit=" °C" id="s1"></div>
+<div class="field"><label>Barrel zone 2 <output id="v2">230 °C</output></label><input type="range" min="180" max="280" value="230" data-unit=" °C" id="s2"></div>
+<div class="field"><label>Injection speed <output id="v3">45 mm/s</output></label><input type="range" min="5" max="120" value="45" data-unit=" mm/s" id="s3"></div>
+<div class="field"><label>Holding pressure <output id="v4">55 %</output></label><input type="range" min="10" max="100" value="55" data-unit=" %" id="s4"></div>
+<div class="field"><label>Cooling time <output id="v5">18 s</output></label><input type="range" min="5" max="45" value="18" data-unit=" s" id="s5"></div>
+<div class="field"><label>Clamping force <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">APPLY TRAINING SETTINGS</button><p id="hmiResult">Machine is in setup mode. Verify the mould, material and safety conditions before enabling a cycle.</p>`);
+content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#v'+input.id.slice(1)).textContent=input.value+input.dataset.unit}));
+content.querySelector('#apply').onclick=()=>{document.querySelector('#cellStatus').textContent='PARAMETERS LOADED';content.querySelector('#hmiResult').textContent='Settings loaded into the training model. Next: verify material preparation, mould connections and robot clear position.';toast('Training parameters applied')};
+}else if(n.includes('ABB')||n.includes('gripper')||n==='robot pedestal'){
+showPanel('ABB · Robot training',`<p>Six-axis robot cell. This panel demonstrates a safe, simplified teaching workflow; it is not a real ABB controller or RAPID compiler.</p><div class="grid"><div class="field"><label>Axis 1 <output id="a1">0°</output></label><input id="r1" type="range" min="-170" max="170" value="0"></div><div class="field"><label>Axis 2 <output id="a2">-15°</output></label><input id="r2" type="range" min="-100" max="100" value="-15"></div><div class="field"><label>Axis 3 <output id="a3">35°</output></label><input id="r3" type="range" min="-120" max="120" value="35"></div><div class="field"><label>Axis 4 <output id="a4">0°</output></label><input id="r4" type="range" min="-200" max="200" value="0"></div></div><button class="action" id="home">MOVE TO SAFE HOME (SIMULATED)</button><p id="robotResult">Robot state: teaching mode · gripper open · cell interlocks not validated.</p>`);
+content.querySelectorAll('input[type=range]').forEach(input=>input.addEventListener('input',()=>{content.querySelector('#a'+input.id.slice(1)).textContent=input.value+'°'}));content.querySelector('#home').onclick=()=>{content.querySelector('#robotResult').textContent='Simulated home position selected. In a real cell, validate the robot program and safety zone before motion.';toast('Virtual ABB home position selected')};
+}else if(n==='material dryer'||n==='dryer hopper'||n==='temperature controller'){showPanel('Material preparation',`<p>Material drying is part of the process setup. Select the resin and verify the supplier's technical data sheet before choosing a real drying recipe.</p><div class="field"><label>Training material</label><select id="resin" style="width:100%;padding:10px;background:#263843;color:white;border:1px solid #536773;border-radius:7px"><option>ABS</option><option>PA6</option><option>PA66</option><option>PBT</option><option>PC/ABS</option><option>PP</option></select></div><button class="action" id="dry">START DRYER (SIMULATED)</button><p id="dryResult">Dryer idle.</p>`);content.querySelector('#dry').onclick=()=>{content.querySelector('#dryResult').textContent='Training dryer started for '+content.querySelector('#resin').value+'. Check the resin supplier specification for actual conditions.';toast('Virtual dryer started')};
+}else if(n==='safety gate'){showPanel('Cell safety',`<p>Safety is a prerequisite for every setup and automatic cycle. A real machine must be isolated and secured according to site procedures and manufacturer instructions before entering hazardous areas.</p><div class="field"><label>Training interlock state</label><strong style="color:var(--warn)">GATE OPEN · AUTOMATIC MODE INHIBITED</strong></div><p>Later training modules will include lockout/tagout, stored-energy checks, mould handling plans and safety validation.</p>`)}
+else if(n==='conveyor'){showPanel('Conveyor and part handling',`<p>Downstream handling equipment for moulded parts.</p><div class="field"><label>Conveyor status</label><strong style="color:var(--accent)">READY · SIMULATION</strong></div><button class="action" id="conv">START CONVEYOR</button><p id="convResult">Conveyor stopped.</p>`);content.querySelector('#conv').onclick=()=>{content.querySelector('#convResult').textContent='Conveyor running in the training cell.';toast('Conveyor started')}}
+else{showPanel('Equipment',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
+document.querySelector('#interact').addEventListener('click',interact);addEventListener('keydown',e=>{if(e.code==='KeyE'&&!activePanel)interact();if(e.code==='Escape')closePanel()});
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
+const clock=new THREE.Clock();updateCamera();animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.7));renderer.setSize(innerWidth,innerHeight)});
 </script>
 </body>
 </html>
