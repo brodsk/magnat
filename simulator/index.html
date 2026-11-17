@@ -589,59 +589,49 @@ box(scene,'conveyor discharge sensor',[.7,1.3,5.85],[.72,.42,.12],mats.dark);
 cyl(scene,'conveyor photoeye',[.7,1.48,5.78],.07,.07,.08,mats.green,'x',12);
 box(scene,'safety gate',[0,1.2,-5],[1.5,2.4,.1],mats.yellow,true);
 box(scene,'cell identification sign backing',[0,4.8,-15.58],[3.2,.72,.12],mats.dark);const sign=labelPlane('MOULDING CELL 01',2.8,.58);sign.position.set(0,4.8,-15.505);scene.add(sign);
-// Operator station copied from the reference photo: side shelf, Dell-style monitor and a pendant at the belt edge.
-const operatorShelf=box(scene,'operator monitor shelf',[-3.55,1.42,1.95],[2.65,.14,.9],mats.steel,true);
-for(const x of [-4.65,-2.45])for(const z of [1.62,2.28]){
- box(scene,'operator shelf bracket',[x, .78,z],[.08,1.35,.08],mats.dark);
- box(scene,'operator shelf foot',[x,.08,z],[.25,.12,.24],mats.dark);
+// Operator station: mounted directly on the outside of the cage, beside the conveyor opening, as in the real photo.
+const operatorShelf=box(scene,'operator monitor shelf',[3.62,1.48,1.72],[1.5,.14,1.12],mats.steel,true);
+// Brackets visibly tie the shelf to the cage side frame; no freestanding desk.
+for(const z of [1.22,2.22]){
+ box(scene,'operator shelf mounting arm',[3.0,1.42,z],[1.25,.12,.1],mats.steel);
+ box(scene,'operator shelf vertical bracket',[3.0,.82,z],[.1,1.25,.1],mats.dark);
+ box(scene,'operator shelf wall clamp',[2.58,1.42,z],[.12,.28,.2],mats.yellow);
 }
-box(scene,'operator shelf front lip',[-3.55,1.53,2.4],[2.6,.08,.05],mats.dark);
-// Dell monitor sits above the belt at the operator's left, facing the operator.
-box(scene,'operator monitor rear housing',[-3.55,2.55,1.72],[1.9,1.25,.16],mats.dark,true);
-box(scene,'operator monitor bezel',[-3.55,2.55,1.625],[1.82,1.17,.045],mats.dark);
+box(scene,'operator shelf front lip',[3.62,1.59,2.29],[1.46,.08,.05],mats.dark);
+// Large monitor faces the operator standing in front of the green conveyor.
+box(scene,'operator monitor rear housing',[3.62,2.55,1.42],[1.9,1.25,.16],mats.dark,true);
+box(scene,'operator monitor bezel',[3.62,2.55,1.325],[1.82,1.17,.045],mats.dark);
 const operatorScreenCanvas=document.createElement('canvas');operatorScreenCanvas.width=1536;operatorScreenCanvas.height=864;
 const osc=operatorScreenCanvas.getContext('2d');
 function drawOperatorJitScreen(){
  const W=1536,H=864;
  osc.fillStyle='#e8ebed';osc.fillRect(0,0,W,H);
- // Desktop application chrome
  osc.fillStyle='#dce1e4';osc.fillRect(0,0,W,27);
  osc.fillStyle='#58616a';osc.font='15px Arial';osc.fillText('◉  MirrorsBatchProd',12,19);
  osc.fillStyle='#f1f3f4';osc.fillRect(0,28,W,27);
  osc.fillStyle='#30383d';osc.font='14px Arial';osc.fillText('File    Settings    Help',15,47);
- // Application header
  osc.fillStyle='#f7f8f8';osc.fillRect(0,56,W,72);
  osc.fillStyle='#30383d';osc.font='bold 31px Arial';osc.fillText('JIT - Production',14,102);
  osc.fillStyle='#7c858a';osc.font='bold 39px Arial';osc.textAlign='right';osc.fillText('◢ MAGNA',1504,104);osc.textAlign='left';
  osc.strokeStyle='#9aa3a5';osc.lineWidth=1;osc.beginPath();osc.moveTo(0,128);osc.lineTo(W,128);osc.stroke();
- // Workstation status grid
- const x0=18,y0=146, widths=[128,225,190,158,88,418,275], headers=['Pracovisko','Popis','Status','Spustenie','Dôvod ID','Dôvod','ANDON'];
- let x=x0;osc.font='17px Arial';
- headers.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(x,y0,widths[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(x,y0,widths[i],38);osc.fillStyle='#46514e';osc.fillText(h,x+8,y0+25);x+=widths[i]});
- const vals=['55013300','Lis 33','Výroba','22.05.2026 18:00','','',''];
- x=x0;vals.forEach((v,i)=>{osc.fillStyle=i===2?'#27d64b':'#c8ceca';osc.fillRect(x,y0+38,widths[i],42);osc.strokeStyle='#aab2ae';osc.strokeRect(x,y0+38,widths[i],42);osc.fillStyle='#202b25';osc.font=i===2?'bold 18px Arial':'17px Arial';osc.fillText(v,x+8,y0+65);x+=widths[i]});
- // Workstation toolbar
+ const x0=18,y0=146,widths=[128,225,190,158,88,418,275],headers=['Pracovisko','Popis','Status','Spustenie','Dôvod ID','Dôvod','ANDON'];let x=x0;
+ headers.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(x,y0,widths[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(x,y0,widths[i],38);osc.fillStyle='#46514e';osc.font='17px Arial';osc.fillText(h,x+8,y0+25);x+=widths[i]});
+ const vals=['55013300','Lis 33','Výroba','22.05.2026 18:00','','',''];x=x0;
+ vals.forEach((v,i)=>{osc.fillStyle=i===2?'#27d64b':'#c8ceca';osc.fillRect(x,y0+38,widths[i],42);osc.strokeStyle='#aab2ae';osc.strokeRect(x,y0+38,widths[i],42);osc.fillStyle='#202b25';osc.font=i===2?'bold 18px Arial':'17px Arial';osc.fillText(v,x+8,y0+65);x+=widths[i]});
  function btn(x,y,w,label,fill='#e4e8e7',color='#303a39'){osc.fillStyle=fill;osc.fillRect(x,y,w,39);osc.strokeStyle='#929c99';osc.strokeRect(x,y,w,39);osc.fillStyle=color;osc.font='bold 16px Arial';osc.fillText(label,x+10,y+25)}
  btn(18,245,118,'Dokumenty');btn(141,245,174,'! Vypnúť počítač !');btn(321,245,119,'Aktualizovať');
  btn(1027,245,96,'ANDON');btn(1128,245,126,'Zmeniť stav');btn(1259,245,137,'Otvoriť príkaz');btn(1401,245,77,'Obaly');btn(1483,245,42,'...');
- // Production orders table
- const ty=302,cols=[190,200,380,115,125,105,245,100],heads=['Príkaz','Materiál','Popis','Cieľ. množ.','Vyr. množ.','Zmetky','Open','Forma','Rework'];
- const widths2=[190,200,380,115,125,105,100,245,100];let xx=18;
+ const ty=302,widths2=[190,200,380,115,125,105,100,245,100],heads=['Príkaz','Materiál','Popis','Cieľ. množ.','Vyr. množ.','Zmetky','Open','Forma','Rework'];let xx=18;
  heads.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(xx,ty,widths2[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(xx,ty,widths2[i],38);osc.fillStyle='#46514e';osc.font='bold 16px Arial';osc.fillText(h,xx+7,ty+25);xx+=widths2[i]});
- const rows=[
- ['000007538445','10101-004L-01','OM8 Kryt šalky hladký, lak. P','8000','5712','11','169','WMSW-700-OM8','2'],
- ['000007538447','10102-004L-01','OM8 Kryt šalky hladký, lak. L','8000','5712','10','170','WMSW-700-OM8','2']
- ];
- rows.forEach((row,ri)=>{let cx=18;const yy=ty+38+ri*43;row.forEach((v,i)=>{osc.fillStyle=i===8?'#e7c66f':ri===0?'#c8ceca':'#e4e8e6';osc.fillRect(cx,yy,widths2[i],43);osc.strokeStyle='#aab2ae';osc.strokeRect(cx,yy,widths2[i],43);osc.fillStyle='#26312d';osc.font='16px Arial';osc.fillText(v,cx+7,yy+27);cx+=widths2[i]})});
- // Tabs and production accounting actions
+ const rows=[['000007538445','10101-004L-01','OM8 Kryt šalky hladký, lak. P','8000','5712','11','169','WMSW-700-OM8','2'],['000007538447','10102-004L-01','OM8 Kryt šalky hladký, lak. L','8000','5712','10','170','WMSW-700-OM8','2']];
+ rows.forEach((row,ri)=>{let cx=18;row.forEach((v,i)=>{const yy=ty+38+ri*43;osc.fillStyle=i===8?'#e7c66f':ri===0?'#c8ceca':'#e4e8e6';osc.fillRect(cx,yy,widths2[i],43);osc.strokeStyle='#aab2ae';osc.strokeRect(cx,yy,widths2[i],43);osc.fillStyle='#26312d';osc.font='16px Arial';osc.fillText(v,cx+7,yy+27);cx+=widths2[i]})});
  btn(18,532,146,'Boxové etikety');btn(168,532,100,'Kusovník');btn(272,532,172,'Účtovanie výroby','#42d45c','#16351e');
  btn(918,532,205,'Dodatočná spotreba','#e8c76b','#443515');btn(1128,532,145,'Ukončiť príkaz','#e99a9a','#552626');btn(1278,532,145,'Prerušiť príkaz');btn(1428,532,90,'Zmetky','#e58b8b','#542323');
- // Logged-in operator grid
  const by=584,bw=[145,260,150],bh=['Os. číslo','Meno','Prihlásenie'];let bx=18;
  bh.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(bx,by,bw[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(bx,by,bw[i],38);osc.fillStyle='#46514e';osc.font='bold 16px Arial';osc.fillText(h,bx+8,by+25);bx+=bw[i]});
- const bv=['10002590','Serhii Kapuza','02:00:52'];bx=18;bv.forEach((v,i)=>{osc.fillStyle='#c8ceca';osc.fillRect(bx,by+38,bw[i],42);osc.strokeStyle='#aab2ae';osc.strokeRect(bx,by+38,bw[i],42);osc.fillStyle='#26312d';osc.font='17px Arial';osc.fillText(v,bx+8,by+65);bx+=bw[i]});
+ const bv=['10002590','Serhii Kapuza','02:00:52'];bx=18;
+ bv.forEach((v,i)=>{osc.fillStyle='#c8ceca';osc.fillRect(bx,by+38,bw[i],42);osc.strokeStyle='#aab2ae';osc.strokeRect(bx,by+38,bw[i],42);osc.fillStyle='#26312d';osc.font='17px Arial';osc.fillText(v,bx+8,by+65);bx+=bw[i]});
  btn(18,726,114,'Prihlásiť sa');btn(136,726,122,'Odhlásenie');
- // Bottom status bar / Windows taskbar
  osc.fillStyle='#dce1e2';osc.fillRect(0,786,W,38);osc.strokeStyle='#a8b0b0';osc.beginPath();osc.moveTo(0,786);osc.lineTo(W,786);osc.stroke();
  osc.fillStyle='#515b5c';osc.font='15px Arial';osc.fillText('Workplace:  t90',6,811);osc.fillText('User:  worker',208,811);
  osc.fillStyle='#202a31';osc.fillRect(0,828,W,36);osc.fillStyle='#d8e0e3';osc.font='15px Arial';osc.fillText('⊞   ▣   ◉   Edge',18,851);osc.textAlign='right';osc.fillText('ENG  18:07',1515,851);osc.textAlign='left';
@@ -649,21 +639,21 @@ function drawOperatorJitScreen(){
 drawOperatorJitScreen();
 const operatorScreenTexture=new THREE.CanvasTexture(operatorScreenCanvas);operatorScreenTexture.colorSpace=THREE.SRGBColorSpace;
 const operatorScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.72,.967),new THREE.MeshBasicMaterial({map:operatorScreenTexture}));
-operatorScreen.position.set(-3.55,2.55,1.594);scene.add(operatorScreen);
-box(scene,'operator monitor stand neck',[-3.55,1.92,1.83],[.16,.72,.14],mats.steel);
-box(scene,'operator monitor stand base',[-3.55,1.58,1.83],[.62,.055,.34],mats.dark);
-cyl(scene,'monitor power indicator',[-2.72,2.0,1.59],.025,.025,.018,mats.green,'z',12);
-// Physical operator emergency stop on a yellow pendant to the right of the conveyor.
-box(scene,'operator emergency pendant housing',[2.05,1.0,2.25],[.48,.18,.62],mats.dark,true);
-box(scene,'operator emergency pendant yellow plate',[2.05,1.1,2.25],[.44,.035,.58],mats.yellow);
-cyl(scene,'operator emergency stop bezel',[2.05,1.23,2.05],.15,.15,.09,mats.dark,'y',20);
-cyl(scene,'operator emergency stop mushroom',[2.05,1.3,2.05],.11,.11,.12,mats.red,'y',20);
-cyl(scene,'operator pendant white button',[2.05,1.2,2.43],.065,.065,.07,mats.white,'y',16);
-tube(scene,'operator pendant cable',[[2.05,.88,2.25],[2.18,.64,2.18],[2.22,.3,2.0],[2.22,.18,1.5]],.025,mats.dark);
-// Red-white inspection tray next to the conveyor outfeed.
-box(scene,'operator inspection tray frame',[2.35,.78,4.0],[.9,.12,.82],mats.dark);
-box(scene,'operator inspection tray surface',[2.35,.85,4.0],[.8,.035,.72],mats.white);
-for(const x of [1.9,2.8])for(const z of [3.58,4.42])box(scene,'inspection tray red white corner marking',[x,.876,z],[.12,.02,.12],mats.red);
+operatorScreen.position.set(3.62,2.55,1.294);scene.add(operatorScreen);
+box(scene,'operator monitor stand neck',[3.62,1.94,1.55],[.16,.72,.14],mats.steel);
+box(scene,'operator monitor stand base',[3.62,1.6,1.55],[.62,.055,.34],mats.dark);
+cyl(scene,'monitor power indicator',[4.45,2.0,1.29],.025,.025,.018,mats.green,'z',12);
+// Emergency-stop pendant is fixed to the operator-side conveyor edge, not floating on a remote pedestal.
+box(scene,'operator emergency pendant housing',[2.15,.98,2.72],[.42,.18,.58],mats.dark,true);
+box(scene,'operator emergency pendant yellow plate',[2.15,1.08,2.72],[.38,.035,.54],mats.yellow);
+cyl(scene,'operator emergency stop bezel',[2.15,1.21,2.52],.14,.14,.09,mats.dark,'y',20);
+cyl(scene,'operator emergency stop mushroom',[2.15,1.28,2.52],.105,.105,.12,mats.red,'y',20);
+cyl(scene,'operator pendant white button',[2.15,1.18,2.9],.065,.065,.07,mats.white,'y',16);
+tube(scene,'operator pendant cable',[[2.15,.84,2.72],[2.3,.62,2.7],[2.32,.3,2.5],[2.32,.18,2.1]],.025,mats.dark);
+// Inspection tray remains beside the operator outfeed, on the right side of the belt.
+box(scene,'operator inspection tray frame',[2.55,.78,4.0],[.9,.12,.82],mats.dark);
+box(scene,'operator inspection tray surface',[2.55,.85,4.0],[.8,.035,.72],mats.white);
+for(const x of [2.1,3.0])for(const z of [3.58,4.42])box(scene,'inspection tray red white corner marking',[x,.876,z],[.12,.02,.12],mats.red);
 
 // Peripheral cabinets, compressed-air drop, cooling manifolds and warning beacons.
 const utility=box(scene,'electrical distribution cabinet',[10,1.55,-7],[1.4,3.1,.9],mats.white,true);for(let i=0;i<5;i++)box(scene,'cabinet vent',[10,2.45+i*.12,-6.53],[.8,.025,.025],mats.dark);cyl(scene,'cabinet indicator green',[9.55,2.85,-6.5],.055,.055,.04,mats.green,'z',12);cyl(scene,'cabinet indicator amber',[9.75,2.85,-6.5],.055,.055,.04,mats.yellow,'z',12);
@@ -699,9 +689,9 @@ const obstacles=[
   {minX:-7.35,maxX:-3.75,minZ:.05,maxZ:2.35,name:'mould storage rack'},
   {minX:-.75,maxX:.35,minZ:-1.35,maxZ:-.25,name:'ABB robot pedestal'},
   {minX:-.15,maxX:1.55,minZ:.8,maxZ:6.2,name:'conveyor'}, 
-  {minX:-4.9,maxX:-2.2,minZ:1.45,maxZ:2.45,name:'operator monitor shelf'},
-  {minX:1.78,maxX:2.32,minZ:1.9,maxZ:2.6,name:'operator emergency pendant'},
-  {minX:1.85,maxX:2.85,minZ:3.5,maxZ:4.5,name:'operator inspection tray'},
+  {minX:2.75,maxX:4.45,minZ:1.1,maxZ:2.35,name:'operator monitor shelf'},
+  {minX:1.85,maxX:2.45,minZ:2.4,maxZ:3.05,name:'operator emergency pendant'},
+  {minX:2.0,maxX:3.1,minZ:3.5,maxZ:4.5,name:'operator inspection tray'},
   
   {minX:9.18,maxX:10.82,minZ:-7.52,maxZ:-6.48,name:'electrical cabinet'},
   {minX:7.18,maxX:8.82,minZ:-3.38,maxZ:-2.62,name:'cooling manifold'},
