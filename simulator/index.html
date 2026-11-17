@@ -269,13 +269,20 @@ let lastMachineDisplayKey='';
 function renderMachineDisplay(){
  const c=machineDisplayCtx;if(!c)return;const phase=cyclePhase||'IDLE';
  const key=[phase,partCount,Math.round((cycleProgress||0)*100),processAlarm].join('|');if(key===lastMachineDisplayKey)return;lastMachineDisplayKey=key;
- c.fillStyle='#08151b';c.fillRect(0,0,512,384);c.fillStyle='#17313a';c.fillRect(14,14,484,54);
- c.fillStyle='#b8ef69';c.font='bold 27px Arial';c.fillText('ENGEL  ·  MAGNA',30,51);
- c.fillStyle='#dce8eb';c.font='bold 31px Arial';c.fillText(({IDLE:'SETUP',CLAMPING:'CLAMP',INJECTION:'INJECTION',HOLDING:'HOLDING',COOLING:'COOLING',EJECTION:'EJECTION',PLASTICISING:'METERING'})[phase]||phase,28,124);
- c.fillStyle='#90aab4';c.font='21px Arial';c.fillText('PARTS  '+String(partCount||0).padStart(4,'0'),30,177);
- c.fillText('CYCLE  '+Math.round((cycleProgress||0)*100)+'%',30,213);
- c.fillStyle='#263c45';c.fillRect(28,244,456,24);c.fillStyle=processAlarm==='alarm'?'#f05c54':processAlarm==='warning'?'#ffc36b':'#b8ef69';c.fillRect(28,244,456*clamp(cycleProgress||0,0,1),24);
- c.fillStyle='#8da6af';c.font='18px Arial';c.fillText(processAlarm==='alarm'?'PROCESS ALARM':processAlarm==='warning'?'CHECK PROCESS':'CELL READY',30,319);
+ c.fillStyle='#07131a';c.fillRect(0,0,512,384);
+ c.fillStyle='#152b35';c.fillRect(0,0,512,48);c.fillStyle='#b8ef69';c.font='bold 23px Arial';c.fillText('ENGEL',18,31);
+ c.fillStyle='#9fb5bd';c.font='14px Arial';c.fillText('MAGNA  /  INJECTION CONTROL',116,29);
+ c.fillStyle='#203b46';c.fillRect(12,60,108,286);c.fillStyle='#b8ef69';c.font='bold 13px Arial';c.fillText('OVERVIEW',23,84);
+ ['Machine','Process','Mould','Robot','Alarms'].forEach((v,i)=>{c.fillStyle=i===0?'#31515a':'#9bb0b8';c.fillRect(18,96+i*38,96,29);c.fillStyle=i===0?'#e7f1ed':'#9bb0b8';c.font='12px Arial';c.fillText(v,29,115+i*38)});
+ c.fillStyle='#dce8eb';c.font='bold 21px Arial';c.fillText(({IDLE:'MACHINE SETUP',CLAMPING:'CLAMPING',INJECTION:'INJECTION',HOLDING:'HOLDING',COOLING:'COOLING',EJECTION:'EJECTION',PLASTICISING:'PLASTICISING'})[phase]||phase,139,88);
+ c.fillStyle='#8da6af';c.font='12px Arial';c.fillText('CURRENT CYCLE STATUS',140,111);
+ const tiles=[['PARTS',String(partCount||0).padStart(4,'0')],['CYCLE',Math.round((cycleProgress||0)*100)+'%'],['MODE','AUTO / TRAINING']];
+ tiles.forEach((t,i)=>{const x=140+i*116;c.fillStyle='#18313b';c.fillRect(x,128,106,67);c.fillStyle='#8da6af';c.font='11px Arial';c.fillText(t[0],x+9,147);c.fillStyle='#e4edf0';c.font='bold 19px Arial';c.fillText(t[1],x+9,177)});
+ c.fillStyle='#8da6af';c.font='12px Arial';c.fillText('CYCLE PROGRESS',140,224);
+ c.fillStyle='#263c45';c.fillRect(140,237,346,16);c.fillStyle=processAlarm==='alarm'?'#f05c54':processAlarm==='warning'?'#ffc36b':'#b8ef69';c.fillRect(140,237,346*clamp(cycleProgress||0,0,1),16);
+ c.fillStyle='#18313b';c.fillRect(140,270,346,54);c.fillStyle=processAlarm==='alarm'?'#f05c54':processAlarm==='warning'?'#ffc36b':'#b8ef69';c.fillRect(151,283,10,27);
+ c.fillStyle='#dce8eb';c.font='bold 14px Arial';c.fillText(processAlarm==='alarm'?'PROCESS ALARM':processAlarm==='warning'?'CHECK PROCESS':'CELL READY',172,302);
+ c.fillStyle='#78909a';c.font='10px Arial';c.fillText('TRAINING SIMULATION  ·  NOT A REAL MACHINE CONTROL',140,339);
  machineDisplayTexture.needsUpdate=true;
 }
 // The machine identity is mounted on the physical cabinet badge below; no floating billboard.
@@ -314,8 +321,21 @@ const hopperBody=box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
 box(engel,'hopper lid',[2.4,3.27,0],[.88,.1,.88],mats.dark);
 box(engel,'hopper inspection window',[2.4,2.82,.382],[.28,.42,.025],mats.green);
 
-// HMI bezel, status lamps and emergency stop.
-box(engel,'HMI bezel',[1.45,2.28,1.265],[.62,.5,.06],mats.steel);for(let i=0;i<3;i++)cyl(engel,'HMI status lamp',[1.2+i*.22,1.72,1.3],.045,.045,.035,[mats.green,mats.yellow,mats.red][i],'z',12);cyl(engel,'emergency stop button',[1.82,2.48,1.3],.09,.09,.07,mats.red,'z',16);
+// Industrial HMI workstation: deep enclosure, oversized monitor, mounting arm and operator controls.
+box(engel,'HMI rear enclosure',[1.45,2.28,1.39],[.98,.82,.22],mats.dark,true);
+box(engel,'HMI bezel',[1.45,2.34,1.265],[.94,.72,.075],mats.steel);
+box(engel,'HMI inner black gasket',[1.45,2.34,1.222],[.84,.62,.018],mats.dark);
+box(engel,'HMI screen',[1.45,2.34,1.205],[.81,.59,.025],machineDisplayMat);
+box(engel,'HMI lower control strip',[1.45,1.91,1.28],[.94,.13,.18],mats.dark);
+for(let i=0;i<8;i++){cyl(engel,'HMI soft key',[1.10+i*.1,1.91,1.18],.026,.026,.035,i===0?mats.green:mats.steel,'z',10)}
+box(engel,'HMI mounting plate',[1.45,1.76,1.48],[.72,.08,.12],mats.steel);
+box(engel,'HMI support column',[1.45,1.88,1.52],[.12,.26,.12],mats.dark);
+cyl(engel,'emergency stop bezel',[2.02,2.55,1.31],.115,.115,.07,mats.dark,'z',16);
+cyl(engel,'emergency stop button',[2.02,2.55,1.36],.083,.083,.055,mats.red,'z',16);
+for(let i=0;i<3;i++)cyl(engel,'HMI status lamp',[1.18+i*.22,1.69,1.3],.045,.045,.035,[mats.green,mats.yellow,mats.red][i],'z',12);
+cyl(engel,'HMI mode selector',[1.82,1.69,1.31],.055,.055,.055,mats.yellow,'z',12);
+box(engel,'HMI keypad housing',[1.45,1.56,1.32],[.72,.22,.24],mats.dark,true);
+for(let row=0;row<2;row++)for(let col=0;col<5;col++)box(engel,'HMI keypad button',[1.18+col*.135,1.61-row*.085,1.185],[.075,.045,.025],(row===0&&col===0)?mats.green:mats.steel);
 
  // Additional machine finish: service doors, recessed handles, feet, fasteners and warning labels.
  box(engel,'lower service access door',[-2.15,.66,1.205],[.98,.68,.055],mats.dark);
