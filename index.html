@@ -625,9 +625,9 @@ function drawOperatorJitScreen(){
  function btn(x,y,w,label,fill='#e4e8e7',color='#303a39'){osc.fillStyle=fill;osc.fillRect(x,y,w,39);osc.strokeStyle='#929c99';osc.strokeRect(x,y,w,39);osc.fillStyle=color;osc.font='bold 16px Arial';osc.fillText(label,x+10,y+25)}
  btn(18,245,118,'Dokumenty');btn(141,245,174,'! Vypnúť počítač !');btn(321,245,119,'Aktualizovať');
  btn(1027,245,96,'ANDON');btn(1128,245,126,'Zmeniť stav');btn(1259,245,137,'Otvoriť príkaz');btn(1401,245,77,'Obaly');btn(1483,245,42,'...');
- const ty=302,widths2=[190,200,380,115,125,105,100,245,100],heads=['Príkaz','Materiál','Popis','Cieľ. množ.','Vyr. množ.','Zmetky','Open','Forma','Rework'];let xx=18;
+ const ty=302,widths2=[170,155,330,105,110,75,75,220,90],heads=['Príkaz','Materiál','Popis / Projekt','Cieľ. množ.','Vyr. množ.','Zmetky','Open','Forma','Rework'];let xx=18;
  heads.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(xx,ty,widths2[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(xx,ty,widths2[i],38);osc.fillStyle='#46514e';osc.font='bold 16px Arial';osc.fillText(h,xx+7,ty+25);xx+=widths2[i]});
- const rows=[['000007538445','10101-004L-01','OM8 Kryt šalky hladký, lak. P','8000','5712','11','169','WMSW-700-OM8','2'],['000007538447','10102-004L-01','OM8 Kryt šalky hladký, lak. L','8000','5712','10','170','WMSW-700-OM8','2']];
+ const rows=[['000007538445','915-030','MAGNA-BIG-BOX · Mirror housing set','8000','5712','11','169','WMSW-700-OM8','2'],['000007538447','915-030','MAGNA-OM8-L · OM8 Kryt šalky hladký, lak. P','8000','5712','10','170','WMSW-700-OM8','2'],['000007538448','915-030','MAGNA-OM8-R · OM8 Kryt šalky hladký, lak. L','6000','4280','8','170','WMSW-700-OM8','1']];
  rows.forEach((row,ri)=>{let cx=18;row.forEach((v,i)=>{const yy=ty+38+ri*43;osc.fillStyle=i===8?'#e7c66f':ri===0?'#c8ceca':'#e4e8e6';osc.fillRect(cx,yy,widths2[i],43);osc.strokeStyle='#aab2ae';osc.strokeRect(cx,yy,widths2[i],43);osc.fillStyle='#26312d';osc.font='16px Arial';osc.fillText(v,cx+7,yy+27);cx+=widths2[i]})});
  btn(18,532,146,'Boxové etikety');btn(168,532,100,'Kusovník');btn(272,532,172,'Účtovanie výroby','#42d45c','#16351e');
  btn(918,532,205,'Dodatočná spotreba','#e8c76b','#443515');btn(1128,532,145,'Ukončiť príkaz','#e99a9a','#552626');btn(1278,532,145,'Prerušiť príkaz');btn(1428,532,90,'Zmetky','#e58b8b','#542323');
