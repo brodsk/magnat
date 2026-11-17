@@ -439,7 +439,7 @@ inspectionSample.visible=false;
 let processAlarm='none',processPulse=0,lastProcessReport=null;
 function readProcessSettings(){
  const ids=['s1','s2','s7','s8','s9','s10','s3','s11','s4','s12','s5','s6','s13','s14','s15','s16','s17'];
- const defaults={s1:220,s2:230,s7:225,s8:230,s9:80,s10:8,s3:45,s11:12,s4:55,s12:5,s5:18,s6:70,s13:42,s14:3,s15:32,s16:38,s17:12};
+ const defaults={s1:220,s2:230,s7:225,s8:230,s9:80,s10:8,s3:45,s11:12,s4:55,s12:5,s5:18,s6:70,s13:42,s14:3,s15:32,s16:38,s17:4};
  const values={};for(const id of ids){const el=document.getElementById(id);values[id]=el?Number(el.value):defaults[id]}
  return values;
 }
@@ -465,7 +465,8 @@ function diagnoseProcess(v=readProcessSettings()){
  if(v.s14>10)faults.push(['чрезмерная декомпрессия','Возможны подсос воздуха, нестабильная масса дозы и вытекание материала из сопла при неверной настройке.']);
  if(v.s15<15||v.s15>110)faults.push(['неподходящая скорость второй ступени впрыска','Переход между ступенями может вызвать линии потока, недолив или скачок давления.']);
  if(Math.abs(v.s16-v.s4)>38)faults.push(['резкий переход давления выдержки','Ступени выдержки заметно различаются; возможна неравномерная компенсация усадки.']);
- if(Math.abs(v.s17-v.s11)>24)faults.push(['несогласованные точки V/P','Основная и дополнительная точки переключения расходятся; проверьте профиль впрыска.']);
+ if(v.s17<1)faults.push(['недостаточная остаточная подушка шнека','Возможен контакт шнека с передним упором и нестабильная компенсация усадки.']);
+ if(v.s17>11)faults.push(['чрезмерная остаточная подушка шнека','Большая остаточная масса может указывать на несогласованный объём дозы и геометрию детали.']);
  if(selectedPartType==='indicator'&&avg>245)faults.push(['риск оптических дефектов линзы','Для прозрачной детали особенно заметны потемнение, полосы и неоднородность поверхности.']);
  if(selectedPartType==='carrier'&&v.s5<16)faults.push(['риск деформации несущей детали','Для детали с рёбрами и бобышками геометрическая стабильность зависит от охлаждения и конструкции формы.']);
  return {faults,quality:faults.length===0?'OK':faults.length<=2?'WARNING':'REJECT',avg};
@@ -688,7 +689,7 @@ showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуа�
  <div class="field"><label>Декомпрессия после дозирования <output id="v14">3 mm</output></label><input type="range" min="0" max="15" value="3" data-unit=" mm" id="s14"></div>
  <div class="field"><label>Скорость впрыска · ступень 2 <output id="v15">32 mm/s</output></label><input type="range" min="5" max="150" value="32" data-unit=" mm/s" id="s15"></div>
  <div class="field"><label>Давление выдержки · ступень 2 <output id="v16">38 %</output></label><input type="range" min="10" max="100" value="38" data-unit=" %" id="s16"></div>
- <div class="field"><label>Положение точки V/P <output id="v17">12 mm</output></label><input type="range" min="1" max="80" value="12" data-unit=" mm" id="s17"></div>
+ <div class="field"><label>Остаточная подушка шнека <output id="v17">4 mm</output></label><input type="range" min="0" max="15" value="4" data-unit=" mm" id="s17"></div>
  <div class="section-label">СМЫКАНИЕ И ОХЛАЖДЕНИЕ</div>
  <div class="field"><label>Время охлаждения <output id="v5">18 s</output></label><input type="range" min="5" max="60" value="18" data-unit=" s" id="s5"></div>
  <div class="field"><label>Усилие смыкания <output id="v6">70 %</output></label><input type="range" min="20" max="100" value="70" data-unit=" %" id="s6"></div></div><button class="action" id="apply">ПРИМЕНИТЬ УЧЕБНЫЕ ПАРАМЕТРЫ</button><button class="action" id="startCycle">ЗАПУСТИТЬ УЧЕБНЫЙ ЦИКЛ</button><p id="hmiResult">Машина находится в режиме настройки. Перед запуском примените параметры, подготовьте материал и закройте защитную дверь.</p><div class="trend-card"><div class="trend-head"><span>ПРОФИЛЬ ЦИКЛА · УЧЕБНАЯ МОДЕЛЬ</span><strong id="trendPhase">ОЖИДАНИЕ</strong></div><svg id="processTrend" viewBox="0 0 320 112" preserveAspectRatio="none" aria-label="График скорости и давления"><path d="M8 8V94H312" stroke="#52636b" fill="none" stroke-width="1"/><path d="M8 30H312M8 62H312" stroke="#334650" stroke-dasharray="3 4" fill="none"/><polyline id="pressureLine" points="8,82 312,82" fill="none" stroke="#ffbd69" stroke-width="2.5"/><polyline id="speedLine" points="8,76 312,76" fill="none" stroke="#83c9e8" stroke-width="2.5"/></svg><div class="trend-legend"><span><i style="background:#ffbd69"></i>Давление · условно</span><span><i style="background:#83c9e8"></i>Скорость шнека · условно</span></div><div class="cycle-meter"><span id="cycleFill"></span></div><div class="trend-head"><span id="cyclePhaseText">Цикл не запущен</span><strong id="cyclePercent">0%</strong></div></div><div id="processDiagnosis" class="hmi-note"><strong>ДИАГНОСТИКА</strong><p>Изменяйте параметры: здесь будут появляться технологические последствия.</p></div><p id="cycleResult">Состояние цикла: ОСТАНОВЛЕН · блокировки не выполнены.</p>`);
