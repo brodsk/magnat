@@ -599,22 +599,56 @@ box(scene,'operator shelf front lip',[-3.55,1.53,2.4],[2.6,.08,.05],mats.dark);
 // Dell monitor sits above the belt at the operator's left, facing the operator.
 box(scene,'operator monitor rear housing',[-3.55,2.55,1.72],[1.9,1.25,.16],mats.dark,true);
 box(scene,'operator monitor bezel',[-3.55,2.55,1.625],[1.82,1.17,.045],mats.dark);
-const operatorScreenCanvas=document.createElement('canvas');operatorScreenCanvas.width=1024;operatorScreenCanvas.height=640;
+const operatorScreenCanvas=document.createElement('canvas');operatorScreenCanvas.width=1536;operatorScreenCanvas.height=864;
 const osc=operatorScreenCanvas.getContext('2d');
 function drawOperatorJitScreen(){
- osc.fillStyle='#e7eaf0';osc.fillRect(0,0,1024,640);
- osc.fillStyle='#f8f9fb';osc.fillRect(0,0,1024,64);
- osc.fillStyle='#27364a';osc.font='bold 28px Arial';osc.fillText('JIT - Production',28,42);
- osc.fillStyle='#263c52';osc.font='bold 34px Arial';osc.textAlign='right';osc.fillText('MAGNA',985,43);osc.textAlign='left';
- osc.fillStyle='#d9e0e8';osc.fillRect(20,82,984,48);osc.fillStyle='#33465a';osc.font='bold 20px Arial';osc.fillText('Production order     Status       Machine      Shift / Operator',36,113);
- osc.fillStyle='#fff';osc.fillRect(20,140,984,76);osc.fillStyle='#26364a';osc.font='21px Arial';osc.fillText('JIT order  008734221     ACTIVE       ENGEL 01       A / Operator',36,183);
- osc.fillStyle='#d9e0e8';osc.fillRect(20,238,984,42);osc.fillStyle='#33465a';osc.font='bold 20px Arial';osc.fillText('Part / Product',36,266);osc.fillText('Target',480,266);osc.fillText('Actual',620,266);osc.fillText('Cycle',760,266);osc.fillText('Status',880,266);
- for(let i=0;i<3;i++){const y=290+i*62;osc.fillStyle=i%2?'#f4f6f8':'#fff';osc.fillRect(20,y,984,58);osc.fillStyle='#27384c';osc.font='20px Arial';osc.fillText(['Mirror housing - LH','Indicator lens - clear','Mirror carrier'][i],36,y+36);osc.fillText(['300','180','240'][i],480,y+36);osc.fillText([String(Math.max(0,286+partCount)),String(Math.max(0,174+partCount)),String(Math.max(0,232+partCount))][i],620,y+36);osc.fillText(['38 s','31 s','34 s'][i],760,y+36);osc.fillStyle=i===0?'#e4b24d':'#53a66b';osc.fillRect(880,y+12,100,34);osc.fillStyle='#fff';osc.font='bold 17px Arial';osc.fillText(i===0?'RUNNING':'READY',891,y+35)}
- osc.fillStyle='#dce3eb';osc.fillRect(20,492,984,112);osc.fillStyle='#33465a';osc.font='bold 22px Arial';osc.fillText('Production overview',36,528);osc.font='20px Arial';osc.fillText('Planned: 720 pcs      Completed: '+(692+partCount)+' pcs      Scrap: 3 pcs',36,570);
+ const W=1536,H=864;
+ osc.fillStyle='#e8ebed';osc.fillRect(0,0,W,H);
+ // Desktop application chrome
+ osc.fillStyle='#dce1e4';osc.fillRect(0,0,W,27);
+ osc.fillStyle='#58616a';osc.font='15px Arial';osc.fillText('◉  MirrorsBatchProd',12,19);
+ osc.fillStyle='#f1f3f4';osc.fillRect(0,28,W,27);
+ osc.fillStyle='#30383d';osc.font='14px Arial';osc.fillText('File    Settings    Help',15,47);
+ // Application header
+ osc.fillStyle='#f7f8f8';osc.fillRect(0,56,W,72);
+ osc.fillStyle='#30383d';osc.font='bold 31px Arial';osc.fillText('JIT - Production',14,102);
+ osc.fillStyle='#7c858a';osc.font='bold 39px Arial';osc.textAlign='right';osc.fillText('◢ MAGNA',1504,104);osc.textAlign='left';
+ osc.strokeStyle='#9aa3a5';osc.lineWidth=1;osc.beginPath();osc.moveTo(0,128);osc.lineTo(W,128);osc.stroke();
+ // Workstation status grid
+ const x0=18,y0=146, widths=[128,225,190,158,88,418,275], headers=['Pracovisko','Popis','Status','Spustenie','Dôvod ID','Dôvod','ANDON'];
+ let x=x0;osc.font='17px Arial';
+ headers.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(x,y0,widths[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(x,y0,widths[i],38);osc.fillStyle='#46514e';osc.fillText(h,x+8,y0+25);x+=widths[i]});
+ const vals=['55013300','Lis 33','Výroba','22.05.2026 18:00','','',''];
+ x=x0;vals.forEach((v,i)=>{osc.fillStyle=i===2?'#27d64b':'#c8ceca';osc.fillRect(x,y0+38,widths[i],42);osc.strokeStyle='#aab2ae';osc.strokeRect(x,y0+38,widths[i],42);osc.fillStyle='#202b25';osc.font=i===2?'bold 18px Arial':'17px Arial';osc.fillText(v,x+8,y0+65);x+=widths[i]});
+ // Workstation toolbar
+ function btn(x,y,w,label,fill='#e4e8e7',color='#303a39'){osc.fillStyle=fill;osc.fillRect(x,y,w,39);osc.strokeStyle='#929c99';osc.strokeRect(x,y,w,39);osc.fillStyle=color;osc.font='bold 16px Arial';osc.fillText(label,x+10,y+25)}
+ btn(18,245,118,'Dokumenty');btn(141,245,174,'! Vypnúť počítač !');btn(321,245,119,'Aktualizovať');
+ btn(1027,245,96,'ANDON');btn(1128,245,126,'Zmeniť stav');btn(1259,245,137,'Otvoriť príkaz');btn(1401,245,77,'Obaly');btn(1483,245,42,'...');
+ // Production orders table
+ const ty=302,cols=[190,200,380,115,125,105,245,100],heads=['Príkaz','Materiál','Popis','Cieľ. množ.','Vyr. množ.','Zmetky','Open','Forma','Rework'];
+ const widths2=[190,200,380,115,125,105,100,245,100];let xx=18;
+ heads.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(xx,ty,widths2[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(xx,ty,widths2[i],38);osc.fillStyle='#46514e';osc.font='bold 16px Arial';osc.fillText(h,xx+7,ty+25);xx+=widths2[i]});
+ const rows=[
+ ['000007538445','10101-004L-01','OM8 Kryt šalky hladký, lak. P','8000','5712','11','169','WMSW-700-OM8','2'],
+ ['000007538447','10102-004L-01','OM8 Kryt šalky hladký, lak. L','8000','5712','10','170','WMSW-700-OM8','2']
+ ];
+ rows.forEach((row,ri)=>{let cx=18;const yy=ty+38+ri*43;row.forEach((v,i)=>{osc.fillStyle=i===8?'#e7c66f':ri===0?'#c8ceca':'#e4e8e6';osc.fillRect(cx,yy,widths2[i],43);osc.strokeStyle='#aab2ae';osc.strokeRect(cx,yy,widths2[i],43);osc.fillStyle='#26312d';osc.font='16px Arial';osc.fillText(v,cx+7,yy+27);cx+=widths2[i]})});
+ // Tabs and production accounting actions
+ btn(18,532,146,'Boxové etikety');btn(168,532,100,'Kusovník');btn(272,532,172,'Účtovanie výroby','#42d45c','#16351e');
+ btn(918,532,205,'Dodatočná spotreba','#e8c76b','#443515');btn(1128,532,145,'Ukončiť príkaz','#e99a9a','#552626');btn(1278,532,145,'Prerušiť príkaz');btn(1428,532,90,'Zmetky','#e58b8b','#542323');
+ // Logged-in operator grid
+ const by=584,bw=[145,260,150],bh=['Os. číslo','Meno','Prihlásenie'];let bx=18;
+ bh.forEach((h,i)=>{osc.fillStyle='#dce2df';osc.fillRect(bx,by,bw[i],38);osc.strokeStyle='#aab2ae';osc.strokeRect(bx,by,bw[i],38);osc.fillStyle='#46514e';osc.font='bold 16px Arial';osc.fillText(h,bx+8,by+25);bx+=bw[i]});
+ const bv=['10002590','Serhii Kapuza','02:00:52'];bx=18;bv.forEach((v,i)=>{osc.fillStyle='#c8ceca';osc.fillRect(bx,by+38,bw[i],42);osc.strokeStyle='#aab2ae';osc.strokeRect(bx,by+38,bw[i],42);osc.fillStyle='#26312d';osc.font='17px Arial';osc.fillText(v,bx+8,by+65);bx+=bw[i]});
+ btn(18,726,114,'Prihlásiť sa');btn(136,726,122,'Odhlásenie');
+ // Bottom status bar / Windows taskbar
+ osc.fillStyle='#dce1e2';osc.fillRect(0,786,W,38);osc.strokeStyle='#a8b0b0';osc.beginPath();osc.moveTo(0,786);osc.lineTo(W,786);osc.stroke();
+ osc.fillStyle='#515b5c';osc.font='15px Arial';osc.fillText('Workplace:  t90',6,811);osc.fillText('User:  worker',208,811);
+ osc.fillStyle='#202a31';osc.fillRect(0,828,W,36);osc.fillStyle='#d8e0e3';osc.font='15px Arial';osc.fillText('⊞   ▣   ◉   Edge',18,851);osc.textAlign='right';osc.fillText('ENG  18:07',1515,851);osc.textAlign='left';
 }
 drawOperatorJitScreen();
 const operatorScreenTexture=new THREE.CanvasTexture(operatorScreenCanvas);operatorScreenTexture.colorSpace=THREE.SRGBColorSpace;
-const operatorScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.7,1.06),new THREE.MeshBasicMaterial({map:operatorScreenTexture}));
+const operatorScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.72,.967),new THREE.MeshBasicMaterial({map:operatorScreenTexture}));
 operatorScreen.position.set(-3.55,2.55,1.594);scene.add(operatorScreen);
 box(scene,'operator monitor stand neck',[-3.55,1.92,1.83],[.16,.72,.14],mats.steel);
 box(scene,'operator monitor stand base',[-3.55,1.58,1.83],[.62,.055,.34],mats.dark);
@@ -765,7 +799,7 @@ function updateMachineMotion(dt){
  if(conveyorRunning)for(const roller of conveyorRollers)roller.rotation.z+=dt*5;
 }
 function interact(){if(activePanel){closePanel();return}const hit=nearestTarget();if(!hit){toast('Оборудование вне досягаемости. Подойдите ближе и наведитесь на интерактивный объект.');return}const n=hit.name;
-if(n==='operator monitor rear housing'){showPanel('MAGNA · JIT PRODUCTION',`<div style="background:#e7eaf0;padding:10px;border-radius:8px"><img alt="JIT Production screen" style="display:block;width:100%;height:auto;border:8px solid #171b20;border-radius:5px" src="${operatorScreenCanvas.toDataURL('image/png')}"><p style="color:#26364a;font-size:13px;text-align:center;margin:8px 0 0">JIT · Production overview · MAGNA</p></div><p>Экран производственного задания. Нажмите «Закрыть», чтобы вернуться к рабочему месту.</p>`);return}
+if(n==='operator monitor rear housing'){showPanel('MAGNA · JIT PRODUCTION',`<div style="background:#e7eaf0;padding:10px;border-radius:8px"><img alt="JIT Production screen" style="display:block;width:100%;height:auto;border:8px solid #171b20;border-radius:5px" src="${operatorScreenCanvas.toDataURL('image/png')}"><p style="color:#26364a;font-size:13px;text-align:center;margin:8px 0 0">JIT · Production overview · MAGNA</p></div><p style="font-size:12px;color:#aab4bd;text-align:center">MirrorsBatchProd · JIT - Production · MAGNA</p>`);return}
 if(n==='control console'||n==='ENGEL base'||n==='clamping unit'||n==='mold'||n==='injection unit'){
 showPanel('ENGEL · Machine setup',`<p>Учебная панель виртуального термопластавтомата ENGEL. Все значения приведены для демонстрации и не являются рецептом для конкретного материала.</p><div class="hmi-note">Только учебный режим · не переносите эти значения на реальную машину. Для настройки используйте документацию производителя оборудования и поставщика материала.</div><div class="field"><label for="partProfile">ТЕКУЩИЙ ЗАКАЗ · ДЕТАЛЬ ЗЕРКАЛА</label><select id="partProfile" style="width:100%;padding:11px;background:#263843;color:white;border:1px solid #536773;border-radius:8px"><option value="housing">Наружный корпус зеркала · непрозрачный пластик</option><option value="indicator">Рассеиватель указателя поворота · прозрачный пластик</option><option value="carrier">Внутренний держатель / несущий элемент</option></select><p id="partProfileInfo">Крупная наружная деталь с рёбрами и крепёжными зонами. Геометрия показана условно.</p></div><div class="grid">
  <div class="section-label">ПЛАСТИКАЦИОННЫЙ УЗЕЛ</div>
