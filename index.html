@@ -20,7 +20,7 @@
 #interact{position:fixed;right:20px;bottom:calc(70px + env(safe-area-inset-bottom));width:76px;height:76px;border-radius:50%;border:2px solid #d9ff9e;background:#b8ef69e8;color:#14200e;font-weight:800;font-size:12px;box-shadow:0 5px 18px #0008;touch-action:manipulation}
 #panel{position:fixed;inset:auto 0 0 0;max-height:82dvh;background:#101a22f5;border:1px solid #536773;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));transform:translateY(110%);transition:transform .22s ease;overflow:auto;touch-action:pan-y;z-index:5}
 #panel.open{transform:translateY(0)}#panel h2{margin:0 36px 8px 0;font-size:18px}#panel p{color:var(--muted);line-height:1.5;font-size:13px}#close{position:absolute;right:14px;top:12px;border:1px solid var(--line);background:#263843;color:white;border-radius:8px;padding:8px 11px}
-.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.field{background:#1b2a34;border:1px solid #3b505c;border-radius:9px;padding:10px}.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.field input{width:100%;accent-color:var(--accent)}.field output{float:right;color:var(--accent);font-weight:700}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:14px 0}.field{background:#1b2a34;border:1px solid #3b505c;border-radius:9px;padding:10px}.field label{display:block;color:var(--muted);font-size:10px;margin-bottom:7px}.field input{width:100%;accent-color:var(--accent)}.field output{float:right;color:var(--accent);font-weight:700}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}.progress-track{height:7px;background:#263843;border-radius:10px;overflow:hidden;margin:10px 0}.progress-track span{display:block;height:100%;background:linear-gradient(90deg,#86bd45,#d8ff8e);transition:width .25s}.step-list{display:grid;gap:6px;margin:12px 0}.step-item{display:flex;gap:9px;align-items:flex-start;padding:8px;background:#1b2a34;border:1px solid #3b505c;border-radius:8px;font-size:11px;color:#a8bac3}.step-item.active{border-color:#b8ef69;color:#e9f0f3;background:#263a32}.step-item.done{border-color:#577b48;color:#b8ef69}.step-num{font-weight:800;min-width:20px;color:#b8ef69}.section-label{grid-column:1/-1;color:var(--accent);font-size:10px;letter-spacing:.12em;padding:5px 2px 0}.hmi-note{border-left:3px solid var(--warn);padding:8px 10px;background:#342d20;color:#e9d6ae;border-radius:4px;font-size:11px;line-height:1.45}
 .action{background:#b8ef69;color:#15200e;border:0;border-radius:9px;padding:12px 15px;font-weight:800;width:100%;margin-top:8px}.secondary{background:#263843;color:var(--text);border:1px solid var(--line)}
 #toast{position:fixed;top:82px;left:50%;transform:translateX(-50%);background:#17242df2;border:1px solid var(--line);border-radius:9px;padding:10px 13px;max-width:90vw;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;text-align:center}#toast.show{opacity:1}
 #help{position:fixed;left:12px;top:86px;max-width:190px;background:#101820b8;border:1px solid #52636b;border-radius:8px;padding:8px 10px;color:#bdcbd1;font-size:10px;line-height:1.5;pointer-events:none}
@@ -68,9 +68,9 @@ try {
   panel.hidden=false;
   panel.textContent='WEBGL INITIALIZATION FAILED. '+error.message+'\\nTry enabling hardware acceleration / WebGL in the browser.';
   throw error;
-}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;mount.appendChild(renderer.domElement);
+}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=true;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;mount.appendChild(renderer.domElement);
 scene.add(new THREE.HemisphereLight(0xe8f4ff,0x35414a,2.0));
-const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);scene.add(sun);
+const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(1536,1536);sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
 const mats={floor:new THREE.MeshStandardMaterial({color:0x65747a,roughness:.9}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,roughness:.85}),steel:new THREE.MeshStandardMaterial({color:0x53636a,metalness:.55,roughness:.4}),dark:new THREE.MeshStandardMaterial({color:0x202a30,metalness:.25,roughness:.65}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,metalness:.2,roughness:.45}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,metalness:.15,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:0x6d9ba7,transparent:true,opacity:.42,metalness:.2,roughness:.15}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f}),red:new THREE.MeshStandardMaterial({color:0xf05c54})};
 function box(parent,name,pos,size,mat,interactive=false){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.name=name;m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(interactive)targets.push(m);return m}
 function cyl(parent,name,pos,r1,r2,len,mat,axis='y',segments=16){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,len,segments),mat);m.name=name;m.position.set(...pos);if(axis==='x')m.rotation.z=Math.PI/2;else if(axis==='z')m.rotation.x=Math.PI/2;m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
@@ -102,7 +102,126 @@ box(engel,'clamping unit',[-.55,1.8,0],[2.0,2.5,2.25],mats.white,true);
 box(engel,'fixed platen',[-1.45,1.85,0],[.25,2.35,2.35],mats.steel);
 const movingPlaten=box(engel,'moving platen',[.55,1.85,0],[.28,2.35,2.35],mats.steel);
 for(const z of [-.82,.82])for(const y of [.95,2.75]){const tie= new THREE.Mesh(new THREE.CylinderGeometry(.055,.055,2.1,12),mats.yellow);tie.rotation.z=Math.PI/2;tie.position.set(-.45,y,z);engel.add(tie)}
-box(engel,'mold',[ -.45,1.85,0],[.8,1.55,1.45],mats.dark,true);
+
+function makeMould(name,position,bodyColor){
+ const g=new THREE.Group();g.name=name;g.position.set(position[0],position[1],position[2]);scene.add(g);
+ const bodyMat=new THREE.MeshStandardMaterial({color:bodyColor,metalness:.72,roughness:.3});
+ const plateMat=new THREE.MeshStandardMaterial({color:0x87969b,metalness:.82,roughness:.24});
+ const darkMat=new THREE.MeshStandardMaterial({color:0x20292d,metalness:.55,roughness:.38});
+ const body=box(g,'mould body',[0,0,0],[.86,1.48,1.38],bodyMat);body.name=name==='OLD MOULD'?'mold':'replacement mould';
+ box(g,'fixed mould plate',[-.48,0,0],[.12,1.62,1.52],plateMat);
+ box(g,'moving mould plate',[.48,0,0],[.12,1.62,1.52],plateMat);
+ box(g,'parting line',[0,0,0],[.018,1.5,1.4],mats.yellow);
+ for(const x of [-.48,.48])for(const z of [-.55,.55])for(const y of [-.58,.58]){
+  cyl(g,'mould clamp bolt',[x,y,z],.065,.065,.06,darkMat,'x',12);
+  cyl(g,'mould bolt head',[x+(x<0?-.07:.07),y,z],.085,.085,.035,plateMat,'x',6);
+ }
+ for(const z of [-.45,.45]){cyl(g,'leader pin',[0,.55,z],.055,.055,.32,mats.yellow,'x',12);cyl(g,'leader bush',[0,-.55,z],.09,.09,.16,darkMat,'x',16)}
+ const slingMat=new THREE.MeshStandardMaterial({color:0xffb52e,metalness:.25,roughness:.55});
+ const slings=new THREE.Group();slings.visible=false;g.add(slings);
+ tube(slings,'lifting sling left',[[-.36,.82,-.48],[-.18,1.12,-.25],[0,1.35,0]],.035,slingMat);
+ tube(slings,'lifting sling right',[[.36,.82,.48],[.18,1.12,.25],[0,1.35,0]],.035,slingMat);
+ return {group:g,body,slings,target:null};
+}
+const oldMould=makeMould('OLD MOULD',[-3.45,1.85,-3],0x34434a);
+const newMould=makeMould('NEW MOULD',[-4.8,1.62,1.2],0x45565e);
+targets.push(oldMould.body,newMould.body);
+// Overhead bridge crane, hoist, pendant and two-bay mould storage rack.
+const craneSteel=new THREE.MeshStandardMaterial({color:0x35464e,metalness:.78,roughness:.28});
+const craneYellow=new THREE.MeshStandardMaterial({color:0xf2b52f,metalness:.28,roughness:.42});
+for(const x of [-7,.7]){
+ box(scene,'crane runway beam',[x,5.02,-1],[.24,.28,12],craneSteel);
+ for(let z=-6;z<=4;z+=2)box(scene,'crane rail support',[x,4.82,z],[.42,.12,.22],craneYellow);
+}
+const craneBridge=new THREE.Group();craneBridge.position.set(0,0,-3);scene.add(craneBridge);
+box(craneBridge,'overhead crane bridge',[-3.15,4.82,0],[7.9,.38,.62],craneYellow);
+box(craneBridge,'crane bridge lower girder',[-3.15,4.58,0],[7.55,.12,.44],craneSteel);
+const craneTrolley=new THREE.Group();craneTrolley.position.set(-3.45,4.78,0);craneBridge.add(craneTrolley);
+box(craneTrolley,'crane trolley body',[0,0,0],[1.05,.34,.8],craneSteel);
+for(const x of [-.34,.34])for(const z of [-.28,.28])cyl(craneTrolley,'trolley wheel',[x,.18,z],.13,.13,.13,craneYellow,'z',16);
+box(craneTrolley,'hoist motor',[0,-.28,-.1],[.48,.42,.48],mats.dark);
+const hoistCable=cyl(craneTrolley,'hoist wire rope',[0,-.8,0],.025,.025,1,craneSteel,'y',10);
+const craneHook=new THREE.Group();craneTrolley.add(craneHook);
+tube(craneHook,'crane hook',[[-.04,-.04,0],[-.04,-.25,0],[.08,-.34,0],[.22,-.28,0],[.23,-.17,0]],.045,craneYellow);
+cyl(craneHook,'hook safety latch',[.18,-.19,0],.025,.025,.16,mats.dark,'z',10);
+box(scene,'crane pendant',[-6.1,1.45,2.75],[.32,.62,.18],mats.dark,true);
+box(scene,'crane pendant screen',[-6.1,1.55,2.645],[.22,.16,.025],mats.green);
+for(let i=0;i<3;i++)cyl(scene,'crane pendant button',[-6.1,1.35-i*.11,2.63],.035,.035,.025,[mats.green,mats.yellow,mats.red][i],'z',12);
+const mouldRack=new THREE.Group();mouldRack.position.set(-5.55,0,1.2);scene.add(mouldRack);
+box(mouldRack,'mould storage rack base',[0,.32,0],[3.3,.64,1.9],craneSteel);
+for(const x of [-1.35,-.15,1.05]){box(mouldRack,'rack upright',[x,.92,-.72],[.12,1.2,.12],craneYellow);box(mouldRack,'rack upright',[x,.92,.72],[.12,1.2,.12],craneYellow)}
+for(const z of [-.62,.62])box(mouldRack,'mould storage rail',[0,.72,z],[3.1,.12,.12],craneYellow);
+const rackLabel=labelSprite('MOULD STORAGE · A / B');rackLabel.position.set(0,2.0,0);mouldRack.add(rackLabel);
+const rackOldPosition={x:-6.35,y:1.62,z:1.2};
+const craneTarget={x:-3.45,z:-3};
+let mouldHookY=3,mouldStep=-1,mouldIsolated=false,servicesConnected=true,clampsSecured=true,mouldChangeComplete=false;
+const mouldSteps=[
+ 'Stop the machine and select the mould-change training mode',
+ 'Verify the isolated energy state and confirm the work area is clear',
+ 'Disconnect cooling, hydraulic and electrical services from the mould',
+ 'Release the mould clamps and verify all retainers are clear',
+ 'Position the crane and attach the approved lifting arrangement',
+ 'Lift the existing mould clear of the tie bars',
+ 'Traverse the crane and lower the old mould onto storage bay A',
+ 'Inspect the replacement mould and confirm its lifting points',
+ 'Attach the lifting arrangement to the replacement mould',
+ 'Lift the replacement mould and align it with the machine centreline',
+ 'Lower the mould into position and secure the retaining clamps',
+ 'Reconnect the required cooling circuits and service connections',
+ 'Inspect connections, clear tools and verify guards and access',
+ 'Complete the training checklist and return the cell to setup mode'
+];
+function setCraneForMould(m){craneTarget.x=m.group.position.x;craneTarget.z=m.group.position.z}
+function setMouldTarget(item,x,y,z){item.target={x,y,z};craneTarget.x=x;craneTarget.z=z}
+function updateMouldMotion(dt){
+ const speed=Math.min(1,dt*1.7);
+ craneTrolley.position.x+=(craneTarget.x-craneTrolley.position.x)*speed;
+ craneBridge.position.z+=(craneTarget.z-craneBridge.position.z)*speed;
+ const activeMould=mouldStep>=8?newMould:oldMould;
+ const desiredHookY=activeMould.group.position.y+1.35;
+ mouldHookY+=(desiredHookY-mouldHookY)*Math.min(1,dt*2.5);
+ const cableLength=Math.max(.35,4.78-mouldHookY);
+ hoistCable.scale.y=cableLength;hoistCable.position.y=-cableLength/2;
+ craneHook.position.y=-cableLength-.12;
+ for(const item of [oldMould,newMould])if(item.target){
+  item.group.position.x+=(item.target.x-item.group.position.x)*speed;
+  item.group.position.y+=(item.target.y-item.group.position.y)*speed;
+  item.group.position.z+=(item.target.z-item.group.position.z)*speed;
+ }
+}
+function showMouldChangePanel(){
+ const completed=Math.max(0,mouldStep+1),current=Math.min(mouldStep+1,mouldSteps.length-1);
+ const list=mouldSteps.map((s,i)=>'<div class="step-item '+(i<=mouldStep?'done':i===current?'active':'')+'"><span class="step-num">'+(i<mouldStep?'✓':String(i+1).padStart(2,'0'))+'</span><span>'+s+'</span></div>').join('');
+ const pct=Math.min(100,completed/mouldSteps.length*100);
+ const next=mouldStep<0?'Begin by stopping the machine and selecting mould-change mode.':mouldStep>=mouldSteps.length-1?'Mould-change training complete.':'Next: '+mouldSteps[mouldStep+1];
+ const button=mouldStep<0?'BEGIN MOULD CHANGE':mouldStep>=mouldSteps.length-1?'RESTART TRAINING':'COMPLETE STEP & CONTINUE';
+ const body='<p>Guided mould-change workflow using a virtual overhead crane. Work through each stage in order. This is a training simulation, not a substitute for site LOTO procedures, lifting plans, machine manuals or qualified supervision.</p><div class="hmi-note">Safety boundary · the training isolation flag is not a real energy-isolation system. Never use this simulation to plan or perform a real lift.</div><div class="field"><strong>PROGRESS · '+Math.min(completed,mouldSteps.length)+' / '+mouldSteps.length+'</strong><div class="progress-track"><span style="width:'+pct+'%"></span></div><small style="color:var(--muted)">Machine: '+(mouldIsolated?'ISOLATION CONFIRMED (SIMULATED)':'STOPPED / NOT VERIFIED')+' · Cooling: '+(servicesConnected?'CONNECTED':'DISCONNECTED')+' · Clamps: '+(clampsSecured?'SECURED':'RELEASED')+'</small></div><div class="step-list">'+list+'</div><p id="mouldAction">'+next+'</p><button class="action" id="mouldNext">'+button+'</button><button class="action secondary" id="mouldReset">RESET TRAINING SCENARIO</button>';
+ showPanel('ENGEL · Mould change training',body);
+ content.querySelector('#mouldNext').onclick=()=>{
+  if(machineCycleActive){toast('Training cycle must be stopped first');return}
+  if(mouldStep>=mouldSteps.length-1){toast('Training scenario already complete');return}
+  mouldStep++;
+  if(mouldStep===0){mouldIsolated=false;servicesConnected=true;clampsSecured=true;safetyGateClosed=false;trainingSettingsApplied=false;cyclePhase='IDLE';document.querySelector('#cellStatus').textContent='MOULD CHANGE · STOPPED'}
+  if(mouldStep===1)mouldIsolated=true;
+  if(mouldStep===2)servicesConnected=false;
+  if(mouldStep===3)clampsSecured=false;
+  if(mouldStep===4){oldMould.slings.visible=true;setCraneForMould(oldMould)}
+  if(mouldStep===5)setMouldTarget(oldMould,-3.45,2.9,-3);
+  if(mouldStep===6){setMouldTarget(oldMould,rackOldPosition.x,rackOldPosition.y,rackOldPosition.z);oldMould.slings.visible=false}
+  if(mouldStep===8){newMould.slings.visible=true;setCraneForMould(newMould)}
+  if(mouldStep===9)setMouldTarget(newMould,-3.45,2.9,-3);
+  if(mouldStep===10){setMouldTarget(newMould,-3.45,1.85,-3);newMould.slings.visible=false;clampsSecured=true}
+  if(mouldStep===11)servicesConnected=true;
+  if(mouldStep===13){mouldChangeComplete=true;mouldIsolated=false;safetyGateClosed=true;document.querySelector('#cellStatus').textContent='MOULD CHANGE COMPLETE'}
+  showMouldChangePanel();
+ };
+ content.querySelector('#mouldReset').onclick=()=>{
+  mouldStep=-1;mouldIsolated=false;servicesConnected=true;clampsSecured=true;mouldChangeComplete=false;oldMould.slings.visible=false;newMould.slings.visible=false;
+  oldMould.target={x:-3.45,y:1.85,z:-3};newMould.target={x:-4.8,y:1.62,z:1.2};craneTarget.x=-3.45;craneTarget.z=-3;
+  showMouldChangePanel();document.querySelector('#cellStatus').textContent='SETUP REQUIRED';
+ };
+}
+
 box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
 const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
 box(engel,'hopper',[2.4,2.8,0],[.75,.9,.75],mats.steel);
@@ -176,6 +295,7 @@ const obstacles=[
   {minX:-5.95,maxX:-.05,minZ:-4.32,maxZ:-1.68,name:'ENGEL machine'},
   {minX:-8.72,maxX:-7.28,minZ:-4.72,maxZ:-3.28,name:'material dryer'},
   {minX:-8.72,maxX:-7.28,minZ:-2.25,maxZ:-1.35,name:'temperature controller'},
+  {minX:-7.35,maxX:-3.75,minZ:.05,maxZ:2.35,name:'mould storage rack'},
   {minX:3.15,maxX:7.05,minZ:-2.35,maxZ:-.65,name:'ABB robot cell'},
   {minX:-1.72,maxX:5.72,minZ:3.28,maxZ:4.72,name:'conveyor'},
   {minX:9.18,maxX:10.82,minZ:-7.52,maxZ:-6.48,name:'electrical cabinet'},
@@ -267,10 +387,11 @@ showPanel('ABB · Robot training',`<p>Six-axis robot teaching panel. Adjust each
  content.querySelector('#home').onclick=()=>{const values=[0,-15,35,0,0,0];values.forEach((v,i)=>{content.querySelector('#r'+(i+1)).value=v;content.querySelector('#a'+(i+1)).textContent=v+'°'});applyRobotAxes();content.querySelector('#robotResult').textContent='Virtual home pose selected. Validate real robot limits, tooling and safety zones independently.';toast('Virtual ABB home position selected')};
 }else if(n==='material dryer'||n==='dryer hopper'||n==='temperature controller'){showPanel('Material preparation',`<p>Material drying is part of the process setup. Select the resin and verify the supplier's technical data sheet before choosing a real drying recipe.</p><div class="field"><label>Training material</label><select id="resin" style="width:100%;padding:10px;background:#263843;color:white;border:1px solid #536773;border-radius:7px"><option>ABS</option><option>PA6</option><option>PA66</option><option>PBT</option><option>PC/ABS</option><option>PP</option></select></div><button class="action" id="dry">START DRYER (SIMULATED)</button><p id="dryResult">Dryer idle.</p>`);content.querySelector('#dry').onclick=()=>{materialPrepared=true;content.querySelector('#dryResult').textContent='Training dryer started for '+content.querySelector('#resin').value+'. Material preparation acknowledged in the training model; actual conditions must come from the resin supplier specification.';toast('Virtual material preparation complete')};
 }else if(n==='safety gate'){showPanel('Cell safety',`<p>Safety is a prerequisite for every setup and automatic cycle. This is a training-only interlock; it does not represent a certified safety circuit.</p><div class="field"><label>Training interlock state</label><strong id="gateState" style="color:var(--warn)">${safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED'}</strong></div><button class="action" id="gateToggle">${safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)'}</button><p id="gateResult">${machineCycleActive?'Cycle active. Gate opening is inhibited.':'The virtual gate state controls whether a training cycle may start.'}</p>`);content.querySelector('#gateToggle').onclick=()=>{if(machineCycleActive){content.querySelector('#gateResult').textContent='Opening blocked: the training cycle is active.';toast('Safety interlock: cycle active');return}safetyGateClosed=!safetyGateClosed;content.querySelector('#gateState').textContent=safetyGateClosed?'GATE CLOSED · INTERLOCK SATISFIED':'GATE OPEN · AUTOMATIC MODE INHIBITED';content.querySelector('#gateState').style.color=safetyGateClosed?'var(--accent)':'var(--warn)';content.querySelector('#gateToggle').textContent=safetyGateClosed?'OPEN SAFETY GATE (SIMULATED)':'CLOSE SAFETY GATE (SIMULATED)';content.querySelector('#gateResult').textContent=safetyGateClosed?'Gate closed in the training model.':'Gate open. Automatic cycle is inhibited.';toast(safetyGateClosed?'Virtual gate closed':'Virtual gate opened')}}
-else if(n==='conveyor'){showPanel('Conveyor and part handling',`<p>Downstream handling equipment for moulded parts.</p><div class="field"><label>Training conveyor status</label><strong id="convState" style="color:var(--accent)">${conveyorRunning?'RUNNING':'STOPPED'}</strong></div><button class="action" id="conv">${conveyorRunning?'STOP CONVEYOR':'START CONVEYOR'}</button><p id="convResult">Virtual parts produced: ${partCount}.</p>`);content.querySelector('#conv').onclick=()=>{conveyorRunning=!conveyorRunning;content.querySelector('#convState').textContent=conveyorRunning?'RUNNING':'STOPPED';content.querySelector('#conv').textContent=conveyorRunning?'STOP CONVEYOR':'START CONVEYOR';content.querySelector('#convResult').textContent=conveyorRunning?'Conveyor rollers moving in the training model.':'Conveyor stopped.';toast(conveyorRunning?'Conveyor started':'Conveyor stopped')}}
+else if(n==='crane pendant'||n==='mold'||n==='replacement mould'){showMouldChangePanel()}
+ else if(n==='conveyor'){showPanel('Conveyor and part handling',`<p>Downstream handling equipment for moulded parts.</p><div class="field"><label>Training conveyor status</label><strong id="convState" style="color:var(--accent)">${conveyorRunning?'RUNNING':'STOPPED'}</strong></div><button class="action" id="conv">${conveyorRunning?'STOP CONVEYOR':'START CONVEYOR'}</button><p id="convResult">Virtual parts produced: ${partCount}.</p>`);content.querySelector('#conv').onclick=()=>{conveyorRunning=!conveyorRunning;content.querySelector('#convState').textContent=conveyorRunning?'RUNNING':'STOPPED';content.querySelector('#conv').textContent=conveyorRunning?'STOP CONVEYOR':'START CONVEYOR';content.querySelector('#convResult').textContent=conveyorRunning?'Conveyor rollers moving in the training model.':'Conveyor stopped.';toast(conveyorRunning?'Conveyor started':'Conveyor stopped')}}
 else{showPanel('Equipment',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
 document.querySelector('#interact').addEventListener('click',interact);addEventListener('keydown',e=>{if(e.code==='KeyE'&&!activePanel)interact();if(e.code==='Escape')closePanel()});
-function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
+function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);updateMouldMotion(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');hint.innerHTML=currentTarget?'In reach: <strong>'+currentTarget.name+'</strong> · tap INTERACT':'Explore the cell. Walk up to equipment and aim at it.';renderer.render(scene,camera)}
 const clock=new THREE.Clock();updateCamera();animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight)});
 </script>
