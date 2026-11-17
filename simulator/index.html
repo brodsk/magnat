@@ -106,7 +106,44 @@ function joystickMove(e){const r=joy.getBoundingClientRect(),cx=r.left+r.width/2
 joy.addEventListener('pointerdown',e=>{joyId=e.pointerId;joy.setPointerCapture(joyId);joystickMove(e)});joy.addEventListener('pointermove',e=>{if(e.pointerId===joyId)joystickMove(e)});function joyEnd(e){if(e.pointerId===joyId){joyId=null;player.moveX=0;player.moveY=0;stick.style.transform='translate(0,0)'}}joy.addEventListener('pointerup',joyEnd);joy.addEventListener('pointercancel',joyEnd);
 let lookId=null,lastX=0,lastY=0;renderer.domElement.addEventListener('pointerdown',e=>{if(e.clientX<innerWidth*.42||activePanel)return;lookId=e.pointerId;lastX=e.clientX;lastY=e.clientY;renderer.domElement.setPointerCapture(lookId)});renderer.domElement.addEventListener('pointermove',e=>{if(e.pointerId!==lookId)return;const dx=e.clientX-lastX,dy=e.clientY-lastY;lastX=e.clientX;lastY=e.clientY;player.yaw-=dx*.004;player.pitch=clamp(player.pitch-dy*.003,-1.15,1.15)});renderer.domElement.addEventListener('pointerup',e=>{if(e.pointerId===lookId)lookId=null});renderer.domElement.addEventListener('pointercancel',e=>{if(e.pointerId===lookId)lookId=null});
 addEventListener('keydown',e=>keys[e.code]=true);addEventListener('keyup',e=>keys[e.code]=false);
-function move(dt){let forward=player.moveY+(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0);let strafe=player.moveX+(keys.KeyD||keys.ArrowRight?1:0)+(keys.KeyA||keys.ArrowLeft?-1:0);const len=Math.hypot(forward,strafe);if(len>1){forward/=len;strafe/=len}const speed=3.5*dt;player.x+=(-Math.sin(player.yaw)*(-forward)+Math.cos(player.yaw)*strafe)*speed;player.z+=(-Math.cos(player.yaw)*(-forward)-Math.sin(player.yaw)*strafe)*speed;player.x=clamp(player.x,-14.5,14.5);player.z=clamp(player.z,-14.5,14.5);updateCamera()}
+// Collision volumes are conservative walk-space footprints, not machine geometry.
+const PLAYER_RADIUS=.34;
+const obstacles=[
+  {minX:-5.95,maxX:-.05,minZ:-4.32,maxZ:-1.68,name:'ENGEL machine'},
+  {minX:-8.72,maxX:-7.28,minZ:-4.72,maxZ:-3.28,name:'material dryer'},
+  {minX:-8.72,maxX:-7.28,minZ:-2.25,maxZ:-1.35,name:'temperature controller'},
+  {minX:3.15,maxX:7.05,minZ:-2.35,maxZ:-.65,name:'ABB robot cell'},
+  {minX:-1.72,maxX:5.72,minZ:3.28,maxZ:4.72,name:'conveyor'},
+  {minX:9.18,maxX:10.82,minZ:-7.52,maxZ:-6.48,name:'electrical cabinet'},
+  {minX:7.18,maxX:8.82,minZ:-3.38,maxZ:-2.62,name:'cooling manifold'},
+  {minX:11.58,maxX:12.02,minZ:-2.22,maxZ:-1.78,name:'compressed-air drop'},
+  {minX:5.78,maxX:6.22,minZ:1.78,maxZ:2.22,name:'warning beacon'},
+  {minX:-8.25,maxX:8.25,minZ:-5.16,maxZ:-4.84,name:'safety fence'}
+];
+function canOccupy(x,z){
+  if(x < -15.25+PLAYER_RADIUS || x > 15.25-PLAYER_RADIUS || z < -15.25+PLAYER_RADIUS || z > 15.25-PLAYER_RADIUS)return false;
+  for(const o of obstacles){
+    const nx=clamp(x,o.minX,o.maxX),nz=clamp(z,o.minZ,o.maxZ);
+    const dx=x-nx,dz=z-nz;
+    if(dx*dx+dz*dz<PLAYER_RADIUS*PLAYER_RADIUS)return false;
+  }
+  return true;
+}
+function move(dt){
+  let forward=player.moveY+(keys.KeyW||keys.ArrowUp?-1:0)+(keys.KeyS||keys.ArrowDown?1:0);
+  let strafe=player.moveX+(keys.KeyD||keys.ArrowRight?1:0)+(keys.KeyA||keys.ArrowLeft?-1:0);
+  const len=Math.hypot(forward,strafe);
+  if(len>1){forward/=len;strafe/=len}
+  const speed=3.5*dt;
+  const dx=(-Math.sin(player.yaw)*(-forward)+Math.cos(player.yaw)*strafe)*speed;
+  const dz=(-Math.cos(player.yaw)*(-forward)-Math.sin(player.yaw)*strafe)*speed;
+  // Resolve axes separately so the player can slide along machine guards and walls.
+  const nextX=clamp(player.x+dx,-15.25+PLAYER_RADIUS,15.25-PLAYER_RADIUS);
+  if(canOccupy(nextX,player.z))player.x=nextX;
+  const nextZ=clamp(player.z+dz,-15.25+PLAYER_RADIUS,15.25-PLAYER_RADIUS);
+  if(canOccupy(player.x,nextZ))player.z=nextZ;
+  updateCamera();
+}
 const raycaster=new THREE.Raycaster();let currentTarget=null;
 function nearestTarget(){raycaster.setFromCamera(new THREE.Vector2(0,0),camera);const hits=raycaster.intersectObjects(targets,false);if(!hits.length||hits[0].distance>3.4)return null;return hits[0].object}
 const panel=document.querySelector('#panel'),content=document.querySelector('#panelContent');
