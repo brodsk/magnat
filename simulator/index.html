@@ -313,6 +313,23 @@ function showMouldChangePanel(){
 
 box(engel,'injection unit',[2.05,1.75,0],[2.15,1.15,1.35],mats.orange,true);
 const screw=new THREE.Mesh(new THREE.CylinderGeometry(.12,.12,1.9,16),mats.steel);screw.rotation.z=Math.PI/2;screw.position.set(2.05,1.8,0);engel.add(screw);
+// Injection barrel assembly: thermal collars, nozzle transition and drive coupling.
+const barrelMat=new THREE.MeshStandardMaterial({color:0x69777b,metalness:.82,roughness:.3});
+const heaterMat=new THREE.MeshStandardMaterial({color:0x303b40,metalness:.68,roughness:.38});
+cyl(engel,'injection barrel outer sleeve',[2.05,1.8,0],.205,.205,1.88,barrelMat,'x',28);
+for(let i=0;i<5;i++){
+  const x=1.28+i*.32;
+  cyl(engel,'barrel heater band',[x,1.8,0],.235,.235,.105,heaterMat,'x',24);
+  cyl(engel,'heater band retaining lip',[x-.055,1.8,0],.245,.245,.025,mats.steel,'x',24);
+}
+cyl(engel,'injection nozzle body',[3.08,1.8,0],.16,.205,.28,mats.steel,'x',24);
+cyl(engel,'injection nozzle tip',[3.25,1.8,0],.055,.16,.12,mats.dark,'x',20);
+cyl(engel,'screw drive coupling',[1.02,1.8,0],.25,.25,.18,mats.dark,'x',24);
+cyl(engel,'screw drive coupling flange',[.91,1.8,0],.31,.31,.055,mats.steel,'x',24);
+for(let i=0;i<8;i++){
+  const a=i*Math.PI/4;
+  cyl(engel,'screw drive coupling bolt',[.91,1.8+Math.cos(a)*.26,Math.sin(a)*.26],.025,.025,.065,mats.yellow,'x',8);
+}
 // Hopper geometry is assembled below with its inspection window and lid.
 box(engel,'control console',[1.45,2.15,1.45],[.7,1.1,.28],mats.dark,true);
 const machineDisplayCanvas=document.createElement('canvas');machineDisplayCanvas.width=512;machineDisplayCanvas.height=384;const machineDisplayCtx=machineDisplayCanvas.getContext('2d');
@@ -476,6 +493,29 @@ for(const [g,p,r] of [[base,[0,.62,.34],.12],[shoulder,[0,1.7,.2],.10],[elbow,[1
  for(let i=0;i<6;i++){const a=i*Math.PI/3;cyl(g,'ABB service cover bolt',[p[0]+Math.cos(a)*r*.72,p[1]+Math.sin(a)*r*.72,p[2]+.025],.018,.018,.025,panelEdgeMat,'z',8)}
 }
 tube(robot,'robot dress pack upper return',[[.15,1.1,-.28],[.4,1.65,-.34],[.95,2.1,-.32],[1.55,2.3,-.28],[2.05,1.85,-.22]],.028,mats.steel);
+// ABB MECHANICAL PASS · layered cast joint housings, pivot bearings and routed service lines.
+const abbJointMat=new THREE.MeshStandardMaterial({color:0xe87920,metalness:.28,roughness:.34});
+const abbBearingMat=new THREE.MeshStandardMaterial({color:0x34434a,metalness:.78,roughness:.3});
+const abbBoltMat=new THREE.MeshStandardMaterial({color:0xb7c1c3,metalness:.9,roughness:.2});
+const shoulderBearing=new THREE.Mesh(new THREE.CylinderGeometry(.36,.36,.2,32),abbBearingMat);
+shoulderBearing.rotation.z=Math.PI/2;shoulderBearing.position.set(0,1.7,.03);shoulder.add(shoulderBearing);
+const shoulderCap=new THREE.Mesh(new THREE.CylinderGeometry(.29,.29,.22,32),abbJointMat);
+shoulderCap.rotation.z=Math.PI/2;shoulderCap.position.set(0,1.7,.15);shoulder.add(shoulderCap);
+const elbowBearing=new THREE.Mesh(new THREE.CylinderGeometry(.31,.31,.22,32),abbBearingMat);
+elbowBearing.rotation.z=Math.PI/2;elbowBearing.position.set(1.25,.55,.02);elbow.add(elbowBearing);
+const elbowCap=new THREE.Mesh(new THREE.CylinderGeometry(.245,.245,.24,32),abbJointMat);
+elbowCap.rotation.z=Math.PI/2;elbowCap.position.set(1.25,.55,.16);elbow.add(elbowCap);
+for(const [g,cx,cy,rad] of [[shoulder,0,1.7,.29],[elbow,1.25,.55,.245]]){
+  for(let i=0;i<10;i++){const a=i*Math.PI/5;cyl(g,'ABB joint cover perimeter bolt',[cx+Math.cos(a)*rad,cy+Math.sin(a)*rad,.285],.022,.022,.035,abbBoltMat,'z',8)}
+}
+for(const [g,p,r] of [[base,[0,1.25,.16],.22],[shoulder,[.65,.25,.13],.16],[elbow,[.62,0,.12],.13]]){
+  const boot=new THREE.Mesh(new THREE.SphereGeometry(r,20,14),abbJointMat);boot.position.set(...p);boot.scale.set(1.25,.72,1);g.add(boot);
+}
+tube(robot,'ABB hydraulic service loop',[[.38,1.0,.38],[.52,1.45,.48],[.85,1.95,.48],[1.42,2.2,.4],[1.9,1.95,.32]],.032,abbJointMat);
+tube(robot,'ABB pneumatic line',[[.22,1.08,-.38],[.42,1.55,-.46],[.9,1.98,-.44],[1.5,2.16,-.36],[1.98,1.83,-.28]],.018,abbBoltMat);
+for(const [x,y,z] of [[.48,1.5,.45],[1.08,2.02,.43],[1.68,2.12,.36]]){
+  const clamp=cyl(robot,'ABB dress pack cable clamp',[x,y,z],.065,.065,.055,abbBearingMat,'z',12);
+}
 
 const robotPartMat=new THREE.MeshStandardMaterial({color:0x6f9fa8,metalness:.12,roughness:.34});
 
@@ -673,6 +713,41 @@ for(const z of [1.15,2.9,4.65,5.95])for(const x of [.08,1.32]){
  box(scene,'conveyor support leg',[x,.39,z],[.11,.72,.11],mats.steel);
  box(scene,'conveyor support foot',[x,.05,z],[.28,.1,.28],mats.dark);
  cyl(scene,'conveyor foot anchor',[x,.12,z],.035,.035,.025,mats.yellow,'y',8);
+}
+// CONVEYOR ENGINEERING PASS · visible load path, roller bearings and braced frame.
+const conveyorFrameMat=new THREE.MeshStandardMaterial({color:0x34434a,metalness:.72,roughness:.4});
+const conveyorBrightMat=new THREE.MeshStandardMaterial({color:0x9ba8aa,metalness:.82,roughness:.26});
+for(const x of [-.02,1.42]){
+  box(scene,'conveyor longitudinal structural stringer',[x,.57,3.55],[.12,.2,5.18],conveyorFrameMat);
+  for(const z of [1.15,2.9,4.65,5.95]){
+    box(scene,'conveyor bearing support plate',[x,.79,z],[.2,.12,.22],mats.dark);
+    cyl(scene,'conveyor bearing cap',[x,.82,z],.105,.105,.11,conveyorBrightMat,'x',20);
+    cyl(scene,'conveyor bearing centre bolt',[x,.82,z],.035,.035,.12,mats.yellow,'x',10);
+  }
+}
+for(const z of [1.42,2.3,3.18,4.06,4.94,5.82]){
+  box(scene,'conveyor underframe cross member',[.7,.49,z],[1.42,.1,.09],conveyorFrameMat);
+  for(const x of [.02,1.38])cyl(scene,'cross member fixing bolt',[x,.49,z],.025,.025,.025,conveyorBrightMat,'x',8);
+}
+for(const z of [1.0,6.1]){
+  cyl(scene,'conveyor drum end hub',[.7,.82,z],.16,.16,.16,conveyorBrightMat,'x',24);
+  for(const x of [.12,1.28])cyl(scene,'conveyor drum shaft end',[x,.82,z],.055,.055,.18,mats.dark,'x',16);
+}
+for(const z of [1.0,6.1]){
+  box(scene,'conveyor end guard bracket',[.7,.69,z],[1.5,.12,.16],conveyorFrameMat);
+}
+for(const x of [.08,1.32]){
+  box(scene,'conveyor lower return belt support rail',[x,.43,3.55],[.055,.08,4.8],conveyorFrameMat);
+}
+const returnBeltMat=new THREE.MeshStandardMaterial({color:0x116a40,roughness:.94});
+box(scene,'conveyor lower return belt',[.7,.405,3.55],[1.28,.025,4.92],returnBeltMat);
+for(const z of [1.35,2.85,4.35,5.85]){
+  const returnRoller=new THREE.Mesh(new THREE.CylinderGeometry(.038,.038,1.25,12),conveyorBrightMat);
+  returnRoller.rotation.z=Math.PI/2;returnRoller.position.set(.7,.455,z);returnRoller.castShadow=true;scene.add(returnRoller);
+  conveyorRollers.push(returnRoller);
+}
+for(const z of [1.15,2.9,4.65,5.95])for(const x of [.08,1.32]){
+  box(scene,'conveyor diagonal leg brace',[x,.29,z],[.055,.48,.055],conveyorFrameMat).rotation.z=x<.5?-.28:.28;
 }
 cyl(scene,'conveyor drive motor',[1.55,.62,5.7],.24,.24,.62,mats.dark,'x',18);
 cyl(scene,'conveyor gearbox',[1.35,.68,5.7],.18,.18,.25,mats.steel,'x',16);
