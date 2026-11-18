@@ -102,23 +102,23 @@ box(scene,'overhead cable tray',[-11,4.9,-1],[.35,.12,27],mats.dark);box(scene,'
 // Realistic robot safety cage: mesh rear and side walls, with a conveyor pass-through at the operator side.
 const meshMat=new THREE.MeshStandardMaterial({color:0x71848a,metalness:.35,roughness:.6});
 function cageWallX(x,z0,z1){
- for(const z of [z0,z1]){box(scene,'ABB cage yellow upright',[x,1.28,z],[.085,2.56,.085],mats.yellow)}
+ for(const z of [z0,z1]){box(scene,'ABB cage yellow upright',[x,1.28,z],[.085,2.56,.085],mats.yellow);box(scene,'ABB cage post floor anchor',[x,.035,z],[.18,.07,.18],mats.steel)}
  box(scene,'ABB cage top rail',[x,2.5,(z0+z1)/2],[.075,.075,Math.abs(z1-z0)],mats.yellow);
- box(scene,'ABB cage bottom rail',[x,.12,(z0+z1)/2],[.075,.075,Math.abs(z1-z0)],mats.yellow);
- for(let z=z0+.12;z<z1;z+=.16)box(scene,'ABB safety mesh vertical',[x,1.3,z],[.014,2.25,.02],meshMat);
+ box(scene,'ABB cage bottom rail',[x,.055,(z0+z1)/2],[.075,.11,Math.abs(z1-z0)],mats.yellow);
+ for(let z=z0+.12;z<z1;z+=.16)box(scene,'ABB safety mesh vertical',[x,1.28,z],[.014,2.42,.02],meshMat);
  for(let y=.22;y<2.45;y+=.16)box(scene,'ABB safety mesh horizontal',[x,y,(z0+z1)/2],[.018,.014,Math.abs(z1-z0)],meshMat);
 }
 function cageWallZ(z,x0,x1){
- for(const x of [x0,x1])box(scene,'ABB cage yellow upright',[x,1.28,z],[.085,2.56,.085],mats.yellow);
+ for(const x of [x0,x1]){box(scene,'ABB cage yellow upright',[x,1.28,z],[.085,2.56,.085],mats.yellow);box(scene,'ABB cage post floor anchor',[x,.035,z],[.18,.07,.18],mats.steel)}
  box(scene,'ABB cage top rail',[(x0+x1)/2,2.5,z],[Math.abs(x1-x0),.075,.075],mats.yellow);
- box(scene,'ABB cage bottom rail',[(x0+x1)/2,.12,z],[Math.abs(x1-x0),.075,.075],mats.yellow);
- for(let x=x0+.12;x<x1;x+=.16)box(scene,'ABB safety mesh vertical',[x,1.3,z],[.02,2.25,.014],meshMat);
+ box(scene,'ABB cage bottom rail',[(x0+x1)/2,.055,z],[Math.abs(x1-x0),.11,.075],mats.yellow);
+ for(let x=x0+.12;x<x1;x+=.16)box(scene,'ABB safety mesh vertical',[x,1.28,z],[.02,2.42,.014],meshMat);
  for(let y=.22;y<2.45;y+=.16)box(scene,'ABB safety mesh horizontal',[(x0+x1)/2,y,z],[Math.abs(x1-x0),.014,.018],meshMat);
 }
 cageWallZ(-3.55,-2.75,2.55);cageWallX(-2.75,-3.55,1.1);cageWallX(2.55,-3.55,1.1);
 // Front mesh sections leave a deliberate conveyor transfer opening.
 cageWallZ(1.1,-2.75,-.15);cageWallZ(1.1,1.55,2.55);
-for(const x of [-.15,1.55])box(scene,'ABB conveyor opening safety post',[x,1.28,1.1],[.085,2.56,.085],mats.yellow);
+for(const x of [-.15,1.55]){box(scene,'ABB conveyor opening safety post',[x,1.28,1.1],[.085,2.56,.085],mats.yellow);box(scene,'ABB opening post floor anchor',[x,.035,1.1],[.18,.07,.18],mats.steel)}
 box(scene,'ABB cage top front beam',[.7,2.5,1.1],[1.9,.075,.075],mats.yellow);
 box(scene,'ABB cage lower front beam',[.7,.12,1.1],[1.9,.075,.075],mats.yellow);
 // ENGEL injection molding machine: simplified but recognisable machine architecture.
@@ -176,7 +176,8 @@ function makeMould(name,position,bodyColor){
  return {group:g,body,slings,target:null};
 }
 const oldMould=makeMould('OLD MOULD',[-3.45,1.85,-3],0x34434a);
-const newMould=makeMould('NEW MOULD',[-4.8,1.62,1.2],0x45565e);
+// The spare mould sits directly on the storage rack rails (top surface y = 0.78).
+const newMould=makeMould('NEW MOULD',[-4.8,1.50,1.2],0x45565e);
 targets.push(oldMould.body,newMould.body);
 // Overhead bridge crane, hoist, pendant and two-bay mould storage rack.
 const craneSteel=new THREE.MeshStandardMaterial({color:0x35464e,metalness:.78,roughness:.28});
@@ -196,6 +197,7 @@ const hoistCable=cyl(craneTrolley,'hoist wire rope',[0,-.8,0],.025,.025,1,craneS
 const craneHook=new THREE.Group();craneTrolley.add(craneHook);
 tube(craneHook,'crane hook',[[-.04,-.04,0],[-.04,-.25,0],[.08,-.34,0],[.22,-.28,0],[.23,-.17,0]],.045,craneYellow);
 cyl(craneHook,'hook safety latch',[.18,-.19,0],.025,.025,.16,mats.dark,'z',10);
+tube(scene,'crane pendant suspension cable',[[-6.1,4.88,2.75],[-6.1,3.9,2.75],[-6.1,2.8,2.75],[-6.1,1.78,2.75]],.018,mats.dark);
 box(scene,'crane pendant',[-6.1,1.45,2.75],[.32,.62,.18],mats.dark,true);
 box(scene,'crane pendant screen',[-6.1,1.55,2.645],[.22,.16,.025],mats.green);
 for(let i=0;i<3;i++)cyl(scene,'crane pendant button',[-6.1,1.35-i*.11,2.63],.035,.035,.025,[mats.green,mats.yellow,mats.red][i],'z',12);
@@ -209,7 +211,7 @@ for(const z of [-.62,.62])box(mouldRack,'mould storage rail',[0,.72,z],[3.1,.12,
  for(let i=0;i<12;i++)box(craneBridge,'crane hazard stripe',[-6.7+i*.62,4.82,.32],[.28,.12,.025],i%2?mats.dark:craneYellow);
  cyl(craneTrolley,'hoist drum',[0,-.22,.42],.22,.22,.55,craneSteel,'z',20);
  for(const z of [-.42,.42])cyl(craneTrolley,'trolley end wheel',[.42,.08,z],.15,.15,.11,craneYellow,'z',16);
-const rackOldPosition={x:-6.35,y:1.62,z:1.2};
+const rackOldPosition={x:-6.35,y:1.50,z:1.2};
 const craneTarget={x:-3.45,z:-3};
 let mouldHookY=3,mouldStep=-1,mouldIsolated=false,servicesConnected=true,clampsSecured=true,mouldChangeComplete=false;
 const mouldSteps=[
@@ -580,17 +582,17 @@ function updateRobotTransfer(dt){
 
 // Auxiliary equipment and a straight operator-facing outfeed conveyor.
 const dryer=box(scene,'material dryer',[-8,1.3,-4],[1.2,2.6,1.2],mats.steel,true);box(scene,'dryer hopper',[-8,2.95,-4],[.8,.75,.8],mats.orange);
-box(scene,'temperature controller',[-8,.8,-1.8],[1.1,1.5,.65],mats.steel,true);
+box(scene,'temperature controller',[-8,.75,-1.8],[1.1,1.5,.65],mats.steel,true);
 const conveyorRollers=[];
 box(scene,'conveyor frame',[.7,.7,3.55],[1.55,.34,5.25],mats.dark,true);
 box(scene,'green conveyor belt',[.7,.895,3.55],[1.34,.035,5.12],new THREE.MeshStandardMaterial({color:0x168b50,roughness:.94,metalness:0}));
 for(const x of [.0,1.4])box(scene,'conveyor side guard',[x,.98,3.55],[.09,.22,5.22],mats.steel);
 for(let z=1.05;z<=6.05;z+=.42){
- const roller=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,1.38,12),mats.steel);roller.rotation.z=Math.PI/2;roller.position.set(.7,.86,z);roller.castShadow=true;roller.receiveShadow=true;scene.add(roller);conveyorRollers.push(roller);
+ const roller=new THREE.Mesh(new THREE.CylinderGeometry(.065,.065,1.38,12),mats.steel);roller.rotation.z=Math.PI/2;roller.position.set(.7,.82,z);roller.castShadow=true;roller.receiveShadow=true;scene.add(roller);conveyorRollers.push(roller);
 }
 for(const z of [1.15,2.9,4.65,5.95])for(const x of [.08,1.32]){
  box(scene,'conveyor support leg',[x,.39,z],[.11,.72,.11],mats.steel);
- box(scene,'conveyor support foot',[x,.055,z],[.28,.11,.28],mats.dark);
+ box(scene,'conveyor support foot',[x,.05,z],[.28,.1,.28],mats.dark);
  cyl(scene,'conveyor foot anchor',[x,.12,z],.035,.035,.025,mats.yellow,'y',8);
 }
 cyl(scene,'conveyor drive motor',[1.55,.62,5.7],.24,.24,.62,mats.dark,'x',18);
@@ -683,20 +685,31 @@ box(scene,'operator monitor stand neck',[3.62,1.98,1.55],[.16,.78,.14],mats.stee
 box(scene,'operator monitor stand base',[3.62,1.585,1.55],[.62,.07,.34],mats.dark);
 cyl(scene,'monitor power indicator',[4.45,2.0,1.29],.025,.025,.018,mats.green,'z',12);
 // Emergency-stop pendant is fixed to the operator-side conveyor edge, not floating on a remote pedestal.
+// The E-stop pendant is physically cantilevered from the conveyor's outer side rail.
+box(scene,'operator emergency pendant mounting arm',[1.69,.98,2.72],[.54,.12,.18],mats.steel);
+box(scene,'operator emergency pendant rail clamp',[1.45,.98,2.72],[.16,.3,.24],mats.dark);
 box(scene,'operator emergency pendant housing',[2.15,.98,2.72],[.42,.18,.58],mats.dark,true);
 box(scene,'operator emergency pendant yellow plate',[2.15,1.08,2.72],[.38,.035,.54],mats.yellow);
 cyl(scene,'operator emergency stop bezel',[2.15,1.21,2.52],.14,.14,.09,mats.dark,'y',20);
 cyl(scene,'operator emergency stop mushroom',[2.15,1.28,2.52],.105,.105,.12,mats.red,'y',20);
 cyl(scene,'operator pendant white button',[2.15,1.18,2.9],.065,.065,.07,mats.white,'y',16);
-tube(scene,'operator pendant cable',[[2.15,.84,2.72],[2.3,.62,2.7],[2.32,.3,2.5],[2.32,.18,2.1]],.025,mats.dark);
+tube(scene,'operator pendant cable',[[2.15,.84,2.72],[1.95,.62,2.72],[1.65,.4,2.82],[1.32,.2,2.9]],.025,mats.dark);
 // Inspection tray remains beside the operator outfeed, on the right side of the belt.
 box(scene,'operator inspection tray frame',[2.55,.78,4.0],[.9,.12,.82],mats.dark);
+// Four legs and foot plates carry the inspection tray to the floor instead of leaving it suspended.
+for(const x of [2.18,2.92])for(const z of [3.68,4.32]){
+ box(scene,'inspection tray support leg',[x,.36,z],[.08,.72,.08],mats.steel);
+ box(scene,'inspection tray floor foot',[x,.05,z],[.2,.1,.2],mats.dark);
+}
 box(scene,'operator inspection tray surface',[2.55,.85,4.0],[.8,.035,.72],mats.white);
 for(const x of [2.1,3.0])for(const z of [3.58,4.42])box(scene,'inspection tray red white corner marking',[x,.876,z],[.12,.02,.12],mats.red);
 
 // Peripheral cabinets, compressed-air drop, cooling manifolds and warning beacons.
 const utility=box(scene,'electrical distribution cabinet',[10,1.55,-7],[1.4,3.1,.9],mats.white,true);for(let i=0;i<5;i++)box(scene,'cabinet vent',[10,2.45+i*.12,-6.53],[.8,.025,.025],mats.dark);cyl(scene,'cabinet indicator green',[9.55,2.85,-6.5],.055,.055,.04,mats.green,'z',12);cyl(scene,'cabinet indicator amber',[9.75,2.85,-6.5],.055,.055,.04,mats.yellow,'z',12);
-box(scene,'compressed air drop',[11.8,2.5,-2],[.16,4.8,.16],mats.steel);tube(scene,'air hose',[[11.8,3.8,-2],[11.5,3.7,-1.5],[11.5,2.4,-1.2],[10.8,2.2,-1.2]],.035,mats.yellow);
+box(scene,'compressed air drop floor flange',[11.8,.05,-2],[.34,.1,.34],mats.dark);
+box(scene,'compressed air drop',[11.8,2.5,-2],[.16,4.8,.16],mats.steel);
+box(scene,'compressed air drop rack tie',[11.4,4.82,-2],[.8,.12,.12],mats.steel);
+tube(scene,'air hose',[[11.8,3.8,-2],[11.5,3.7,-1.5],[11.5,2.4,-1.2],[10.8,2.2,-1.2]],.035,mats.yellow);
 for(const x of [7.4,8.6]){box(scene,'manifold support leg',[x,.52,-3],[.09,1.0,.09],mats.steel);box(scene,'manifold foot',[x,.06,-3],[.28,.12,.3],mats.dark)}box(scene,'cooling water manifold',[8,1.1,-3],[1.5,.28,.45],mats.steel);for(let i=0;i<4;i++){cyl(scene,'manifold valve',[7.45+i*.35,1.35,-3],.09,.09,.22,mats.yellow);cyl(scene,'manifold port',[7.45+i*.35,.95,-2.75],.055,.055,.12,mats.green,'z',12)}
 // Warning beacon on a short post.
 cyl(scene,'beacon post',[6,.78,2],.045,.045,1.5,mats.steel);cyl(scene,'beacon base',[6,1.58,2],.16,.16,.12,mats.dark);cyl(scene,'red warning beacon',[6,1.76,2],.13,.13,.24,mats.red);
