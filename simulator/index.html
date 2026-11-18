@@ -60,8 +60,8 @@ try {
 }
 
 const mount=document.querySelector('#scene');
-const scene=new THREE.Scene();scene.background=new THREE.Color(0x9aadb6);scene.fog=new THREE.Fog(0x9aadb6,18,58);
-const camera=new THREE.PerspectiveCamera(72,innerWidth/innerHeight,.1,100);camera.position.set(0,1.68,7);
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x879397);scene.fog=new THREE.Fog(0x879397,28,72);
+const camera=new THREE.PerspectiveCamera(68,innerWidth/innerHeight,.1,100);camera.position.set(0,1.68,7);
 let renderer;
 try {
   renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
@@ -70,9 +70,9 @@ try {
   panel.hidden=false;
   panel.textContent='WEBGL INITIALIZATION FAILED. '+error.message+'\\nTry enabling hardware acceleration / WebGL in the browser.';
   throw error;
-}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.16;mount.appendChild(renderer.domElement);
-scene.add(new THREE.HemisphereLight(0xe8f4ff,0x35414a,2.0));
-const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-0.00012;sun.shadow.normalBias=.025;sun.shadow.radius=3;sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
+}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight);renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;renderer.shadowMap.autoUpdate=false;renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.04;mount.appendChild(renderer.domElement);
+scene.add(new THREE.HemisphereLight(0xe8f0ef,0x283238,1.45));
+const sun=new THREE.DirectionalLight(0xffedcf,2.65);sun.position.set(-8,15,9);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.bias=-0.00012;sun.shadow.normalBias=.025;sun.shadow.radius=3;sun.shadow.camera.left=-18;sun.shadow.camera.right=18;sun.shadow.camera.top=18;sun.shadow.camera.bottom=-18;scene.add(sun);
 const floorCanvas=document.createElement('canvas');floorCanvas.width=floorCanvas.height=256;const floorCtx=floorCanvas.getContext('2d');floorCtx.fillStyle='#68777c';floorCtx.fillRect(0,0,256,256);let floorSeed=417;for(let i=0;i<5200;i++){floorSeed=(floorSeed*1664525+1013904223)>>>0;const x=floorSeed&255;floorSeed=(floorSeed*1664525+1013904223)>>>0;const y=floorSeed&255;const shade=90+(floorSeed%45);floorCtx.fillStyle='rgba('+shade+','+(shade+7)+','+(shade+10)+','+(0.08+(floorSeed%18)/100)+')';floorCtx.fillRect(x,y,1+(floorSeed%3),1+(floorSeed%2))}const floorTexture=new THREE.CanvasTexture(floorCanvas);floorTexture.wrapS=floorTexture.wrapT=THREE.RepeatWrapping;floorTexture.repeat.set(6,6);floorTexture.colorSpace=THREE.SRGBColorSpace;
 function makeIndustrialSurface(base,seed,brushed=false){const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');x.fillStyle=base;x.fillRect(0,0,512,512);let q=seed>>>0;for(let i=0;i<6800;i++){q=(q*1664525+1013904223)>>>0;const px=q&511;q=(q*1664525+1013904223)>>>0;const py=q&511;const a=.018+((q>>>8)%30)/1000;x.fillStyle='rgba(25,35,40,'+a+')';x.fillRect(px,py,1+(q%2),1)}if(brushed){for(let i=0;i<150;i++){q=(q*1664525+1013904223)>>>0;const y=q&511;const xx=(q>>>9)&511;x.strokeStyle='rgba(255,255,255,.10)';x.lineWidth=1;x.beginPath();x.moveTo(xx,y);x.lineTo(Math.min(511,xx+35+(q%100)),y);x.stroke()}}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t}
 const steelSurface=makeIndustrialSurface('#f3f5f5',103,true),paintSurface=makeIndustrialSurface('#fff8f0',219),darkSurface=makeIndustrialSurface('#f0f2f2',331),whiteSurface=makeIndustrialSurface('#ffffff',447),wallSurface=makeIndustrialSurface('#f8f9f8',559);
@@ -95,6 +95,24 @@ for(let z=-13;z<14;z+=2)box(scene,'floor joint',[-0,-.009,z],[30,.006,.012],floo
 // Striped keep-clear markings around the operator access side.
 for(let i=0;i<12;i++){const stripe=box(scene,'hazard floor stripe',[-8.1+i*.28,-.002,2.7],[.13,.012,1.0],floorYellow);stripe.rotation.y=.45;}
 box(scene,'back wall',[0,3,-15.8],[32,6,.3],mats.wall);box(scene,'left wall',[-16,3,0],[.3,6,32],mats.wall);box(scene,'right wall',[16,3,0],[.3,6,32],mats.wall);
+// Factory wall construction: insulated cladding panels, structural columns and a durable concrete kick plate.
+const wallSeamMat=new THREE.MeshStandardMaterial({color:0x849196,metalness:.42,roughness:.72});
+const wallBaseMat=new THREE.MeshStandardMaterial({color:0x59666b,metalness:.18,roughness:.88});
+box(scene,'back wall concrete plinth',[0,.22,-15.57],[31.6,.44,.18],wallBaseMat);
+for(let x=-14;x<=14;x+=2){
+ box(scene,'back wall cladding seam',[x,3,-15.625],[.018,5.45,.018],wallSeamMat);
+}
+for(const y of [.48,5.48])box(scene,'back wall horizontal cladding rail',[0,y,-15.62],[31.7,.055,.055],wallSeamMat);
+for(const x of [-14,-8,-2,4,10,14]){
+ box(scene,'back wall structural column',[x,2.9,-15.48],[.22,5.8,.42],mats.steel);
+ box(scene,'back column base plate',[x,.08,-15.35],[.48,.16,.52],mats.dark);
+ for(const dx of [-.15,.15])cyl(scene,'back column anchor bolt',[x+dx,.17,-15.18],.035,.035,.04,mats.yellow,'y',10);
+}
+for(const z of [-14,-10,-6,-2,2,6,10,14]){
+ box(scene,'left wall cladding seam',[-15.82,3,z],[.018,5.45,.018],wallSeamMat);
+}
+box(scene,'left wall concrete plinth',[-15.62,.22,0],[.18,.44,31.6],wallBaseMat);
+for(const y of [.48,5.48])box(scene,'left wall horizontal cladding rail',[-15.62,y,0],[.055,.055,31.7],wallSeamMat);
 for(let x=-12;x<=12;x+=4){box(scene,'roof beam',[x,5.8,0],[.18,.18,30],mats.steel);const light=new THREE.PointLight(0xfff4d9,28,12);light.position.set(x,5.2,0);scene.add(light);box(scene,'LED fixture',[x,5.3,0],[1.3,.08,.3],mats.white);box(scene,'LED diffuser',[x,5.245,0],[1.18,.025,.24],new THREE.MeshStandardMaterial({color:0xfff5d9,emissive:0xffe7b2,emissiveIntensity:.45}))}
 // Roof purlins and utility cable trays.
 for(let z=-12;z<=12;z+=4){box(scene,'roof purlin',[0,5.62,z],[30,.12,.12],mats.steel)}
@@ -132,7 +150,7 @@ cageWallZ(1.1,-2.75,-.15);cageWallZ(1.1,1.55,2.55);
 for(const x of [-.15,1.55]){box(scene,'ABB conveyor opening safety post',[x,1.28,1.1],[.085,2.56,.085],mats.yellow);box(scene,'ABB opening post floor anchor',[x,.035,1.1],[.18,.07,.18],mats.steel)}
 box(scene,'ABB cage top front beam',[.7,2.5,1.1],[1.9,.075,.075],mats.yellow);
 box(scene,'ABB cage lower front beam',[.7,.12,1.1],[1.9,.075,.075],mats.yellow);
-// ENGEL injection molding machine: simplified but recognisable machine architecture.
+// ENGEL injection molding machine: industrial enclosure finish, service panels and realistic machine architecture.
 const engel=new THREE.Group();engel.position.set(-3,0,-3);scene.add(engel);
 box(engel,'ENGEL base',[0,.65,0],[5.8,1.1,2.5],mats.dark,true);
 box(engel,'ENGEL rear cabinet',[-2.15,2.0,-.05],[1.25,2.9,2.35],mats.orange);
@@ -374,6 +392,17 @@ box(engel,'HMI keypad housing',[1.45,1.56,1.32],[.72,.22,.24],mats.dark,true);
 for(let row=0;row<2;row++)for(let col=0;col<5;col++)box(engel,'HMI keypad button',[1.18+col*.135,1.61-row*.085,1.185],[.075,.045,.025],(row===0&&col===0)?mats.green:mats.steel);
 
  // Additional machine finish: service doors, recessed handles, feet, fasteners and warning labels.
+ // Recessed panel divisions and edge trims break up large toy-like flat surfaces.
+ const panelEdgeMat=new THREE.MeshStandardMaterial({color:0x8e9a9d,metalness:.68,roughness:.32});
+ for(const x of [-2.72,-1.58]){
+  box(engel,'rear cabinet panel edge',[x,2.02,1.205],[.025,2.42,.025],panelEdgeMat);
+ }
+ for(const y of [.62,1.35,2.62,3.25])box(engel,'clamping enclosure horizontal panel seam',[-.55,y,1.135],[1.78,.018,.018],mats.dark);
+ for(const x of [-1.22,.12])for(const y of [.82,2.72])cyl(engel,'clamping enclosure panel fastener',[x,y,1.16],.028,.028,.025,panelEdgeMat,'z',10);
+ // Safety decals and service identification plates are fixed to the machine skin.
+ box(engel,'high voltage warning plate',[2.72,2.12,.72],[.34,.25,.025],mats.yellow);
+ box(engel,'hot barrel warning plate',[1.42,2.18,.72],[.34,.25,.025],mats.yellow);
+ box(engel,'service access identification plate',[-2.15,1.08,1.27],[.52,.13,.025],mats.dark);
  box(engel,'lower service access door',[-2.15,.66,1.205],[.98,.68,.055],mats.dark);
  box(engel,'service door inset',[-2.15,.66,1.239],[.82,.51,.012],mats.steel);
  box(engel,'service door handle',[-1.78,.66,1.27],[.045,.22,.045],mats.yellow);
@@ -386,7 +415,7 @@ for(let row=0;row<2;row++)for(let col=0;col<5;col++)box(engel,'HMI keypad button
  for(let i=0;i<4;i++){cyl(engel,'mould cooling connector',[-.45+i*.3,1.15,1.22],.075,.075,.09,i%2?mats.green:mats.yellow,'z',14);cyl(engel,'cooling connector collar',[-.45+i*.3,1.15,1.28],.095,.095,.035,mats.steel,'z',14)}
  // Flexible hydraulic and cooling hoses, routed along the machine frame.
 tube(engel,'hydraulic hose',[[1.0,1.15,.98],[1.35,.85,1.0],[2.0,.9,.95],[2.55,1.2,.72]],.035,mats.dark);tube(engel,'cooling hose',[[.1,2.85,1.0],[.55,3.05,1.05],[1.0,2.8,1.05],[1.2,2.45,1.05]],.025,mats.green);
-// ABB six-axis robot, with articulated links and visible gripper.
+// ABB six-axis robot, with articulated links, cast joint housings, cable dress pack and visible gripper.
 const robot=new THREE.Group();robot.position.set(-.2,0,-.8);robot.rotation.y=2.35;scene.add(robot);
 box(robot,'robot pedestal',[0,.45,0],[1.1,.9,1.1],mats.steel,true);
 const base=new THREE.Group();base.position.y=.9;robot.add(base);
@@ -440,6 +469,12 @@ for(let a=0;a<8;a++){const ang=a*Math.PI/4;const bolt=cyl(robot,'base anchor bol
 cyl(base,'axis 1 upper cover',[0,.62,0],.31,.31,.18,mats.dark,'y',20);cyl(shoulder,'axis 2 joint cap',[0,1.7,0],.28,.28,.18,mats.dark,'z',20);cyl(elbow,'axis 3 joint cap',[1.25,.55,0],.25,.25,.16,mats.dark,'z',20);
 tube(robot,'robot dress pack',[[.25,1.25,.28],[.5,2.0,.32],[1.0,2.5,.32],[1.7,2.45,.28],[2.0,1.9,.25]],.045,mats.dark);
 for(let i=0;i<3;i++){cyl(wrist,'wrist joint ring',[.12+i*.17,0,0],.19,.19,.045,i===1?mats.yellow:mats.steel,'x',16)}
+// Robot axis covers, bolted access caps and hose retainers add believable mechanical transitions.
+for(const [g,p,r] of [[base,[0,.62,.34],.12],[shoulder,[0,1.7,.2],.10],[elbow,[1.25,.55,.18],.09]]){
+ cyl(g,'ABB axis service cover',p,r,r,.035,mats.dark,'z',20);
+ for(let i=0;i<6;i++){const a=i*Math.PI/3;cyl(g,'ABB service cover bolt',[p[0]+Math.cos(a)*r*.72,p[1]+Math.sin(a)*r*.72,p[2]+.025],.018,.018,.025,panelEdgeMat,'z',8)}
+}
+tube(robot,'robot dress pack upper return',[[.15,1.1,-.28],[.4,1.65,-.34],[.95,2.1,-.32],[1.55,2.3,-.28],[2.05,1.85,-.22]],.028,mats.steel);
 
 const robotPartMat=new THREE.MeshStandardMaterial({color:0x6f9fa8,metalness:.12,roughness:.34});
 
