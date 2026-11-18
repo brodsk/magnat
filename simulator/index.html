@@ -410,15 +410,19 @@ function setRobotTool(type){
 }
 setRobotTool('suction4');
 const robotNameplate=box(robot,'ABB robot nameplate',[0,1.12,.58],[.82,.25,.055],mats.dark);const robotLabel=labelPlane('ABB · IRB',.72,.19);robotLabel.position.set(0,1.12,.611);robot.add(robotLabel);
-// Robot extraction station: machine-side hand-off, guarding posts and local status stack.
+// ABB robot foundation is seated on the factory floor inside the main safety enclosure.
 const robotPad=box(scene,'ABB robot foundation',[-.2,.08,-.8],[2.05,.16,2.05],mats.dark);
-for(const [x,z] of [[-1.22,-1.82],[.82,-1.82],[-1.22,.22],[.82,.22]]){box(scene,'robot cell guard post',[x,1.12,z],[.09,2.24,.09],mats.yellow);cyl(scene,'robot guard anchor',[x,.18,z],.08,.08,.06,mats.steel,'y',12)}
-// Fixed perimeter panels turn the four posts into a recognisable guarded robot cell.
-const fenceMeshMat=new THREE.MeshStandardMaterial({color:0x819196,metalness:.42,roughness:.58});
-function addRobotFenceX(name,x1,x2,z){box(scene,name+' upper rail',[(x1+x2)/2,2.18,z],[x2-x1,.07,.07],mats.yellow);box(scene,name+' lower rail',[(x1+x2)/2,.18,z],[x2-x1,.07,.07],mats.yellow);for(let x=x1+.1;x<x2-.04;x+=.16)box(scene,name+' mesh upright',[x,1.18,z],[.012,1.9,.018],fenceMeshMat);for(let y=.34;y<2.1;y+=.18)box(scene,name+' mesh crosswire',[(x1+x2)/2,y,z],[x2-x1-.08,.012,.018],fenceMeshMat)}
-function addRobotFenceZ(name,x,z1,z2){box(scene,name+' upper rail',[x,2.18,(z1+z2)/2],[.07,.07,z2-z1],mats.yellow);box(scene,name+' lower rail',[x,.18,(z1+z2)/2],[.07,.07,z2-z1],mats.yellow);for(let z=z1+.1;z<z2-.04;z+=.16)box(scene,name+' mesh upright',[x,1.18,z],[.018,1.9,.012],fenceMeshMat);for(let y=.34;y<2.1;y+=.18)box(scene,name+' mesh crosswire',[x,y,(z1+z2)/2],[.018,.012,z2-z1-.08],fenceMeshMat)}
-addRobotFenceX('robot rear safety panel',-1.22,.82,-1.82);addRobotFenceZ('robot left safety panel',-1.22,-1.82,.22);addRobotFenceZ('robot right safety panel',.82,-1.82,.22);addRobotFenceX('robot access gate left leaf',-1.22,-.22,.22);addRobotFenceX('robot access gate right leaf',-.22,.82,.22);cyl(scene,'robot gate hinge upper',[-1.16,2.0,.22],.045,.045,.22,mats.dark,'y',12);cyl(scene,'robot gate hinge lower',[-1.16,.35,.22],.045,.045,.22,mats.dark,'y',12);box(scene,'robot gate latch',[-.22,1.15,.22],[.07,.28,.12],mats.dark);
-box(scene,'robot cell status tower',[1.42,1.65,-1.15],[.18,3.3,.18],mats.dark);cyl(scene,'robot status green',[1.42,2.8,-1.15],.09,.09,.2,mats.green);cyl(scene,'robot status amber',[1.42,2.5,-1.15],.09,.09,.2,mats.yellow);cyl(scene,'robot status red',[1.42,2.2,-1.15],.09,.09,.2,mats.red);
+for(const [x,z] of [[-1.12,-1.72],[.72,-1.72],[-1.12,.12],[.72,.12]]){
+ cyl(scene,'ABB foundation anchor plate',[x,.035,z],.105,.105,.055,mats.steel,'y',16);
+ cyl(scene,'ABB foundation anchor bolt',[x,.075,z],.035,.035,.035,mats.yellow,'y',10);
+}
+// The main perimeter cage above is the only robot enclosure. Do not build a second,
+// smaller overlapping cage around the arm: that made the workcell look fragmented.
+box(scene,'robot cell status tower',[1.42,1.65,-1.15],[.18,3.3,.18],mats.dark);
+box(scene,'robot status tower floor foot',[1.42,.07,-1.15],[.34,.14,.34],mats.steel);
+cyl(scene,'robot status green',[1.42,2.8,-1.15],.09,.09,.2,mats.green);
+cyl(scene,'robot status amber',[1.42,2.5,-1.15],.09,.09,.2,mats.yellow);
+cyl(scene,'robot status red',[1.42,2.2,-1.15],.09,.09,.2,mats.red);
 // Robot base ring, axis covers, service conduit and wrist details.
 cyl(robot,'robot base turntable',[0,.92,0],.53,.53,.14,mats.dark,'y',24);cyl(robot,'robot base trim',[0,.99,0],.46,.46,.045,mats.yellow,'y',24);
 for(let a=0;a<8;a++){const ang=a*Math.PI/4;const bolt=cyl(robot,'base anchor bolt',[Math.cos(ang)*.43,.16,Math.sin(ang)*.43],.045,.045,.035,mats.white,'y',10)}
@@ -600,6 +604,7 @@ const operatorShelf=box(scene,'operator monitor shelf',[3.62,1.48,1.72],[1.5,.14
 // Brackets visibly tie the shelf to the cage side frame; no freestanding desk.
 for(const z of [1.22,2.22]){
  box(scene,'operator shelf mounting arm',[3.0,1.42,z],[1.25,.12,.1],mats.steel);
+ box(scene,'operator shelf cage-side gusset',[2.58,1.37,z],[.16,.34,.22],mats.dark);
  box(scene,'operator shelf vertical bracket',[3.0,.82,z],[.1,1.25,.1],mats.dark);
  box(scene,'operator shelf wall clamp',[2.58,1.42,z],[.12,.28,.2],mats.yellow);
 }
@@ -674,8 +679,8 @@ drawOperatorJitScreen();
 const operatorScreenTexture=new THREE.CanvasTexture(operatorScreenCanvas);operatorScreenTexture.colorSpace=THREE.SRGBColorSpace;
 const operatorScreen=new THREE.Mesh(new THREE.PlaneGeometry(1.72,.967),new THREE.MeshBasicMaterial({map:operatorScreenTexture}));
 operatorScreen.position.set(3.62,2.55,1.294);scene.add(operatorScreen);
-box(scene,'operator monitor stand neck',[3.62,1.94,1.55],[.16,.72,.14],mats.steel);
-box(scene,'operator monitor stand base',[3.62,1.6,1.55],[.62,.055,.34],mats.dark);
+box(scene,'operator monitor stand neck',[3.62,1.98,1.55],[.16,.78,.14],mats.steel);
+box(scene,'operator monitor stand base',[3.62,1.585,1.55],[.62,.07,.34],mats.dark);
 cyl(scene,'monitor power indicator',[4.45,2.0,1.29],.025,.025,.018,mats.green,'z',12);
 // Emergency-stop pendant is fixed to the operator-side conveyor edge, not floating on a remote pedestal.
 box(scene,'operator emergency pendant housing',[2.15,.98,2.72],[.42,.18,.58],mats.dark,true);
@@ -949,12 +954,7 @@ document.querySelector('#interact').addEventListener('click',interact);addEventL
   cyl(scene,'electrical cabinet latch',[15.63,1.18,z+.48],.035,.035,.035,mats.yellow,'x',10);
   for(const dz of [-.57,.57])for(const y of [.92,2.78])cyl(scene,'electrical cabinet screw',[15.63,y,z+dz],.022,.022,.025,fastenerMat,'x',8);
  }
- // Workcell visual anchors: protective bollards, rack labels and realistic floor wear strips.
- for(const [x,z] of [[-9.4,-7.2],[-9.4,1.0],[8.0,-7.2],[8.0,1.0]]){
-  cyl(scene,'yellow safety bollard',[x,.48,z],.12,.12,.92,mats.yellow,'y',18);
-  cyl(scene,'bollard base flange',[x,.07,z],.19,.19,.09,mats.dark,'y',18);
-  for(let y=.24;y<.82;y+=.24)box(scene,'bollard black hazard band',[x,y,z],[.245,.095,.245],mats.dark);
- }
+ // Detached decorative bollards removed to keep the workcell layout faithful to the reference.
  // Operator station gets a stronger industrial finish and small hardware details.
  for(const x of [2.94,4.3])for(const z of [1.24,2.2]){
   cyl(scene,'operator shelf mounting bolt',[x,1.5,z],.035,.035,.035,fastenerMat,'y',10);
