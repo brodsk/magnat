@@ -102,6 +102,8 @@ for(let z=-12;z<=12;z+=4){box(scene,'roof purlin',[0,5.62,z],[30,.12,.12],mats.s
 for(let x=-12;x<=12;x+=4)for(const z of [-.1,.1]){
  cyl(scene,'LED fixture suspension rod',[x,5.525,z],.022,.022,.37,mats.steel,'y',10);
 }
+const craneSteel=new THREE.MeshStandardMaterial({color:0x35464e,metalness:.78,roughness:.28});
+const craneYellow=new THREE.MeshStandardMaterial({color:0xf2b52f,metalness:.28,roughness:.42});
 // Crane runway beams are tied back to the roof purlins at each crossing.
 for(const x of [-7,.7])for(const z of [-4,0,4]){
  cyl(scene,'crane runway vertical hanger',[x,5.36,z],.035,.035,.4,craneSteel,'y',12);
@@ -189,8 +191,6 @@ const oldMould=makeMould('OLD MOULD',[-3.45,1.85,-3],0x34434a);
 const newMould=makeMould('NEW MOULD',[-4.8,1.50,1.2],0x45565e);
 targets.push(oldMould.body,newMould.body);
 // Overhead bridge crane, hoist, pendant and two-bay mould storage rack.
-const craneSteel=new THREE.MeshStandardMaterial({color:0x35464e,metalness:.78,roughness:.28});
-const craneYellow=new THREE.MeshStandardMaterial({color:0xf2b52f,metalness:.28,roughness:.42});
 for(const x of [-7,.7]){
  box(scene,'crane runway beam',[x,5.02,-1],[.24,.28,12],craneSteel);
  for(let z=-6;z<=4;z+=2)box(scene,'crane rail support',[x,4.82,z],[.42,.12,.22],craneYellow);
