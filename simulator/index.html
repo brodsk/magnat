@@ -76,7 +76,9 @@ const sun=new THREE.DirectionalLight(0xfff1d8,2.3);sun.position.set(-8,15,9);sun
 const floorCanvas=document.createElement('canvas');floorCanvas.width=floorCanvas.height=256;const floorCtx=floorCanvas.getContext('2d');floorCtx.fillStyle='#68777c';floorCtx.fillRect(0,0,256,256);let floorSeed=417;for(let i=0;i<5200;i++){floorSeed=(floorSeed*1664525+1013904223)>>>0;const x=floorSeed&255;floorSeed=(floorSeed*1664525+1013904223)>>>0;const y=floorSeed&255;const shade=90+(floorSeed%45);floorCtx.fillStyle='rgba('+shade+','+(shade+7)+','+(shade+10)+','+(0.08+(floorSeed%18)/100)+')';floorCtx.fillRect(x,y,1+(floorSeed%3),1+(floorSeed%2))}const floorTexture=new THREE.CanvasTexture(floorCanvas);floorTexture.wrapS=floorTexture.wrapT=THREE.RepeatWrapping;floorTexture.repeat.set(6,6);floorTexture.colorSpace=THREE.SRGBColorSpace;
 function makeIndustrialSurface(base,seed,brushed=false){const c=document.createElement('canvas');c.width=512;c.height=512;const x=c.getContext('2d');x.fillStyle=base;x.fillRect(0,0,512,512);let q=seed>>>0;for(let i=0;i<6800;i++){q=(q*1664525+1013904223)>>>0;const px=q&511;q=(q*1664525+1013904223)>>>0;const py=q&511;const a=.018+((q>>>8)%30)/1000;x.fillStyle='rgba(25,35,40,'+a+')';x.fillRect(px,py,1+(q%2),1)}if(brushed){for(let i=0;i<150;i++){q=(q*1664525+1013904223)>>>0;const y=q&511;const xx=(q>>>9)&511;x.strokeStyle='rgba(255,255,255,.10)';x.lineWidth=1;x.beginPath();x.moveTo(xx,y);x.lineTo(Math.min(511,xx+35+(q%100)),y);x.stroke()}}const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.colorSpace=THREE.SRGBColorSpace;t.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return t}
 const steelSurface=makeIndustrialSurface('#f3f5f5',103,true),paintSurface=makeIndustrialSurface('#fff8f0',219),darkSurface=makeIndustrialSurface('#f0f2f2',331),whiteSurface=makeIndustrialSurface('#ffffff',447),wallSurface=makeIndustrialSurface('#f8f9f8',559);
-const mats={floor:new THREE.MeshStandardMaterial({color:0xffffff,map:floorTexture,roughness:.96}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,map:wallSurface,roughness:.9}),steel:new THREE.MeshStandardMaterial({color:0x53636a,map:steelSurface,metalness:.72,roughness:.34}),dark:new THREE.MeshStandardMaterial({color:0x202a30,map:darkSurface,metalness:.38,roughness:.58}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,map:whiteSurface,metalness:.25,roughness:.38}),orange:new THREE.MeshStandardMaterial({color:0xf28c28,map:paintSurface,metalness:.28,roughness:.38}),glass:new THREE.MeshPhysicalMaterial({color:0x9bc4d0,transparent:true,opacity:.34,metalness:.08,roughness:.12,clearcoat:.8,clearcoatRoughness:.08}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d,roughness:.42}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f,metalness:.18,roughness:.4}),red:new THREE.MeshStandardMaterial({color:0xf05c54,metalness:.12,roughness:.34})};
+function makeMicroBump(seed){const c=document.createElement('canvas');c.width=c.height=256;const ctx=c.getContext('2d'),im=ctx.createImageData(256,256);let q=seed>>>0;for(let i=0;i<im.data.length;i+=4){q=(q*1664525+1013904223)>>>0;const v=112+(q&63);im.data[i]=im.data[i+1]=im.data[i+2]=v;im.data[i+3]=255}ctx.putImageData(im,0,0);const t=new THREE.CanvasTexture(c);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.repeat.set(3,3);return t}
+const microBump=makeMicroBump(9917);
+const mats={floor:new THREE.MeshStandardMaterial({color:0xffffff,map:floorTexture,roughness:.96,bumpMap:microBump,bumpScale:.018}),wall:new THREE.MeshStandardMaterial({color:0xd4dadd,map:wallSurface,roughness:.9,bumpMap:microBump,bumpScale:.012}),steel:new THREE.MeshStandardMaterial({color:0x53636a,map:steelSurface,metalness:.72,roughness:.34,bumpMap:microBump,bumpScale:.012}),dark:new THREE.MeshStandardMaterial({color:0x202a30,map:darkSurface,metalness:.38,roughness:.58,bumpMap:microBump,bumpScale:.009}),white:new THREE.MeshStandardMaterial({color:0xdce3e5,map:whiteSurface,metalness:.25,roughness:.38,bumpMap:microBump,bumpScale:.008}),orange:new THREE.MeshPhysicalMaterial({color:0xf28c28,map:paintSurface,metalness:.24,roughness:.32,clearcoat:.48,clearcoatRoughness:.24,bumpMap:microBump,bumpScale:.008}),glass:new THREE.MeshPhysicalMaterial({color:0x9bc4d0,transparent:true,opacity:.34,metalness:.08,roughness:.12,clearcoat:.8,clearcoatRoughness:.08}),green:new THREE.MeshStandardMaterial({color:0x8be05a,emissive:0x234a0d,roughness:.42}),yellow:new THREE.MeshStandardMaterial({color:0xffc94f,metalness:.18,roughness:.4}),red:new THREE.MeshStandardMaterial({color:0xf05c54,metalness:.12,roughness:.34})};
 function box(parent,name,pos,size,mat,interactive=false){const m=new THREE.Mesh(new THREE.BoxGeometry(...size),mat);m.name=name;m.position.set(...pos);m.castShadow=true;m.receiveShadow=true;parent.add(m);if(interactive)targets.push(m);return m}
 function cyl(parent,name,pos,r1,r2,len,mat,axis='y',segments=16){const m=new THREE.Mesh(new THREE.CylinderGeometry(r1,r2,len,segments),mat);m.name=name;m.position.set(...pos);if(axis==='x')m.rotation.z=Math.PI/2;else if(axis==='z')m.rotation.x=Math.PI/2;m.castShadow=true;m.receiveShadow=true;parent.add(m);return m}
 function tube(parent,name,points,radius,mat){const curve=new THREE.CatmullRomCurve3(points.map(p=>new THREE.Vector3(...p)));const m=new THREE.Mesh(new THREE.TubeGeometry(curve,32,radius,8,false),mat);m.name=name;m.castShadow=true;parent.add(m);return m}
@@ -912,6 +914,62 @@ else if(n==='crane pendant'||n==='mold'||n==='replacement mould'){showMouldChang
  else if(n==='conveyor'){showPanel('Конвейер и перемещение деталей',`<p>Оборудование для дальнейшего перемещения отлитых деталей.</p><div class="field"><label>Состояние учебного конвейера</label><strong id="convState" style="color:var(--accent)">${conveyorRunning?'RUNNING':'STOPPED'}</strong></div><button class="action" id="conv">${conveyorRunning?'ОСТАНОВИТЬ КОНВЕЙЕР':'ЗАПУСТИТЬ КОНВЕЙЕР'}</button><p id="convResult">Virtual parts produced: ${partCount}.</p>`);content.querySelector('#conv').onclick=()=>{conveyorRunning=!conveyorRunning;content.querySelector('#convState').textContent=conveyorRunning?'RUNNING':'STOPPED';content.querySelector('#conv').textContent=conveyorRunning?'ОСТАНОВИТЬ КОНВЕЙЕР':'ЗАПУСТИТЬ КОНВЕЙЕР';content.querySelector('#convResult').textContent=conveyorRunning?'Ролики конвейера движутся в учебной модели.':'Конвейер остановлен.';toast(conveyorRunning?'Конвейер запущен':'Конвейер остановлен')}}
 else{showPanel('Оборудование',`<p>${n} · This equipment will receive a dedicated training module in a later build.</p>`)}}
 document.querySelector('#interact').addEventListener('click',interact);addEventListener('keydown',e=>{if(e.code==='KeyE'&&!activePanel)interact();if(e.code==='Escape')closePanel()});
+
+ // GRAPHICS PASS · practical industrial detail, surface response and readable workcell architecture.
+ const fastenerMat=new THREE.MeshStandardMaterial({color:0x9ba7aa,metalness:.86,roughness:.24});
+ const insetMat=new THREE.MeshStandardMaterial({color:0x172329,metalness:.35,roughness:.55});
+ const labelWhite=new THREE.MeshStandardMaterial({color:0xe8ecec,roughness:.72});
+ // ENGEL cabinet panel seams, service fasteners and recessed ventilation.
+ for(const y of [.78,1.28,1.78,2.28,2.78])for(const z of [-1.05,1.05]){
+  cyl(engel,'cabinet panel fixing screw',[-2.72,y,z],.026,.026,.025,fastenerMat,'x',10);
+ }
+ for(let i=0;i<7;i++){
+  box(engel,'injection drive ventilation slot',[2.8,1.22+i*.075,.415],[.42,.018,.012],insetMat);
+ }
+ box(engel,'barrel insulation cover',[1.82,2.16,-.25],[1.75,.16,.58],mats.dark);
+ for(let i=0;i<5;i++)box(engel,'barrel cover seam',[1.02+i*.34,2.16,.045],[.018,.17,.6],mats.steel);
+ // More convincing mould platen machining: concentric guide bushings and tie-bar end retainers.
+ for(const z of [-.84,.84])for(const y of [.92,2.78]){
+  cyl(engel,'platen guide bushing',[-1.45,y,z],.12,.12,.16,fastenerMat,'x',20);
+  cyl(engel,'tie bar retainer',[.55,y,z],.16,.16,.09,mats.dark,'x',20);
+ }
+ // Safety labels and high-contrast service identifiers on the machine.
+ box(engel,'high voltage warning plate',[-2.15,2.22,1.205],[.34,.28,.025],mats.yellow);
+ const voltageMark=labelPlane('⚡ 400 V',.31,.19);voltageMark.position.set(-2.15,2.22,1.222);engel.add(voltageMark);
+ box(engel,'hot surface warning plate',[1.82,2.43,.72],[.42,.22,.025],mats.yellow);
+ const hotMark=labelPlane('HOT',.35,.16);hotMark.position.set(1.82,2.43,.738);engel.add(hotMark);
+ // Cable drops and rigid utility conduits are routed along the factory structure.
+ const conduitMat=new THREE.MeshStandardMaterial({color:0x59686e,metalness:.62,roughness:.38});
+ tube(scene,'machine overhead power conduit',[[-7.8,4.92,-2.5],[-7.0,4.65,-2.5],[-5.8,4.55,-2.5],[-5.2,4.1,-2.5],[-5.1,3.2,-2.5]],.055,conduitMat);
+ for(const z of [-7,-3,1,5,9]){
+  box(scene,'right wall electrical panel frame',[15.78,1.85,z],[.12,2.25,1.5],mats.steel);
+  box(scene,'right wall electrical panel door',[15.70,1.85,z],[.055,2.08,1.34],mats.dark);
+  box(scene,'electrical panel inspection window',[15.665,2.25,z],[.018,.42,.82],mats.steel);
+  for(let k=0;k<4;k++)box(scene,'electrical panel ventilation',[15.65,1.72-k*.09,z],[.018,.025,.72],mats.white);
+  cyl(scene,'electrical cabinet latch',[15.63,1.18,z+.48],.035,.035,.035,mats.yellow,'x',10);
+  for(const dz of [-.57,.57])for(const y of [.92,2.78])cyl(scene,'electrical cabinet screw',[15.63,y,z+dz],.022,.022,.025,fastenerMat,'x',8);
+ }
+ // Workcell visual anchors: protective bollards, rack labels and realistic floor wear strips.
+ for(const [x,z] of [[-9.4,-7.2],[-9.4,1.0],[8.0,-7.2],[8.0,1.0]]){
+  cyl(scene,'yellow safety bollard',[x,.48,z],.12,.12,.92,mats.yellow,'y',18);
+  cyl(scene,'bollard base flange',[x,.07,z],.19,.19,.09,mats.dark,'y',18);
+  for(let y=.24;y<.82;y+=.24)box(scene,'bollard black hazard band',[x,y,z],[.245,.095,.245],mats.dark);
+ }
+ // Operator station gets a stronger industrial finish and small hardware details.
+ for(const x of [2.94,4.3])for(const z of [1.24,2.2]){
+  cyl(scene,'operator shelf mounting bolt',[x,1.5,z],.035,.035,.035,fastenerMat,'y',10);
+ }
+ box(scene,'operator station cable raceway',[3.05,1.34,1.72],[.16,.16,.92],mats.dark);
+ tube(scene,'operator monitor power lead',[[3.18,1.33,1.72],[3.25,1.2,1.45],[3.25,.82,1.4],[3.0,.7,1.22]],.022,insetMat);
+ // Sharper light fittings with recessed reflectors and diffusers.
+ for(let x=-12;x<=12;x+=4){
+  box(scene,'LED fixture reflector',[x,5.245,0],[1.38,.035,.36],mats.steel);
+  box(scene,'LED diffuser bright core',[x,5.19,0],[1.12,.018,.19],new THREE.MeshStandardMaterial({color:0xfff7df,emissive:0xffe9bd,emissiveIntensity:.7,roughness:.28}));
+ }
+ // A little extra fill light keeps dark machinery readable on mobile displays.
+ const workFill=new THREE.PointLight(0xd9eaff,9,10,2);workFill.position.set(-2,4.1,1.5);scene.add(workFill);
+ const operatorFill=new THREE.PointLight(0xffe6c7,5,6,2);operatorFill.position.set(3.5,3.2,2.4);scene.add(operatorFill);
+
 function animate(){requestAnimationFrame(animate);const dt=Math.min(clock.getDelta(),.05);if(!activePanel)move(dt);updateMachineMotion(dt);updateMouldMotion(dt);updateRobotTransfer(dt);currentTarget=nearestTarget();const hint=document.querySelector('#hint');const targetNames={'control console':'пульт управления ENGEL','ENGEL base':'основание термопластавтомата','clamping unit':'узел смыкания','mold':'пресс-форма','injection unit':'узел впрыска','robot pedestal':'основание робота ABB','material dryer':'сушилка гранулята','dryer hopper':'бункер сушилки','temperature controller':'термостат пресс-формы','safety gate':'защитная дверь','crane pendant':'пульт мостового крана','conveyor':'конвейер','replacement mould':'сменная пресс-форма'};hint.innerHTML=currentTarget?'Рядом: <strong>'+(targetNames[currentTarget.name]||currentTarget.name)+'</strong> · нажмите «ДЕЙСТВИЕ»':'Осматривайте ячейку. Подойдите к оборудованию и наведитесь на него.';renderer.render(scene,camera)}
 const clock=new THREE.Clock();updateCamera();animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.setSize(innerWidth,innerHeight)});
