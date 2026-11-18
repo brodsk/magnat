@@ -419,12 +419,13 @@ tube(engel,'hydraulic hose',[[1.0,1.15,.98],[1.35,.85,1.0],[2.0,.9,.95],[2.55,1.
 const robot=new THREE.Group();robot.position.set(-.2,0,-.8);robot.rotation.y=2.35;scene.add(robot);
 box(robot,'robot pedestal',[0,.45,0],[1.1,.9,1.1],mats.steel,true);
 const base=new THREE.Group();base.position.y=.9;robot.add(base);
-const axis1=new THREE.Mesh(new THREE.CylinderGeometry(.43,.5,.55,20),mats.orange);axis1.position.y=.25;base.add(axis1);
-const arm1=box(base,'ABB axis 2',[0,1.0,0],[.55,1.5,.55],mats.orange,true);arm1.rotation.z=-.25;
+const axis1=new THREE.Mesh(new THREE.CylinderGeometry(.43,.5,.55,24),mats.orange);axis1.position.y=.25;base.add(axis1);
+// Rounded cast housings replace the old rectangular robot links while preserving the articulated pivots.
+const arm1=new THREE.Mesh(new THREE.CapsuleGeometry(.27,.96,6,18),mats.orange);arm1.name='ABB axis 2';arm1.position.set(0,1.0,0);arm1.castShadow=true;arm1.receiveShadow=true;base.add(arm1);targets.push(arm1);
 const shoulder=new THREE.Group();shoulder.position.set(0,1.7,0);base.add(shoulder);
-const upper=box(shoulder,'ABB upper arm',[.65,.25,0],[1.45,.38,.42],mats.orange,true);upper.rotation.z=-.25;
+const upper=new THREE.Mesh(new THREE.CapsuleGeometry(.205,1.04,6,18),mats.orange);upper.name='ABB upper arm';upper.position.set(.65,.25,0);upper.rotation.z=Math.PI/2-.25;upper.castShadow=true;upper.receiveShadow=true;shoulder.add(upper);targets.push(upper);
 const elbow=new THREE.Group();elbow.position.set(1.25,.55,0);shoulder.add(elbow);
-const fore=box(elbow,'ABB forearm',[.62,0,0],[1.3,.3,.32],mats.orange,true);
+const fore=new THREE.Mesh(new THREE.CapsuleGeometry(.16,.98,6,18),mats.orange);fore.name='ABB forearm';fore.position.set(.62,0,0);fore.rotation.z=Math.PI/2;fore.castShadow=true;fore.receiveShadow=true;elbow.add(fore);targets.push(fore);
 const wrist=new THREE.Group();wrist.position.set(1.25,0,0);elbow.add(wrist);
 box(wrist,'ABB wrist',[.18,0,0],[.45,.35,.35],mats.steel);
 const robotToolMount=new THREE.Group();robotToolMount.name='quick-change end-effector mount';robotToolMount.position.set(.48,0,0);wrist.add(robotToolMount);
