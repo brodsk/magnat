@@ -917,7 +917,7 @@ function updateMachineMotion(dt){
  beaconRedMat.emissiveIntensity=active&&processAlarm==='alarm'?(Math.sin(processPulse*9)>0?2.5:.08):.02;
  beaconAmberMat.emissiveIntensity=active&&processAlarm==='warning'?(Math.sin(processPulse*4)>0?1.1:.05):.02;
  beaconGreenMat.emissiveIntensity=processAlarm==='none'&&!machineCycleActive?.55:.02;
- if(conveyorRunning)for(const roller of conveyorRollers)roller.rotation.z+=dt*5;
+ if(conveyorRunning){const conveyorAxis=new THREE.Vector3(1,0,0);for(const roller of conveyorRollers)roller.rotateOnWorldAxis(conveyorAxis,dt*5);beltTexture.offset.y-=dt*.42;}
 }
 
 const jitProjects=[{name:'MAGNA-BIG-BOX',material:'915-030',part:'Mirror housing set',box:'MAGNA returnable box',parts:24,order:'000007538445',mould:'WMSW-700-OM8',target:8000},{name:'MAGNA-OM8-L',material:'915-030',part:'OM8 left mirror cover',box:'Blue KLT 4314',parts:16,order:'000007538447',mould:'WMSW-700-OM8',target:6000},{name:'MAGNA-OM8-R',material:'915-030',part:'OM8 right mirror cover',box:'Blue KLT 4314',parts:16,order:'000007538448',mould:'WMSW-700-OM8',target:6000}];
