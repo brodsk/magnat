@@ -147,19 +147,38 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 function message(t,warn=false){$('message').style.display='block';$('message').className=warn?'warning':'';$('message').textContent=t}
 $('photo').onchange=()=>{const f=$('photo').files[0];if(!f)return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(f);$('preview').src=photoUrl;$('preview').style.display='block';$('ocr').disabled=false;message('Фото загружено. Нажми «Распознать таблицу».')};
 $('clearPhoto').onclick=()=>{$('photo').value='';$('preview').style.display='none';$('ocr').disabled=true;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl='';$('message').style.display='none'};
-function parseTsv(tsv,imageWidth){
- const lines=new Map();
- for(const line of tsv.split(/\r?\n/)){const p=line.split('\t');if(p.length<12)continue;const text=p[11]?.trim();if(!text)continue;const top=+p[6],key=Math.round(top/7)*7;if(!lines.has(key))lines.set(key,[]);lines.get(key).push({x:+p[6-1],text,conf:+p[10]})}
- const ordered=[...lines.entries()].sort((a,b)=>a[0]-b[0]);
- const out=[];
- // Approximate column centers from the photographed production-board layout.
+function parseTsv(tsv,imageWidth,imageHeight){
+ // Tesseract TSV: left=6, top=7, width=8, height=9, confidence=10, text=11.
+ const words=[];
+ for(const line of tsv.split(/\r?\n/)){
+  const p=line.split('\t');if(p.length<12||Number(p[0])!==5)continue;
+  const text=(p[11]||'').trim();if(!text)continue;
+  const left=Number(p[6]),top=Number(p[7]),width=Number(p[8]),height=Number(p[9]),conf=Number(p[10]);
+  if(!Number.isFinite(left)||!Number.isFinite(top)||!Number.isFinite(width)||!Number.isFinite(height))continue;
+  words.push({x:(left+width/2)/imageWidth,y:top+height/2,text,conf});
+ }
+ words.sort((a,b)=>a.y-b.y||a.x-b.x);
+ const rows=[],tolerance=Math.max(8,imageHeight*.009);
+ for(const w of words){
+  let target=null,best=tolerance+1;
+  for(const row of rows){const d=Math.abs(row.y-w.y);if(d<best){best=d;target=row}}
+  if(!target||best>tolerance)rows.push({y:w.y,words:[w]});
+  else{target.words.push(w);target.y=target.words.reduce((sum,v)=>sum+v.y,0)/target.words.length}
+ }
  const centers=[.043,.102,.193,.257,.35,.423,.491,.564,.603,.656,.765];
- for(const [y,words] of ordered){
-  const row=Array(11).fill('');
-  for(const w of words){const x=w.x;let best=0,dist=Infinity;centers.forEach((c,i)=>{const d=Math.abs(x-c*1000);if(d<dist){dist=d;best=i}});row[best]+=(row[best]?' ':'')+w.text}
-  const joined=row.join(' ').trim();if(!joined||/status|číslo dielu|nazov dielu|vymena/i.test(joined))continue;
-  const r=Object.fromEntries(fields.map((f,i)=>[f,row[i].trim()]));r.review=true;
-  if(r.lis||r.part||r.msw||r.name||r.change)out.push(r)
+ const out=[];
+ for(const line of rows.sort((a,b)=>a.y-b.y)){
+  const cells=Array.from({length:11},()=>[]);
+  for(const w of line.words){
+   let best=0,dist=Infinity;
+   centers.forEach((c,i)=>{const d=Math.abs(w.x-c);if(d<dist){dist=d;best=i}});
+   cells[best].push(w);
+  }
+  const row=cells.map(cell=>cell.sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ').trim());
+  const joined=row.join(' ').trim();
+  if(!joined||/^(status|číslo dielu|názov dielu|nazov dielu|vymena)/i.test(joined))continue;
+  const r=Object.fromEntries(fields.map((f,i)=>[f,row[i]]));r.review=true;
+  if(r.lis||r.part||r.msw||r.name||r.change)out.push(r);
  }
  return out;
 }
@@ -175,7 +194,7 @@ $('ocr').onclick=async()=>{
   await worker.setParameters({tessedit_pageseg_mode:11,preserve_interword_spaces:'1'});
   const result=await worker.recognize(f,{rotateAuto:true},{text:true,blocks:true,tsv:true});
   const bitmap=await createImageBitmap(f);
-  const parsed=parseTsv(result.data.tsv||'',bitmap.width);
+  const parsed=parseTsv(result.data.tsv||'',bitmap.width,bitmap.height);
   bitmap.close?.();
   if(!parsed.length){message('Текст распознан, но строки таблицы автоматически разделить не удалось. Попробуй более ровное и крупное фото или внеси строки вручную.',true)}
   else{data=parsed;save();render();message('Распознано ориентировочно '+parsed.length+' строк. Все строки помечены «Проверить»: сверь колонки и значения с фотографией.',true)}
