@@ -136,7 +136,7 @@ function render(){
 function renderChanges(){
  const list=data.map((r,i)=>({r,i})).filter(x=>x.r.change&&x.r.change.trim()).sort((a,b)=>timeVal(a.r.change)-timeVal(b.r.change));
  if($('changeSort').value==='desc')list.reverse();
- $('changeList').innerHTML=list.length?list.map(({r,i})=>'<article class="change"><time>'+esc(r.change)+'</time> <span class="status '+statusClass(r.status)+'">'+esc(r.status||'Статус не указан')+'</span><div class="change-grid">'+[['Деталь',r.part],['MSW',r.msw],['Название',r.name],['ID детали',r.id],['Планировщик',r.planner],['MSW по плану',r.mswPlan],['Артикул',r.article],['Примечания',r.notes]].map(([a,b])=>'<div><span>'+a+'</span><b>'+esc(b||'—')+'</b></div>').join('')+'</div><div class="muted" style="margin-top:8px">Строка '+(i+1)+' в исходном списке</div></article>').join(''):'<p class="muted">Пока нет строк с указанным временем вымены. Загрузи фото или добавь данные в таблицу.</p>';
+ $('changeList').innerHTML=list.length?list.map(({r,i})=>'<article class="change"><time>'+esc(r.change)+'</time> <span class="status '+statusClass(r.status)+'">'+esc(r.status||'Статус не указан')+'</span><div class="change-grid">'+[['Деталь',r.part],['MSW',r.msw],['Название',r.name],['ID детали',r.id],['Планировщик',r.planner],['MSW по плану',r.mswPlan],['Артикул',r.article],['Примечания',r.notes]].filter(([a,b])=>String(b||'').trim()).map(([a,b])=>'<div><span>'+a+'</span><b>'+esc(b)+'</b></div>').join('')+'</div><div class="muted" style="margin-top:8px">Строка '+(i+1)+' в исходном списке</div></article>').join(''):'<p class="muted">Пока нет строк с указанным временем вымены. Загрузи фото или добавь данные в таблицу.</p>';
 }
 function timeVal(v){const m=String(v).match(/(\d{1,2})[:.](\d{2})/);return m?Number(m[1])*60+Number(m[2]):99999}
 $('rows').addEventListener('change',e=>{const t=e.target;if(!t.matches('input[data-i]'))return;const i=+t.dataset.i;data[i][t.dataset.f]=t.value;if(t.dataset.f==='change')data[i].review=false;save();render()});
@@ -148,7 +148,7 @@ function message(t,warn=false){$('message').style.display='block';$('message').c
 $('photo').onchange=()=>{const f=$('photo').files[0];if(!f)return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(f);$('preview').src=photoUrl;$('preview').style.display='block';$('ocr').disabled=false;message('Фото загружено. Нажми «Распознать таблицу».')};
 $('clearPhoto').onclick=()=>{$('photo').value='';$('preview').style.display='none';$('ocr').disabled=true;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl='';$('message').style.display='none'};
 function parseTsv(tsv,imageWidth,imageHeight){
- // Tesseract TSV: left=6, top=7, width=8, height=9, confidence=10, text=11.
+ // Read the column positions from the photographed table header instead of guessing them.
  const words=[];
  for(const line of tsv.split(/\r?\n/)){
   const p=line.split('\t');if(p.length<12||Number(p[0])!==5)continue;
@@ -165,24 +165,58 @@ function parseTsv(tsv,imageWidth,imageHeight){
   if(!target||best>tolerance)rows.push({y:w.y,words:[w]});
   else{target.words.push(w);target.y=target.words.reduce((sum,v)=>sum+v.y,0)/target.words.length}
  }
- const centers=[.043,.102,.193,.257,.35,.423,.491,.564,.603,.656,.765];
+ const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+ const headerRows=rows.filter(r=>r.y<imageHeight*.28).map(r=>{
+  const found={};let msw=[];
+  for(const w of r.words){
+   const n=norm(w.text);
+   if(n==='lis'||n==='1is')found.lis=w.x;
+   else if(n==='status')found.status=w.x;
+   else if(n==='cislo')found.part=w.x;
+   else if(n==='msw')msw.push(w.x);
+   else if(n==='nazov')found.name=w.x;
+   else if(n==='id')found.id=w.x;
+   else if(n==='poznamky')found.notes=w.x;
+   else if(n==='vymena'||n==='vymena')found.change=w.x;
+   else if(n==='idplanovac')found.planner=w.x;
+   else if(n==='mswplan')found.mswPlan=w.x;
+   else if(n==='dielartikel')found.article=w.x;
+  }
+  msw.sort((a,b)=>a-b);if(msw.length)found.msw=msw[0];if(msw.length>1)found.mswPlan=msw[1];
+  return {row:r,found,count:Object.keys(found).length};
+ }).sort((a,b)=>b.count-a.count);
+ const fallback=[.048,.114,.213,.293,.40,.482,.559,.642,.682,.74,.868];
+ const fieldOrder=['lis','status','part','msw','name','id','notes','change','planner','mswPlan','article'];
+ let centers=fallback.slice();
+ if(headerRows[0]&&headerRows[0].count>=7){
+  const found=headerRows[0].found;
+  centers=fieldOrder.map((key,i)=>Number.isFinite(found[key])?found[key]:fallback[i]);
+  // Interpolate missing header positions between detected neighbours.
+  for(let i=0;i<centers.length;i++)if(!Number.isFinite(found[fieldOrder[i]])){
+   let l=i-1,r=i+1;while(l>=0&&!Number.isFinite(found[fieldOrder[l]]))l--;while(r<centers.length&&!Number.isFinite(found[fieldOrder[r]]))r++;
+   if(l>=0&&r<centers.length)centers[i]=centers[l]+(centers[r]-centers[l])*(i-l)/(r-l);
+   else if(l>=0)centers[i]=centers[l]+(fallback[i]-fallback[l]);
+   else if(r<centers.length)centers[i]=centers[r]-(fallback[r]-fallback[i]);
+  }
+ }
+ const headerY=headerRows[0]?.row.y??-1;
+ const boundaries=centers.slice(0,-1).map((c,i)=>(c+centers[i+1])/2);
  const out=[];
  for(const line of rows.sort((a,b)=>a.y-b.y)){
+  if(line.y<=headerY+Math.max(10,imageHeight*.012))continue;
   const cells=Array.from({length:11},()=>[]);
   for(const w of line.words){
-   let best=0,dist=Infinity;
-   centers.forEach((c,i)=>{const d=Math.abs(w.x-c);if(d<dist){dist=d;best=i}});
-   cells[best].push(w);
+   let col=boundaries.findIndex(edge=>w.x<edge);if(col<0)col=10;
+   cells[col].push(w);
   }
   const row=cells.map(cell=>cell.sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ').trim());
   const joined=row.join(' ').trim();
-  if(!joined||/^(status|číslo dielu|názov dielu|nazov dielu|vymena)/i.test(joined))continue;
+  if(!joined)continue;
   const r=Object.fromEntries(fields.map((f,i)=>[f,row[i]]));r.review=true;
   if(r.lis||r.part||r.msw||r.name||r.change)out.push(r);
  }
  return out;
-}
-$('ocr').onclick=async()=>{
+}$('ocr').onclick=async()=>{
  const f=$('photo').files[0];if(!f)return;
  $('ocr').disabled=true;$('progress').style.display='block';$('bar').style.width='4%';message('Загружаю модуль распознавания. Не закрывай страницу.');
  let worker;
