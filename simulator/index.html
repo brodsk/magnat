@@ -240,8 +240,12 @@ function parseTsv(tsv,imageWidth,imageHeight){
   message('Распознаю текст на фотографии…');
   const result=await worker.recognize(canvas,{rotateAuto:true},{text:true,blocks:true,tsv:true});
   const parsed=parseTsv(result.data.tsv||'',canvas.width,canvas.height);
-  if(!parsed.length){message('Текст распознан, но строки таблицы автоматически разделить не удалось. Попробуй более ровное и крупное фото или внеси строки вручную.',true)}
-  else{data=parsed;save();render();message('Распознано ориентировочно '+parsed.length+' строк. Все строки помечены «Проверить»: сверь колонки и значения с фотографией.',true)}
+  // Keep the original table layout, but only presses with an actual Vymena time.
+  const changeRows=parsed.filter(r=>/\b\d{1,2}[:.]\d{2}\b/.test(String(r.change||'')));
+
+  if(!parsed.length){message('Не удалось распознать строки таблицы. Попробуй более ровное и крупное фото.',true)}
+  else if(!changeRows.length){data=[];save();render();message('Таблица распознана, но строки с временем в колонке Vymena не найдены. Проверь качество фото и положение колонки Vymena.',true)}
+  else{data=changeRows;save();render();message('Готово: оставлено '+changeRows.length+' строк с выменами. Остальные лисы без времени Vymena скрыты.',false)}
  }catch(e){message('Не удалось выполнить OCR: '+(e?.message||String(e))+'. Проверь подключение к интернету и попробуй снова.',true)}
  finally{if(worker){try{await worker.terminate()}catch(_){}}$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
 };
