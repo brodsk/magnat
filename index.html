@@ -190,12 +190,22 @@ $('ocr').onclick=async()=>{
   const mod=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm');
   const api=typeof mod.createWorker==='function'?mod:(mod.default||{});
   if(typeof api.createWorker!=='function')throw new Error('Не удалось загрузить API Tesseract.js (createWorker отсутствует)');
+  if(!f.type.startsWith('image/'))throw new Error('Выбранный файл не распознан как изображение. Выбери JPG или PNG.');
+  if(f.size===0)throw new Error('Файл фотографии пустой.');
+  if(f.size>20*1024*1024)throw new Error('Фото больше 20 МБ. Уменьши размер или выбери другое.');
+  message('Подготавливаю фотографию…');
+  let bitmap;
+  try{bitmap=await createImageBitmap(f)}catch(_){throw new Error('Браузер не смог открыть это фото. Пересохрани его как JPG или PNG и выбери снова.')}
+  const canvas=document.createElement('canvas');
+  canvas.width=bitmap.width;canvas.height=bitmap.height;
+  const ctx=canvas.getContext('2d');
+  if(!ctx){bitmap.close?.();throw new Error('Не удалось подготовить изображение в браузере.')}
+  ctx.drawImage(bitmap,0,0);bitmap.close?.();
   worker=await api.createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
   await worker.setParameters({tessedit_pageseg_mode:6,preserve_interword_spaces:'1'});
-  const result=await worker.recognize(f,{rotateAuto:true},{text:true,blocks:true,tsv:true});
-  const bitmap=await createImageBitmap(f);
-  const parsed=parseTsv(result.data.tsv||'',bitmap.width,bitmap.height);
-  bitmap.close?.();
+  message('Распознаю текст на фотографии…');
+  const result=await worker.recognize(canvas,{rotateAuto:true},{text:true,blocks:true,tsv:true});
+  const parsed=parseTsv(result.data.tsv||'',canvas.width,canvas.height);
   if(!parsed.length){message('Текст распознан, но строки таблицы автоматически разделить не удалось. Попробуй более ровное и крупное фото или внеси строки вручную.',true)}
   else{data=parsed;save();render();message('Распознано ориентировочно '+parsed.length+' строк. Все строки помечены «Проверить»: сверь колонки и значения с фотографией.',true)}
  }catch(e){message('Не удалось выполнить OCR: '+(e?.message||String(e))+'. Проверь подключение к интернету и попробуй снова.',true)}
