@@ -191,16 +191,15 @@ $('ocr').onclick=async()=>{
   const api=typeof mod.createWorker==='function'?mod:(mod.default||{});
   if(typeof api.createWorker!=='function')throw new Error('Не удалось загрузить API Tesseract.js (createWorker отсутствует)');
   worker=await api.createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
-  await worker.setParameters({tessedit_pageseg_mode:11,preserve_interword_spaces:'1'});
+  await worker.setParameters({tessedit_pageseg_mode:6,preserve_interword_spaces:'1'});
   const result=await worker.recognize(f,{rotateAuto:true},{text:true,blocks:true,tsv:true});
   const bitmap=await createImageBitmap(f);
   const parsed=parseTsv(result.data.tsv||'',bitmap.width,bitmap.height);
   bitmap.close?.();
   if(!parsed.length){message('Текст распознан, но строки таблицы автоматически разделить не удалось. Попробуй более ровное и крупное фото или внеси строки вручную.',true)}
   else{data=parsed;save();render();message('Распознано ориентировочно '+parsed.length+' строк. Все строки помечены «Проверить»: сверь колонки и значения с фотографией.',true)}
- }catch(e){message('Не удалось выполнить OCR: '+e.message+'. Проверь подключение к интернету и попробуй снова.',true)}
- finally{if(worker){try{await worker.terminate()}catch(_){}}}
- finally{$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
+ }catch(e){message('Не удалось выполнить OCR: '+(e?.message||String(e))+'. Проверь подключение к интернету и попробуй снова.',true)}
+ finally{if(worker){try{await worker.terminate()}catch(_){}}$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
 };
 function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
 $('exportCsv').onclick=()=>{const csv='\ufeff'+[labels,...data.map(r=>fields.map(f=>r[f]||''))].map(row=>row.map(csvEscape).join(';')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-shift-plan.csv')};
