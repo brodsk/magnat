@@ -1,30 +1,24 @@
-# MAGNA — Industrial Simulator
+# MAGNA — Shift Work Table
 
-Mobile-first, first-person 3D training simulator prototype.
+Mobile-first production-plan table for the MAGNA shift workflow.
+
+## Features
+- Upload a photo of the production planning screen.
+- In-browser OCR using Tesseract.js (the photo is processed in the browser, not uploaded to an application server).
+- Editable table with the source columns: Lis, Status, Číslo dielu, MSW, Názov dielu, ID, Poznámky, Vymena, IDPlanovac, MSW_Plan, DielArtikel.
+- Separate chronological list of mould changes (Vymena).
+- Search, status filtering, manual row entry and deletion.
+- CSV import/export, JSON backup, browser-local persistence and print view.
 
 ## Run locally
-Open `index.html` through a static web server (ES modules and the Three.js import map require HTTP):
+Serve the repository root with a static server, then open `/simulator/` or `/`.
+
 ```bash
 python -m http.server 8080
-``
-Then visit `http://localhost:8080`.
+```
 
-## Controls
-- Mobile: left virtual joystick to move; drag the right side of the screen to look; tap **INTERACT** to use equipment.
-- Desktop: WASD / arrow keys to move, drag the scene to look, press E to interact, Escape to close a panel.
+## OCR limitations
+OCR is an assisted first pass, not an authoritative data source. All recognized rows are flagged for manual review. Recognition quality depends on image sharpness, perspective, screen glare and column alignment. Verify every part number, mould/MSW identifier, change time and planner/project value against the original production screen before using the list.
 
-## Prototype scope
-- First-person walkable industrial cell.
-- Simplified ENGEL injection moulding machine, ABB-style six-axis robot, dryer, temperature controller, safety gate and conveyor.
-- Training-only HMI sliders and robot axis controls.
-- Responsive touch UI.
-
-## Important
-This is an educational prototype, not an engineering-grade digital twin. Parameter values and motion controls are illustrative only. Never use them as recipes or instructions for real machinery. Real machine setup, mould changes, robot programming and safety work must follow the exact machine/robot manuals, validated procedures, site risk assessment and qualified supervision.
-
-## Roadmap
-1. Accurate machine variants and dimensions (ENGEL, Zhafir, Haitian).
-2. Guided, safety-gated mould change workflow.
-3. Process model: material preparation, plasticising, injection, pack/hold, cooling, ejection and quality defects.
-4. ABB robot cell: taught targets, frames, gripper I/O, interlocks and a RAPID-inspired training editor.
-5. Peripheral equipment, fault diagnosis, shift tasks and mentor assessments.
+## Privacy and storage
+The photo is processed in the browser. The recognized table is saved in localStorage on the current device. Export CSV or download a JSON backup before clearing browser data or changing devices.
