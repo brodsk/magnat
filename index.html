@@ -98,7 +98,7 @@ document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelect
 function message(t,warn=false){$('message').style.display='block';$('message').className=warn?'warning':'';$('message').textContent=t}
 $('photo').onchange=()=>{const f=$('photo').files[0];if(!f)return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(f);$('preview').src=photoUrl;$('preview').style.display='block';$('ocr').disabled=false;message('Фото загружено. Нажми «Распознать таблицу».')};
 $('clearPhoto').onclick=()=>{$('photo').value='';$('preview').style.display='none';$('ocr').disabled=true;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl='';$('message').style.display='none'};
-function parseTsv(tsv){
+function parseTsv(tsv,imageWidth){
  const lines=new Map();
  for(const line of tsv.split(/\r?\n/)){const p=line.split('\t');if(p.length<12)continue;const text=p[11]?.trim();if(!text)continue;const top=+p[6],key=Math.round(top/7)*7;if(!lines.has(key))lines.set(key,[]);lines.get(key).push({x:+p[6-1],text,conf:+p[10]})}
  const ordered=[...lines.entries()].sort((a,b)=>a[0]-b[0]);
@@ -122,7 +122,7 @@ $('ocr').onclick=async()=>{
   const worker=await createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
   await worker.setParameters({tessedit_pageseg_mode:PSM.SPARSE_TEXT,preserve_interword_spaces:'1'});
   const result=await worker.recognize(f,{rotateAuto: true},{text:true,blocks:true,tsv:true});
-  const parsed=parseTsv(result.data.tsv||'');
+  const parsed=parseTsv(result.data.tsv||'',(await createImageBitmap(f)).width);
   await worker.terminate();
   if(!parsed.length){message('Текст распознан, но строки таблицы автоматически разделить не удалось. Попробуй более ровное и крупное фото или внеси строки вручную.',true)}
   else{data=parsed;save();render();message('Распознано ориентировочно '+parsed.length+' строк. Все строки помечены «Проверить»: сверь колонки и значения с фотографией.',true)}
