@@ -104,7 +104,7 @@ function parseTsv(tsv,imageWidth){
  const ordered=[...lines.entries()].sort((a,b)=>a[0]-b[0]);
  const out=[];
  // Approximate column centers from the photographed production-board layout.
- const centers=[.025,.105,.205,.315,.435,.49,.65,.695,.745,.855,.96];
+ const centers=[.043,.102,.193,.257,.35,.423,.491,.564,.603,.656,.765];
  for(const [y,words] of ordered){
   const row=Array(11).fill('');
   for(const w of words){const x=w.x;let best=0,dist=Infinity;centers.forEach((c,i)=>{const d=Math.abs(x-c*1000);if(d<dist){dist=d;best=i}});row[best]+=(row[best]?' ':'')+w.text}
