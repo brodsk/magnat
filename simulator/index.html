@@ -14,7 +14,7 @@ main{max-width:1500px;margin:auto;padding:16px;display:grid;gap:14px}
 h2{font-size:16px;margin:0 0 10px}.muted{color:var(--muted);font-size:12px;line-height:1.5}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1px solid #bdc9cd;background:#f7f9f9;color:#203038;border-radius:8px;padding:10px 13px;font-weight:650;cursor:pointer}.btn.primary{background:#176d3d;color:white;border-color:#176d3d}.btn:disabled{opacity:.5;cursor:wait}
 input,select{font:inherit;border:1px solid #bdc9cd;border-radius:8px;padding:10px;background:white;color:#1d2a30;max-width:100%}
-#photo{display:none}.upload{border:2px dashed #a9b9be;border-radius:10px;padding:18px;text-align:center;background:#f8fbfb;flex:1;min-width:220px;cursor:pointer}
+#photo{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;display:block;padding:0;border:0;z-index:2}.upload{position:relative;overflow:hidden;display:block}.upload{border:2px dashed #a9b9be;border-radius:10px;padding:18px;text-align:center;background:#f8fbfb;flex:1;min-width:220px;cursor:pointer}
 #preview{max-width:100%;max-height:340px;object-fit:contain;display:none;margin-top:12px;border-radius:8px;background:#e8edef}
 .progress{height:6px;background:#e4eaec;border-radius:9px;overflow:hidden;margin-top:10px;display:none}.progress span{display:block;height:100%;width:0;background:#23834d}
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stat{background:#f4f7f7;border:1px solid var(--line);border-radius:9px;padding:10px}.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:11px}
@@ -82,8 +82,7 @@ table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px;font
 <section class="card">
 <h2>1. Загрузить фотографию производственного плана</h2>
 <div class="toolbar">
-<label class="upload" for="photo"><b>＋ Выбрать фото из галереи</b><div class="muted">Можно прикрепить сохранённый снимок экрана или фотографию · JPG, PNG, WEBP</div></label>
-<input id="photo" type="file" accept="image/*">
+<label class="upload" id="photoPicker"><b>＋ Выбрать фото из галереи</b><div class="muted">Нажми здесь, чтобы открыть галерею · JPG, PNG, WEBP</div><input id="photo" type="file" accept="image/*" aria-label="Выбрать фотографию из галереи"></label>
 <button class="btn primary" id="ocr" disabled>Распознать таблицу</button>
 <button class="btn" id="clearPhoto">Убрать фото</button>
 </div>
