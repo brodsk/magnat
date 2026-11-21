@@ -44,17 +44,21 @@ table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px;font
  #allPane>.toolbar{grid-template-columns:1fr 1fr}
  #search{grid-column:1/-1}
  #statusFilter{grid-column:1/-1}
- .table-wrap{overflow:visible;max-height:none;border:0;background:transparent}
- table{display:block;width:100%;min-width:0;font-size:13px}
- thead{display:none}
- tbody{display:grid;gap:10px}
- tbody tr{display:block;background:#fff!important;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px #1d30390a}
- tbody td{display:grid;grid-template-columns:minmax(100px,36%) minmax(0,1fr);align-items:center;gap:8px;padding:8px 10px;white-space:normal;border-right:0;text-align:left}
- tbody td:before{content:attr(data-label);font-size:11px;font-weight:700;color:var(--muted);overflow-wrap:anywhere}
- tbody td input{width:100%;min-width:0;min-height:36px;padding:6px;border:1px solid #e0e6e8;background:#fbfcfc;font-size:13px}
- tbody td:last-child{display:flex;justify-content:flex-end;background:#f7f9f9}
- tbody td:last-child:before{content:""}
+ .table-wrap{overflow:auto;max-height:62vh;border:1px solid var(--line);background:#fff}
+ table{display:table;width:100%;min-width:1250px;font-size:12px}
+ thead{display:table-header-group}
+ tbody{display:table-row-group}
+ tbody tr{display:table-row;background:initial!important;border:0;border-radius:0;overflow:visible;box-shadow:none}
+ tbody td{display:table-cell;padding:7px 8px;white-space:nowrap;border-right:1px solid #edf0f1;text-align:left}
+ tbody td:before{content:none}
+ tbody td input{width:100%;min-width:75px;min-height:36px;padding:5px;border:1px solid transparent;background:transparent;font-size:12px}
+ tbody td:last-child{display:table-cell;background:transparent}
+ tbody td:last-child:before{content:none}
  tbody td button{min-width:42px;min-height:38px}
+ #changesPane .table-wrap{max-height:65vh}
+ #changesPane table{min-width:1100px}
+ #changesPane th:first-child,#changesPane td:first-child{position:sticky;left:0;background:#fff;z-index:2}
+ #changesPane th:first-child{background:#e8edef;z-index:3}
  .change-list{gap:10px}
  .change{padding:12px}
  .change time{font-size:18px}
@@ -107,9 +111,9 @@ table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px;font
 <div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Lis</th><th>Status</th><th>Číslo dielu</th><th>MSW</th><th>Názov dielu</th><th>ID</th><th>Poznámky</th><th>Vymena</th><th>IDPlanovac</th><th>MSW_Plan</th><th>DielArtikel</th><th>Проверка</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
 </div>
 <div id="changesPane" hidden>
-<div class="toolbar"><select id="changeSort"><option value="asc">Сначала ближайшие по времени</option><option value="desc">Сначала поздние</option></select><button class="btn" id="printChanges">Печать списка</button></div>
-<div class="change-list" id="changeList" style="margin-top:10px"></div>
-<p class="muted">В список попадают только строки, где в колонке Vymena указано время. Если в источнике время отсутствует, приложение его не придумывает.</p>
+<div class="toolbar"><strong>Таблица вымен — только лисы с указанным временем</strong><button class="btn" id="printChanges">Печать таблицы</button><button class="btn" id="exportChanges">Экспорт таблицы CSV</button></div>
+<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Lis</th><th>Status</th><th>Číslo dielu</th><th>MSW</th><th>Názov dielu</th><th>ID</th><th>Poznámky</th><th>Vymena</th><th>IDPlanovac</th><th>MSW_Plan</th><th>DielArtikel</th></tr></thead><tbody id="changeRows"></tbody></table></div>
+<p class="muted">Здесь отображаются только лисы, у которых распознано время в колонке Vymena. Таблица сохраняет структуру исходного плана; на телефоне её можно прокручивать по горизонтали.</p>
 </div>
 </section>
 <section class="card">
@@ -134,14 +138,13 @@ function render(){
  renderChanges();
 }
 function renderChanges(){
- const list=data.map((r,i)=>({r,i})).filter(x=>x.r.change&&x.r.change.trim()).sort((a,b)=>timeVal(a.r.change)-timeVal(b.r.change));
- if($('changeSort').value==='desc')list.reverse();
- $('changeList').innerHTML=list.length?list.map(({r,i})=>'<article class="change"><time>'+esc(r.change)+'</time> <span class="status '+statusClass(r.status)+'">'+esc(r.status||'Статус не указан')+'</span><div class="change-grid">'+[['Деталь',r.part],['MSW',r.msw],['Название',r.name],['ID детали',r.id],['Планировщик',r.planner],['MSW по плану',r.mswPlan],['Артикул',r.article],['Примечания',r.notes]].filter(([a,b])=>String(b||'').trim()).map(([a,b])=>'<div><span>'+a+'</span><b>'+esc(b)+'</b></div>').join('')+'</div><div class="muted" style="margin-top:8px">Строка '+(i+1)+' в исходном списке</div></article>').join(''):'<p class="muted">Пока нет строк с указанным временем вымены. Загрузи фото или добавь данные в таблицу.</p>';
+ const list=data.filter(r=>/\\b\\d{1,2}[:.]\\d{2}\\b/.test(String(r.change||''))).sort((a,b)=>timeVal(a.change)-timeVal(b.change));
+ $('changeRows').innerHTML=list.map(r=>'<tr>'+fields.map(f=>'<td>'+esc(r[f]||'')+'</td>').join('')+'</tr>').join('');
 }
 function timeVal(v){const m=String(v).match(/(\d{1,2})[:.](\d{2})/);return m?Number(m[1])*60+Number(m[2]):99999}
 $('rows').addEventListener('change',e=>{const t=e.target;if(!t.matches('input[data-i]'))return;const i=+t.dataset.i;data[i][t.dataset.f]=t.value;if(t.dataset.f==='change')data[i].review=false;save();render()});
 $('rows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(b){data.splice(+b.dataset.del,1);save();render()}});
-$('search').addEventListener('input',render);$('statusFilter').addEventListener('change',render);$('changeSort').addEventListener('change',renderChanges);
+$('search').addEventListener('input',render);$('statusFilter').addEventListener('change',render);
 $('addRow').onclick=()=>{data.push(Object.fromEntries(fields.map(f=>[f,''])));save();render()};
 document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('allPane').hidden=b.dataset.tab!=='all';$('changesPane').hidden=b.dataset.tab!=='changes'});
 function message(t,warn=false){$('message').style.display='block';$('message').className=warn?'warning':'';$('message').textContent=t}
@@ -245,18 +248,19 @@ function parseTsv(tsv,imageWidth,imageHeight){
 
   if(!parsed.length){message('Не удалось распознать строки таблицы. Попробуй более ровное и крупное фото.',true)}
   else if(!changeRows.length){data=[];save();render();message('Таблица распознана, но строки с временем в колонке Vymena не найдены. Проверь качество фото и положение колонки Vymena.',true)}
-  else{data=changeRows;save();render();message('Готово: оставлено '+changeRows.length+' строк с выменами. Остальные лисы без времени Vymena скрыты.',false)}
+  else{data=changeRows;save();render();document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='changes'));$('allPane').hidden=true;$('changesPane').hidden=false;message('Готово: сформирована отдельная таблица из '+changeRows.length+' лисов с выменами.',false)}
  }catch(e){message('Не удалось выполнить OCR: '+(e?.message||String(e))+'. Проверь подключение к интернету и попробуй снова.',true)}
  finally{if(worker){try{await worker.terminate()}catch(_){}}$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
 };
 function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+$('exportChanges').onclick=()=>{const rows=[labels,...data.filter(r=>/\\b\\d{1,2}[:.]\\d{2}\\b/.test(String(r.change||''))).map(r=>fields.map(f=>r[f]||''))];const csv='\\ufeff'+rows.map(row=>row.map(csvEscape).join(';')).join('\\r\\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-mold-changes.csv')};
 $('exportCsv').onclick=()=>{const csv='\ufeff'+[labels,...data.map(r=>fields.map(f=>r[f]||''))].map(row=>row.map(csvEscape).join(';')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-shift-plan.csv')};
 $('importCsv').onclick=()=>$('csvFile').click();
 $('csvFile').onchange=async()=>{const f=$('csvFile').files[0];if(!f)return;const text=await f.text();const lines=text.replace(/^\ufeff/,'').split(/\r?\n/).filter(Boolean);const delim=lines[0].includes(';')?';':',';const split=line=>{const a=[];let s='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&line[i+1]==='"'){s+='"';i++}else if(c==='"')q=!q;else if(c===delim&&!q){a.push(s);s=''}else s+=c}a.push(s);return a};data=lines.slice(1).map(line=>{const a=split(line);return Object.fromEntries(fields.map((f,i)=>[f,a[i]||'']))});save();render();message('Импортировано строк: '+data.length)};
 $('downloadJson').onclick=()=>download(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),rows:data},null,2)],{type:'application/json'}),'magna-shift-backup.json');
 function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
 $('clearData').onclick=()=>{if(confirm('Удалить все строки из таблицы?')){data=[];save();render()}};
-$('printChanges').onclick=()=>{const old=$('allPane').hidden;$('allPane').hidden=true;$('changesPane').hidden=false;window.print();$('allPane').hidden=old};
+$('printChanges').onclick=()=>{window.print()};
 try{data=JSON.parse(localStorage.getItem('magna-shift-table-v1')||'[]');if(!Array.isArray(data))data=[]}catch{data=[]}render();
 </script>
 </body>
