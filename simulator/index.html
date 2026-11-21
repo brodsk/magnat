@@ -167,16 +167,21 @@ function parseTsv(tsv,imageWidth){
 $('ocr').onclick=async()=>{
  const f=$('photo').files[0];if(!f)return;
  $('ocr').disabled=true;$('progress').style.display='block';$('bar').style.width='4%';message('Загружаю модуль распознавания. Не закрывай страницу.');
+ let worker;
  try{
-  const {createWorker,PSM}=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
-  const worker=await createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
-  await worker.setParameters({tessedit_pageseg_mode:PSM.SPARSE_TEXT,preserve_interword_spaces:'1'});
-  const result=await worker.recognize(f,{rotateAuto: true},{text:true,blocks:true,tsv:true});
-  const parsed=parseTsv(result.data.tsv||'',(await createImageBitmap(f)).width);
-  await worker.terminate();
+  const mod=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm');
+  const api=typeof mod.createWorker==='function'?mod:(mod.default||{});
+  if(typeof api.createWorker!=='function')throw new Error('Не удалось загрузить API Tesseract.js (createWorker отсутствует)');
+  worker=await api.createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
+  await worker.setParameters({tessedit_pageseg_mode:11,preserve_interword_spaces:'1'});
+  const result=await worker.recognize(f,{rotateAuto:true},{text:true,blocks:true,tsv:true});
+  const bitmap=await createImageBitmap(f);
+  const parsed=parseTsv(result.data.tsv||'',bitmap.width);
+  bitmap.close?.();
   if(!parsed.length){message('Текст распознан, но строки таблицы автоматически разделить не удалось. Попробуй более ровное и крупное фото или внеси строки вручную.',true)}
   else{data=parsed;save();render();message('Распознано ориентировочно '+parsed.length+' строк. Все строки помечены «Проверить»: сверь колонки и значения с фотографией.',true)}
  }catch(e){message('Не удалось выполнить OCR: '+e.message+'. Проверь подключение к интернету и попробуй снова.',true)}
+ finally{if(worker){try{await worker.terminate()}catch(_){}}}
  finally{$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
 };
 function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
