@@ -23,7 +23,57 @@ input,select{font:inherit;border:1px solid #bdc9cd;border-radius:8px;padding:10p
 table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px;font-size:12px}th{position:sticky;top:0;background:#e8edef;z-index:1;text-align:left;color:#34434a;font-size:11px}td,th{padding:7px 8px;border-bottom:1px solid #e3e8ea;border-right:1px solid #edf0f1;white-space:nowrap}tbody tr:nth-child(even){background:#f8fafb}td input{width:100%;min-width:75px;border:1px solid transparent;background:transparent;padding:5px;border-radius:4px;font-size:12px}td input:focus{background:white;border-color:#76a7c5;outline:2px solid #d9edf8}.status{font-weight:700;border-radius:4px;padding:4px 6px;display:inline-block}.s-prod{background:#d7f0df;color:#126b35}.s-stop{background:#ffebd0;color:#94500b}.s-heat{background:#dceaff;color:#245c9b}.s-other{background:#edf0f1;color:#48565c}
 .change-list{display:grid;gap:8px}.change{border:1px solid var(--line);border-left:4px solid #d18a26;border-radius:8px;padding:11px;background:#fff}.change time{font-weight:800;font-size:16px}.change-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.change-grid span{display:block;color:var(--muted);font-size:10px}.change-grid b{overflow-wrap:anywhere}
 #message{padding:9px 11px;border-radius:8px;background:#eef5f8;color:#315466;margin-top:9px;display:none}.warning{background:#fff5e7!important;color:#80500e!important}
-@media(max-width:650px){main{padding:10px}.stats{grid-template-columns:repeat(2,1fr)}.change-grid{grid-template-columns:repeat(2,1fr)}header{padding:14px}.card{padding:11px}}
+/* Mobile-first work layout */
+@media(max-width:700px){
+ body{font-size:14px;padding-bottom:env(safe-area-inset-bottom)}
+ header{position:sticky;top:0;z-index:20;padding:10px 14px;gap:6px;min-height:58px}
+ header strong{font-size:17px}header small{font-size:10px}
+ #saved{font-size:10px}
+ main{padding:10px;gap:10px}
+ .card{padding:12px;border-radius:10px}
+ h2{font-size:15px;line-height:1.3}
+ .toolbar{display:grid;grid-template-columns:1fr;width:100%;gap:8px}
+ .toolbar>*{width:100%;min-width:0}
+ .upload{min-width:0;padding:18px 12px}
+ .btn,input,select{min-height:44px;font-size:14px}
+ #preview{width:100%;max-height:260px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .stat{padding:9px}.stat b{font-size:20px}
+ .tabs{display:grid;grid-template-columns:1fr 1fr;position:sticky;top:58px;background:#fff;z-index:10;padding:0 0 9px}
+ .tab{min-height:44px;padding:10px 6px}
+ #allPane>.toolbar{grid-template-columns:1fr 1fr}
+ #search{grid-column:1/-1}
+ #statusFilter{grid-column:1/-1}
+ .table-wrap{overflow:visible;max-height:none;border:0;background:transparent}
+ table{display:block;width:100%;min-width:0;font-size:13px}
+ thead{display:none}
+ tbody{display:grid;gap:10px}
+ tbody tr{display:block;background:#fff!important;border:1px solid var(--line);border-radius:10px;overflow:hidden;box-shadow:0 1px 4px #1d30390a}
+ tbody td{display:grid;grid-template-columns:minmax(100px,36%) minmax(0,1fr);align-items:center;gap:8px;padding:8px 10px;white-space:normal;border-right:0;text-align:left}
+ tbody td:before{content:attr(data-label);font-size:11px;font-weight:700;color:var(--muted);overflow-wrap:anywhere}
+ tbody td input{width:100%;min-width:0;min-height:36px;padding:6px;border:1px solid #e0e6e8;background:#fbfcfc;font-size:13px}
+ tbody td:last-child{display:flex;justify-content:flex-end;background:#f7f9f9}
+ tbody td:last-child:before{content:""}
+ tbody td button{min-width:42px;min-height:38px}
+ .change-list{gap:10px}
+ .change{padding:12px}
+ .change time{font-size:18px}
+ .change-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ #changesPane>.toolbar{grid-template-columns:1fr}
+ #message{font-size:13px}
+}
+@media(max-width:390px){
+ main{padding:8px}
+ .card{padding:10px}
+ .change-grid{grid-template-columns:1fr}
+ tbody td{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:7px 8px}
+ .stat b{font-size:18px}
+}
+@media(min-width:701px) and (max-width:1000px){
+ main{padding:12px}
+ .table-wrap{max-height:68vh}
+ table{min-width:1100px}
+}
 </style>
 </head>
 <body>
@@ -80,7 +130,7 @@ function statusClass(s){s=(s||'').toUpperCase();return s.includes('VÝROBA')?'s-
 function render(){
  const q=$('search').value.toLowerCase(),sf=$('statusFilter').value;
  const shown=data.map((r,i)=>({r,i})).filter(({r})=>(!sf||r.status===sf)&&(!q||fields.some(f=>String(r[f]||'').toLowerCase().includes(q))));
- $('rows').innerHTML=shown.map(({r,i})=>'<tr>'+fields.map(f=>'<td><input aria-label="'+esc(f)+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(r[f])+'"></td>').join('')+'<td>'+(r.review?'<span class="status s-stop">Проверить</span>':'<span class="status s-prod">OK</span>')+'</td><td><button class="btn" data-del="'+i+'" title="Удалить строку">×</button></td></tr>').join('');
+ $('rows').innerHTML=shown.map(({r,i})=>'<tr>'+fields.map((f,j)=>'<td data-label="'+esc(labels[j])+'"><input aria-label="'+esc(f)+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(r[f])+'"></td>').join('')+'<td data-label="Проверка">'+(r.review?'<span class="status s-stop">Проверить</span>':'<span class="status s-prod">OK</span>')+'</td><td data-label="Действие"><button class="btn" data-del="'+i+'" title="Удалить строку">Удалить</button></td></tr>').join('');
  $('countAll').textContent=data.length;$('countProd').textContent=data.filter(r=>(r.status||'').toUpperCase().includes('VÝROBA')).length;$('countChanges').textContent=data.filter(r=>r.change&&r.change.trim()).length;$('countReview').textContent=data.filter(r=>r.review).length;
  renderChanges();
 }
