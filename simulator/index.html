@@ -521,8 +521,8 @@ function openCC300Page(name){
 }
 function syncCC300Param(id,value){
  paramsState[id]=Number(value);
- const mainInput=$('p-'+id),mainOutput=$('o-'+id),ccOutput=$('cc-out-'+id);
- if(mainInput)mainInput.value=value;
+ const mainInput=$('p-'+id),mainOutput=$('o-'+id),ccOutput=$('cc-out-'+id),ccInput=$('cc-'+id);
+ if(mainInput)mainInput.value=value;if(ccInput)ccInput.value=value;
  if(mainOutput)mainOutput.textContent=value+' '+params.find(p=>p.id===id).unit;
  if(ccOutput)ccOutput.textContent=value+' '+params.find(p=>p.id===id).unit;
  updateMetrics();
