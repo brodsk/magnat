@@ -1,267 +1,168 @@
 <!doctype html>
 <html lang="ru">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#17242b">
-<title>MAGNA — Shift Work Table</title>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111d24">
+<title>MAGNA · Наставник литьевого участка</title>
 <style>
-:root{color-scheme:light;--bg:#eef2f3;--panel:#fff;--ink:#1d2a30;--muted:#64747b;--line:#d4dde0;--green:#168044;--orange:#b96b12;--red:#b83232;--blue:#245c9b}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,sans-serif}
-header{background:#17272f;color:#fff;padding:16px max(16px,env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header strong{letter-spacing:.12em;font-size:18px}header small{display:block;color:#b8c7cc;margin-top:3px}
-main{max-width:1500px;margin:auto;padding:16px;display:grid;gap:14px}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 2px 8px #1d30390a}
-h2{font-size:16px;margin:0 0 10px}.muted{color:var(--muted);font-size:12px;line-height:1.5}
-.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1px solid #bdc9cd;background:#f7f9f9;color:#203038;border-radius:8px;padding:10px 13px;font-weight:650;cursor:pointer}.btn.primary{background:#176d3d;color:white;border-color:#176d3d}.btn:disabled{opacity:.5;cursor:wait}
-input,select{font:inherit;border:1px solid #bdc9cd;border-radius:8px;padding:10px;background:white;color:#1d2a30;max-width:100%}
-.upload{border:2px dashed #a9b9be;border-radius:10px;padding:18px;text-align:center;background:#f8fbfb;flex:1;min-width:220px}.upload b{display:block;margin-bottom:5px}#photo{display:block;width:100%;max-width:100%;margin-top:12px;padding:10px;border:1px solid #bdc9cd;border-radius:8px;background:#fff;color:#203038;font:inherit;cursor:pointer}
-#preview{max-width:100%;max-height:340px;object-fit:contain;display:none;margin-top:12px;border-radius:8px;background:#e8edef}
-.progress{height:6px;background:#e4eaec;border-radius:9px;overflow:hidden;margin-top:10px;display:none}.progress span{display:block;height:100%;width:0;background:#23834d}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stat{background:#f4f7f7;border:1px solid var(--line);border-radius:9px;padding:10px}.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:11px}
-.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}.tab{border:0;border-radius:7px;background:#edf1f2;padding:9px 12px;color:#314047;font-weight:650}.tab.active{background:#1d7042;color:white}
-.filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:white;max-height:62vh}
-table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px;font-size:12px}th{position:sticky;top:0;background:#e8edef;z-index:1;text-align:left;color:#34434a;font-size:11px}td,th{padding:7px 8px;border-bottom:1px solid #e3e8ea;border-right:1px solid #edf0f1;white-space:nowrap}tbody tr:nth-child(even){background:#f8fafb}td input{width:100%;min-width:75px;border:1px solid transparent;background:transparent;padding:5px;border-radius:4px;font-size:12px}td input:focus{background:white;border-color:#76a7c5;outline:2px solid #d9edf8}.status{font-weight:700;border-radius:4px;padding:4px 6px;display:inline-block}.s-prod{background:#d7f0df;color:#126b35}.s-stop{background:#ffebd0;color:#94500b}.s-heat{background:#dceaff;color:#245c9b}.s-other{background:#edf0f1;color:#48565c}
-.change-list{display:grid;gap:8px}.change{border:1px solid var(--line);border-left:4px solid #d18a26;border-radius:8px;padding:11px;background:#fff}.change time{font-weight:800;font-size:16px}.change-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.change-grid span{display:block;color:var(--muted);font-size:10px}.change-grid b{overflow-wrap:anywhere}
-#message{padding:9px 11px;border-radius:8px;background:#eef5f8;color:#315466;margin-top:9px;display:none}.warning{background:#fff5e7!important;color:#80500e!important}
-/* Mobile-first work layout */
-@media(max-width:700px){
- body{font-size:14px;padding-bottom:env(safe-area-inset-bottom)}
- header{position:sticky;top:0;z-index:20;padding:10px 14px;gap:6px;min-height:58px}
- header strong{font-size:17px}header small{font-size:10px}
- #saved{font-size:10px}
- main{padding:10px;gap:10px}
- .card{padding:12px;border-radius:10px}
- h2{font-size:15px;line-height:1.3}
- .toolbar{display:grid;grid-template-columns:1fr;width:100%;gap:8px}
- .toolbar>*{width:100%;min-width:0}
- .upload{min-width:0;padding:18px 12px}
- .btn,input,select{min-height:44px;font-size:14px}
- #preview{width:100%;max-height:260px}
- .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
- .stat{padding:9px}.stat b{font-size:20px}
- .tabs{display:grid;grid-template-columns:1fr 1fr;position:sticky;top:58px;background:#fff;z-index:10;padding:0 0 9px}
- .tab{min-height:44px;padding:10px 6px}
- #allPane>.toolbar{grid-template-columns:1fr 1fr}
- #search{grid-column:1/-1}
- #statusFilter{grid-column:1/-1}
- .table-wrap{overflow:auto;max-height:62vh;border:1px solid var(--line);background:#fff}
- table{display:table;width:100%;min-width:1250px;font-size:12px}
- thead{display:table-header-group}
- tbody{display:table-row-group}
- tbody tr{display:table-row;background:initial!important;border:0;border-radius:0;overflow:visible;box-shadow:none}
- tbody td{display:table-cell;padding:7px 8px;white-space:nowrap;border-right:1px solid #edf0f1;text-align:left}
- tbody td:before{content:none}
- tbody td input{width:100%;min-width:75px;min-height:36px;padding:5px;border:1px solid transparent;background:transparent;font-size:12px}
- tbody td:last-child{display:table-cell;background:transparent}
- tbody td:last-child:before{content:none}
- tbody td button{min-width:42px;min-height:38px}
- #changesPane .table-wrap{max-height:65vh}
- #changesPane table{min-width:1100px}
- #changesPane th:first-child,#changesPane td:first-child{position:sticky;left:0;background:#fff;z-index:2}
- #changesPane th:first-child{background:#e8edef;z-index:3}
- .change-list{gap:10px}
- .change{padding:12px}
- .change time{font-size:18px}
- .change-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
- #changesPane>.toolbar{grid-template-columns:1fr}
- #message{font-size:13px}
-}
-@media(max-width:390px){
- main{padding:8px}
- .card{padding:10px}
- .change-grid{grid-template-columns:1fr}
- tbody td{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:7px 8px}
- .stat b{font-size:18px}
-}
-@media(min-width:701px) and (max-width:1000px){
- main{padding:12px}
- .table-wrap{max-height:68vh}
- table{min-width:1100px}
-}
+:root{color-scheme:dark;--bg:#10191f;--panel:#19262e;--panel2:#202f38;--line:#344650;--text:#e9f0f2;--muted:#9aabb2;--green:#42c47a;--amber:#f0b34e;--red:#f07171;--blue:#6fb7e8}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#0b1419;border-bottom:1px solid var(--line);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.brand{font-weight:900;letter-spacing:.16em;font-size:18px}.brand small{display:block;color:var(--muted);font-size:10px;letter-spacing:.12em;font-weight:600;margin-top:3px}
+.topright{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.pill{border:1px solid var(--line);border-radius:99px;padding:6px 10px;color:var(--muted);font-size:11px}.pill.live{color:var(--green);border-color:#286343}
+main{max-width:1500px;margin:auto;padding:16px;display:grid;grid-template-columns:270px minmax(0,1fr);gap:14px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;min-width:0}.sidebar{align-self:start;position:sticky;top:76px}.eyebrow{font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);font-weight:800}.title{font-size:19px;font-weight:800;margin:5px 0 4px}.sub{color:var(--muted);font-size:12px;line-height:1.5}
+select,input,button{font:inherit}select,input[type=number]{background:#101a20;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px;width:100%;min-width:0}
+.btn{background:#293b45;color:var(--text);border:1px solid #435963;border-radius:8px;padding:9px 12px;font-weight:700;cursor:pointer}.btn:hover{border-color:var(--blue)}.btn.primary{background:#176c43;border-color:#238956}.btn.warn{background:#704a1c;border-color:#9c6d2d}.btn:disabled{opacity:.35;cursor:not-allowed}
+.project-select{display:grid;gap:9px;margin:12px 0}.progress{height:7px;background:#0d171c;border-radius:10px;overflow:hidden;margin:12px 0}.progress>i{display:block;height:100%;background:var(--green);width:0;transition:width .25s}
+.mission-list{display:grid;gap:6px;margin-top:14px}.mission{display:flex;align-items:center;gap:9px;text-align:left;width:100%;background:transparent;border:1px solid transparent;color:var(--muted);border-radius:8px;padding:9px;cursor:pointer}.mission.active{background:#263b44;border-color:#45616d;color:var(--text)}.mission.done{color:var(--green)}.mission .num{width:24px;height:24px;display:grid;place-items:center;border-radius:50%;background:#293942;font-size:11px;font-weight:800;flex:none}.mission.active .num{background:#176c43;color:white}
+.workspace{display:grid;gap:14px;min-width:0}.hero{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap}.hero h1{font-size:21px;margin:4px 0}.hero-right{display:flex;gap:8px;flex-wrap:wrap}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:13px}.metric{background:#101a20;border:1px solid var(--line);border-radius:9px;padding:10px}.metric b{display:block;font-size:19px;font-variant-numeric:tabular-nums}.metric span{font-size:10px;color:var(--muted)}
+.columns{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:14px}.section-title{font-size:14px;font-weight:800;margin:0 0 10px;display:flex;justify-content:space-between;align-items:center;gap:8px}.task-list{display:grid;gap:7px}.task{display:flex;align-items:flex-start;gap:10px;padding:10px;background:#111c22;border:1px solid var(--line);border-radius:9px;cursor:pointer}.task input{accent-color:var(--green);width:17px;height:17px;margin:1px 0 0;flex:none}.task strong{display:block;font-size:12px}.task small{display:block;color:var(--muted);font-size:11px;line-height:1.4;margin-top:3px}.task:has(input:checked){border-color:#286343;background:#14271e}.task:has(input:checked) strong{text-decoration:line-through;color:#9eb9a8}
+.notice{padding:10px 12px;border-radius:9px;background:#2c281d;border:1px solid #6c562c;color:#f2d69f;font-size:11px;line-height:1.5;margin-top:10px}.notice.red{background:#321f21;border-color:#704044;color:#f2b9b9}
+.machine{background:linear-gradient(145deg,#17252d,#0f191f);border:1px solid #40545e;border-radius:11px;padding:12px}.machine-top{display:flex;justify-content:space-between;gap:8px;align-items:center}.machine-name{font-weight:900;letter-spacing:.08em}.machine-screen{background:#071015;border:1px solid #31444d;border-radius:8px;padding:12px;margin-top:10px}.screen-head{display:flex;justify-content:space-between;color:var(--green);font-size:10px;letter-spacing:.1em}.screw{height:10px;border-radius:9px;background:#293b45;margin:12px 0;position:relative;overflow:hidden}.screw i{display:block;height:100%;background:linear-gradient(90deg,#2c8a58,#9ad46b);width:45%;transition:width .2s}.readouts{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.readout{background:#132027;border-radius:6px;padding:7px}.readout span{display:block;font-size:9px;color:var(--muted)}.readout b{font-size:13px;font-variant-numeric:tabular-nums}
+.param-list{display:grid;gap:11px}.param{background:#111c22;border:1px solid var(--line);border-radius:9px;padding:10px}.param-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.param label{font-size:12px;font-weight:750}.param output{font-size:12px;color:var(--blue);font-weight:800;font-variant-numeric:tabular-nums}.param input[type=range]{width:100%;accent-color:var(--green);margin:10px 0 2px}.param-foot{display:flex;justify-content:space-between;color:var(--muted);font-size:9px}.param small{display:block;color:var(--muted);font-size:10px;margin-top:5px}
+.robot{display:grid;grid-template-columns:140px minmax(0,1fr);gap:12px;align-items:center}.robot-art{height:160px;background:#111c22;border:1px solid var(--line);border-radius:9px;display:grid;place-items:center}.robot-art svg{width:120px;height:145px}.robot-controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.robot-controls button{min-height:40px}.robot-state{font-size:11px;color:var(--green);margin-top:8px}
+.log{background:#0b1419;border:1px solid var(--line);border-radius:9px;padding:10px;max-height:180px;overflow:auto;font:11px/1.6 ui-monospace,monospace;color:#a8bac1}.log div{border-bottom:1px solid #1e2b32;padding:3px 0}.log time{color:#63808d;margin-right:8px}
+.footer-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px}.hidden{display:none!important}
+@media(max-width:900px){main{grid-template-columns:1fr}.sidebar{position:static}.mission-list{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}}
+@media(max-width:560px){header{padding:10px 12px}.topright .pill:first-child{display:none}main{padding:9px;gap:10px}.panel{padding:11px}.mission-list{grid-template-columns:1fr 1fr}.mission{font-size:11px;padding:7px}.metrics{grid-template-columns:repeat(2,1fr)}.robot{grid-template-columns:1fr}.robot-art{height:125px}.robot-art svg{height:115px}.readouts{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:18px}}
 </style>
 </head>
 <body>
-<header><div><strong>MAGNA</strong><small>SHIFT WORK TABLE · Производственный план и вымены</small></div><div id="saved" class="muted" style="color:#c4d2d7">Локальное сохранение включено</div></header>
+<header><div class="brand">MAGNA<small>INJECTION MOULDING · TRAINING SIMULATOR</small></div><div class="topright"><span class="pill">Учебный режим · без связи со станком</span><span class="pill live" id="headerState">● СИМУЛЯЦИЯ АКТИВНА</span></div></header>
 <main>
-<section class="card">
-<h2>1. Загрузить фотографию производственного плана</h2>
-<div class="toolbar">
-<div class="upload"><b>＋ Выбрать фото из галереи</b><div class="muted">Нажми системную кнопку ниже · JPG, PNG, WEBP</div><input id="photo" type="file" accept="image/*" aria-label="Выбрать фотографию из галереи"></div>
-<button class="btn primary" id="ocr" disabled>Распознать таблицу</button>
-<button class="btn" id="clearPhoto">Убрать фото</button>
-</div>
-<img id="preview" alt="Предпросмотр загруженной фотографии">
-<div class="progress" id="progress"><span id="bar"></span></div>
-<div id="message"></div>
-<p class="muted">Распознавание выполняется в браузере. После распознавания обязательно проверь номера, время вымен и ID проектов: качество зависит от чёткости фото, угла съёмки и видимости колонок. Исходное фото не отправляется на сервер.</p>
-</section>
-<section class="card">
-<h2>2. Сводка текущего плана</h2>
-<div class="stats">
-<div class="stat"><b id="countAll">0</b><span>Строк в таблице</span></div>
-<div class="stat"><b id="countProd">0</b><span>В производстве</span></div>
-<div class="stat"><b id="countChanges">0</b><span>Строк с временем вымены</span></div>
-<div class="stat"><b id="countReview">0</b><span>Проверить вручную</span></div>
-</div>
-</section>
-<section class="card">
-<div class="tabs"><button class="tab active" data-tab="all">Полная таблица</button><button class="tab" data-tab="changes">Вымены форм</button></div>
-<div id="allPane">
-<div class="toolbar"><input id="search" placeholder="Поиск: деталь, MSW, проект, ID…" style="flex:1;min-width:200px"><select id="statusFilter"><option value="">Все статусы</option><option>VÝROBA</option><option>PAUZA/KONIEC SMENY</option><option>NAHRIEVANIE FORMY NA LISE</option></select><button class="btn" id="addRow">＋ Строка</button><button class="btn" id="exportCsv">Экспорт CSV</button></div>
-<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Lis</th><th>Status</th><th>Číslo dielu</th><th>MSW</th><th>Názov dielu</th><th>ID</th><th>Poznámky</th><th>Vymena</th><th>IDPlanovac</th><th>MSW_Plan</th><th>DielArtikel</th><th>Проверка</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
-</div>
-<div id="changesPane" hidden>
-<div class="toolbar"><strong>Таблица вымен — только лисы с указанным временем</strong><button class="btn" id="printChanges">Печать таблицы</button><button class="btn" id="exportChanges">Экспорт таблицы CSV</button></div>
-<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Lis</th><th>Status</th><th>Číslo dielu</th><th>MSW</th><th>Názov dielu</th><th>ID</th><th>Poznámky</th><th>Vymena</th><th>IDPlanovac</th><th>MSW_Plan</th><th>DielArtikel</th></tr></thead><tbody id="changeRows"></tbody></table></div>
-<p class="muted">Здесь отображаются только лисы, у которых распознано время в колонке Vymena. Таблица сохраняет структуру исходного плана; на телефоне её можно прокручивать по горизонтали.</p>
-</div>
-</section>
-<section class="card">
-<h2>3. Данные и резервная копия</h2>
-<div class="toolbar"><button class="btn" id="importCsv">Импорт CSV</button><input id="csvFile" type="file" accept=".csv,text/csv" hidden><button class="btn" id="downloadJson">Скачать резервную копию</button><button class="btn" id="clearData">Очистить таблицу</button></div>
-<p class="muted">Изменения сохраняются в памяти браузера на этом устройстве. Для переноса на другой телефон используй экспорт CSV или резервную копию JSON.</p>
+<aside class="panel sidebar">
+ <div class="eyebrow">Наставник · рабочий сценарий</div><div class="title">Замена формы</div><div class="sub">Пройди весь процесс по этапам. Отмечай действия, меняй параметры и проверяй реакцию условной машины и робота.</div>
+ <div class="project-select">
+  <label class="eyebrow" for="machineSelect">Термопластавтомат</label><select id="machineSelect"><option>ENGEL · учебный профиль</option><option>ZHAFIR · учебный профиль</option><option>HAITIAN · учебный профиль</option></select>
+  <label class="eyebrow" for="projectSelect">Проект / изделие</label><select id="projectSelect"><option value="mirror">Mirror · корпус внутреннего зеркала</option><option value="signal">Turn signal · линза указателя поворота</option><option value="cover">Base cover · LH + RH</option><option value="custom">Учебный проект · ручная настройка</option></select>
+  <label class="eyebrow" for="materialSelect">Материал</label><select id="materialSelect"><option>ABS</option><option>ASA</option><option>PMMA</option><option>PBT</option><option>PET</option><option>TPE</option><option>PA6</option><option>PA66</option><option>PP GF</option><option>ABS+PC</option></select>
+ </div>
+ <div class="eyebrow">Прогресс задания</div><div class="progress"><i id="progressBar"></i></div><div class="sub" id="progressText">Этап 1 из 6 · 0% выполнено</div>
+ <nav class="mission-list" id="missionList"></nav>
+ <div class="notice">Все параметры и последовательности здесь условные. На реальном оборудовании действуй только по утверждённой инструкции, карте формы и процедуре LOTO.</div>
+</aside>
+<section class="workspace">
+ <section class="panel">
+  <div class="hero"><div><div class="eyebrow" id="stageEyebrow">ЭТАП 1 · ПОДГОТОВКА</div><h1 id="stageTitle">Подготовка к замене формы</h1><div class="sub" id="stageDesc">Сверь проект, форму, материал и оборудование до начала работ.</div></div><div class="hero-right"><span class="pill" id="jobPill">Задание: MIRROR-01</span><span class="pill" id="stagePill">Ожидает действий</span></div></div>
+  <div class="metrics">
+   <div class="metric"><b id="cycleMetric">32.0 s</b><span>Расчётный цикл</span></div><div class="metric"><b id="plasticMetric">42.0 mm</b><span>Доза впрыска · условно</span></div><div class="metric"><b id="scrapMetric">0</b><span>Пробные детали</span></div><div class="metric"><b id="qualityMetric">—</b><span>Оценка процесса</span></div>
+  </div>
+ </section>
+ <div class="columns">
+  <section class="panel">
+   <h2 class="section-title"><span id="taskTitle">Чек-лист наставника</span><span class="pill" id="taskCount">0 / 4</span></h2>
+   <div class="task-list" id="taskList"></div>
+   <div class="notice" id="stageNotice">Отметь выполненные пункты. Следующий этап откроется после завершения текущего.</div>
+   <div class="footer-actions"><button class="btn" id="resetStage">Сбросить этап</button><button class="btn primary" id="nextStage" disabled>Следующий этап →</button></div>
+  </section>
+  <section class="panel">
+   <h2 class="section-title">Пульт термопластавтомата <span class="pill" id="machineMode">MANUAL</span></h2>
+   <div class="machine">
+    <div class="machine-top"><div><div class="machine-name" id="machineName">ENGEL · CONTROL</div><div class="sub" id="machineStatus">Ожидание · привод остановлен</div></div><span class="pill" id="powerPill">POWER OFF</span></div>
+    <div class="machine-screen"><div class="screen-head"><span>PROCESS MONITOR</span><span id="screenState">STANDBY</span></div><div class="screw"><i id="plasticBar"></i></div><div class="readouts"><div class="readout"><span>SHOT SIZE</span><b id="shotRead">42.0 mm</b></div><div class="readout"><span>INJECTION</span><b id="speedRead">55 %</b></div><div class="readout"><span>HOLD PRESS.</span><b id="holdRead">65 bar</b></div><div class="readout"><span>BARREL ZONE</span><b id="tempRead">230 °C</b></div><div class="readout"><span>COOLING</span><b id="coolRead">18.0 s</b></div><div class="readout"><span>CLAMP</span><b id="clampRead">—</b></div></div></div>
+   </div>
+   <div class="toolbar" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="powerBtn">Включить привод</button><button class="btn" id="cycleBtn" disabled>Пробный цикл</button><button class="btn warn" id="alarmBtn">Сбросить аварию</button></div>
+   <p class="sub" style="margin:9px 0 0">Пульт — игровая модель. Он не подключён к реальному прессу и не управляет оборудованием.</p>
+  </section>
+ </div>
+ <div class="columns">
+  <section class="panel">
+   <h2 class="section-title">Параметры процесса <span class="pill">LIVE · меняются сразу</span></h2>
+   <div class="param-list" id="paramList"></div>
+   <div class="notice">Поднимай или снижай дозу пластика и другие значения — увидишь, как меняются расчётный цикл, запас материала и условная оценка качества. Это игровые зависимости, не физическая модель конкретной машины.</div>
+  </section>
+  <section class="panel">
+   <h2 class="section-title">Робот · управление и программа <span class="pill" id="robotPill">HOME</span></h2>
+   <div class="robot">
+    <div class="robot-art"><svg viewBox="0 0 130 160" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 143H108" stroke="#718792" stroke-width="7" stroke-linecap="round"/><path d="M43 139L51 113L77 102" stroke="#d0a34f" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/><path d="M77 102L88 67L68 48" stroke="#d0a34f" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/><path d="M68 48L78 25" stroke="#d0a34f" stroke-width="10" stroke-linecap="round"/><circle cx="51" cy="113" r="9" fill="#334a55" stroke="#8ca1aa" stroke-width="3"/><circle cx="88" cy="67" r="8" fill="#334a55" stroke="#8ca1aa" stroke-width="3"/><circle cx="68" cy="48" r="7" fill="#334a55" stroke="#8ca1aa" stroke-width="3"/><path d="M78 25L72 15M78 25L88 19" stroke="#8ca1aa" stroke-width="4" stroke-linecap="round"/><rect x="28" y="139" width="30" height="9" rx="3" fill="#6fb7e8"/><circle cx="43" cy="139" r="5" fill="#c6d4da"/></svg></div>
+    <div><div class="sub">Текущий режим</div><strong id="robotState">Ожидает команду</strong><div class="robot-state" id="robotProgram">Программа: MIRROR_PICK_PLACE</div><div class="robot-controls" style="margin-top:10px"><button class="btn" data-robot="home">HOME</button><button class="btn" data-robot="load">Загрузить программу</button><button class="btn" data-robot="dry">Dry run</button><button class="btn" data-robot="pick">Взять деталь</button><button class="btn" data-robot="place">Положить деталь</button><button class="btn warn" data-robot="stop">STOP</button></div></div>
+   </div>
+   <div class="notice" id="robotNotice">Перед автоматическим циклом выбери программу под текущий проект и проверь захват, точки и безопасную траекторию по утверждённой карте робота.</div>
+  </section>
+ </div>
+ <section class="panel"><h2 class="section-title">Журнал наставника <button class="btn" id="clearLog">Очистить</button></h2><div class="log" id="log"></div></section>
 </section>
 </main>
 <script>
-const fields=['lis','status','part','msw','name','id','notes','change','planner','mswPlan','article'];
-const labels=['Lis','Status','Číslo dielu','MSW','Názov dielu','ID','Poznámky','Vymena','IDPlanovac','MSW_Plan','DielArtikel'];
-let data=[];let photoUrl='';
-const $=id=>document.getElementById(id);
-const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-function save(){try{localStorage.setItem('magna-shift-table-v1',JSON.stringify(data));$('saved').textContent='Сохранено на этом устройстве'}catch(e){$('saved').textContent='Не удалось сохранить локально'}}
-function statusClass(s){s=(s||'').toUpperCase();return s.includes('VÝROBA')?'s-prod':s.includes('PAUZA')?'s-stop':s.includes('NAHRIEVANIE')?'s-heat':'s-other'}
-function render(){
- const q=$('search').value.toLowerCase(),sf=$('statusFilter').value;
- const shown=data.map((r,i)=>({r,i})).filter(({r})=>(!sf||r.status===sf)&&(!q||fields.some(f=>String(r[f]||'').toLowerCase().includes(q))));
- $('rows').innerHTML=shown.map(({r,i})=>'<tr>'+fields.map((f,j)=>'<td data-label="'+esc(labels[j])+'"><input aria-label="'+esc(f)+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(r[f])+'"></td>').join('')+'<td data-label="Проверка">'+(r.review?'<span class="status s-stop">Проверить</span>':'<span class="status s-prod">OK</span>')+'</td><td data-label="Действие"><button class="btn" data-del="'+i+'" title="Удалить строку">Удалить</button></td></tr>').join('');
- $('countAll').textContent=data.length;$('countProd').textContent=data.filter(r=>(r.status||'').toUpperCase().includes('VÝROBA')).length;$('countChanges').textContent=data.filter(r=>r.change&&r.change.trim()).length;$('countReview').textContent=data.filter(r=>r.review).length;
- renderChanges();
-}
-function renderChanges(){
- const list=data.filter(r=>/\\b\\d{1,2}[:.]\\d{2}\\b/.test(String(r.change||''))).sort((a,b)=>timeVal(a.change)-timeVal(b.change));
- $('changeRows').innerHTML=list.map(r=>'<tr>'+fields.map(f=>'<td>'+esc(r[f]||'')+'</td>').join('')+'</tr>').join('');
-}
-function timeVal(v){const m=String(v).match(/(\d{1,2})[:.](\d{2})/);return m?Number(m[1])*60+Number(m[2]):99999}
-$('rows').addEventListener('change',e=>{const t=e.target;if(!t.matches('input[data-i]'))return;const i=+t.dataset.i;data[i][t.dataset.f]=t.value;if(t.dataset.f==='change')data[i].review=false;save();render()});
-$('rows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(b){data.splice(+b.dataset.del,1);save();render()}});
-$('search').addEventListener('input',render);$('statusFilter').addEventListener('change',render);
-$('addRow').onclick=()=>{data.push(Object.fromEntries(fields.map(f=>[f,''])));save();render()};
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('allPane').hidden=b.dataset.tab!=='all';$('changesPane').hidden=b.dataset.tab!=='changes'});
-function message(t,warn=false){$('message').style.display='block';$('message').className=warn?'warning':'';$('message').textContent=t}
-$('photo').onchange=()=>{const f=$('photo').files[0];if(!f)return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(f);$('preview').src=photoUrl;$('preview').style.display='block';$('ocr').disabled=false;message('Фото загружено. Нажми «Распознать таблицу».')};
-$('clearPhoto').onclick=()=>{$('photo').value='';$('preview').style.display='none';$('ocr').disabled=true;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl='';$('message').style.display='none'};
-function parseTsv(tsv,imageWidth,imageHeight){
- // Read the column positions from the photographed table header instead of guessing them.
- const words=[];
- for(const line of tsv.split(/\r?\n/)){
-  const p=line.split('\t');if(p.length<12||Number(p[0])!==5)continue;
-  const text=(p[11]||'').trim();if(!text)continue;
-  const left=Number(p[6]),top=Number(p[7]),width=Number(p[8]),height=Number(p[9]),conf=Number(p[10]);
-  if(!Number.isFinite(left)||!Number.isFinite(top)||!Number.isFinite(width)||!Number.isFinite(height))continue;
-  words.push({x:(left+width/2)/imageWidth,y:top+height/2,text,conf});
- }
- words.sort((a,b)=>a.y-b.y||a.x-b.x);
- const rows=[],tolerance=Math.max(8,imageHeight*.009);
- for(const w of words){
-  let target=null,best=tolerance+1;
-  for(const row of rows){const d=Math.abs(row.y-w.y);if(d<best){best=d;target=row}}
-  if(!target||best>tolerance)rows.push({y:w.y,words:[w]});
-  else{target.words.push(w);target.y=target.words.reduce((sum,v)=>sum+v.y,0)/target.words.length}
- }
- const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
- const headerRows=rows.filter(r=>r.y<imageHeight*.28).map(r=>{
-  const found={};let msw=[];
-  for(const w of r.words){
-   const n=norm(w.text);
-   if(n==='lis'||n==='1is')found.lis=w.x;
-   else if(n==='status')found.status=w.x;
-   else if(n==='cislo')found.part=w.x;
-   else if(n==='msw')msw.push(w.x);
-   else if(n==='nazov')found.name=w.x;
-   else if(n==='id')found.id=w.x;
-   else if(n==='poznamky')found.notes=w.x;
-   else if(n==='vymena'||n==='vymena')found.change=w.x;
-   else if(n==='idplanovac')found.planner=w.x;
-   else if(n==='mswplan')found.mswPlan=w.x;
-   else if(n==='dielartikel')found.article=w.x;
-  }
-  msw.sort((a,b)=>a-b);if(msw.length)found.msw=msw[0];if(msw.length>1)found.mswPlan=msw[1];
-  return {row:r,found,count:Object.keys(found).length};
- }).sort((a,b)=>b.count-a.count);
- const fallback=[.048,.114,.213,.293,.40,.482,.559,.642,.682,.74,.868];
- const fieldOrder=['lis','status','part','msw','name','id','notes','change','planner','mswPlan','article'];
- let centers=fallback.slice();
- if(headerRows[0]&&headerRows[0].count>=7){
-  const found=headerRows[0].found;
-  centers=fieldOrder.map((key,i)=>Number.isFinite(found[key])?found[key]:fallback[i]);
-  // Interpolate missing header positions between detected neighbours.
-  for(let i=0;i<centers.length;i++)if(!Number.isFinite(found[fieldOrder[i]])){
-   let l=i-1,r=i+1;while(l>=0&&!Number.isFinite(found[fieldOrder[l]]))l--;while(r<centers.length&&!Number.isFinite(found[fieldOrder[r]]))r++;
-   if(l>=0&&r<centers.length)centers[i]=centers[l]+(centers[r]-centers[l])*(i-l)/(r-l);
-   else if(l>=0)centers[i]=centers[l]+(fallback[i]-fallback[l]);
-   else if(r<centers.length)centers[i]=centers[r]-(fallback[r]-fallback[i]);
-  }
- }
- const headerY=headerRows[0]?.row.y??-1;
- const boundaries=centers.slice(0,-1).map((c,i)=>(c+centers[i+1])/2);
- const out=[];
- for(const line of rows.sort((a,b)=>a.y-b.y)){
-  if(line.y<=headerY+Math.max(10,imageHeight*.012))continue;
-  const cells=Array.from({length:11},()=>[]);
-  for(const w of line.words){
-   let col=boundaries.findIndex(edge=>w.x<edge);if(col<0)col=10;
-   cells[col].push(w);
-  }
-  const row=cells.map(cell=>cell.sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ').trim());
-  const joined=row.join(' ').trim();
-  if(!joined)continue;
-  const r=Object.fromEntries(fields.map((f,i)=>[f,row[i]]));r.review=true;
-  if(r.lis||r.part||r.msw||r.name||r.change)out.push(r);
- }
- return out;
-}$('ocr').onclick=async()=>{
- const f=$('photo').files[0];if(!f)return;
- $('ocr').disabled=true;$('progress').style.display='block';$('bar').style.width='4%';message('Загружаю модуль распознавания. Не закрывай страницу.');
- let worker;
- try{
-  const mod=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm');
-  const api=typeof mod.createWorker==='function'?mod:(mod.default||{});
-  if(typeof api.createWorker!=='function')throw new Error('Не удалось загрузить API Tesseract.js (createWorker отсутствует)');
-  if(!f.type.startsWith('image/'))throw new Error('Выбранный файл не распознан как изображение. Выбери JPG или PNG.');
-  if(f.size===0)throw new Error('Файл фотографии пустой.');
-  if(f.size>20*1024*1024)throw new Error('Фото больше 20 МБ. Уменьши размер или выбери другое.');
-  message('Подготавливаю фотографию…');
-  let bitmap;
-  try{bitmap=await createImageBitmap(f)}catch(_){throw new Error('Браузер не смог открыть это фото. Пересохрани его как JPG или PNG и выбери снова.')}
-  const canvas=document.createElement('canvas');
-  canvas.width=bitmap.width;canvas.height=bitmap.height;
-  const ctx=canvas.getContext('2d');
-  if(!ctx){bitmap.close?.();throw new Error('Не удалось подготовить изображение в браузере.')}
-  ctx.drawImage(bitmap,0,0);bitmap.close?.();
-  worker=await api.createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
-  await worker.setParameters({tessedit_pageseg_mode:6,preserve_interword_spaces:'1'});
-  message('Распознаю текст на фотографии…');
-  const result=await worker.recognize(canvas,{rotateAuto:true},{text:true,blocks:true,tsv:true});
-  const parsed=parseTsv(result.data.tsv||'',canvas.width,canvas.height);
-  // Keep the original table layout, but only presses with an actual Vymena time.
-  const changeRows=parsed.filter(r=>/\b\d{1,2}[:.]\d{2}\b/.test(String(r.change||'')));
-
-  if(!parsed.length){message('Не удалось распознать строки таблицы. Попробуй более ровное и крупное фото.',true)}
-  else if(!changeRows.length){data=[];save();render();message('Таблица распознана, но строки с временем в колонке Vymena не найдены. Проверь качество фото и положение колонки Vymena.',true)}
-  else{data=changeRows;save();render();document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='changes'));$('allPane').hidden=true;$('changesPane').hidden=false;message('Готово: сформирована отдельная таблица из '+changeRows.length+' лисов с выменами.',false)}
- }catch(e){message('Не удалось выполнить OCR: '+(e?.message||String(e))+'. Проверь подключение к интернету и попробуй снова.',true)}
- finally{if(worker){try{await worker.terminate()}catch(_){}}$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
+const stages=[
+ {name:'Подготовка к замене формы',desc:'Сверь заказ, проект, форму и подготовь всё необходимое до остановки машины.',tasks:[
+ ['Сверить проект и номер формы','Сравни обозначение изделия, артикул и номер новой формы с производственным заданием.'],
+ ['Проверить материал и цвет','Уточни материал, марку, цвет и требования к сушке по карте материала.'],
+ ['Подготовить новую форму','Проверь комплектность, состояние разъёмов, штуцеров и точек подъёма.'],
+ ['Подготовить кран и оснастку','Проверь грузоподъёмность, стропы, траверсу и свободную зону перемещения.']
+ ],notice:'Не начинай демонтаж, пока новая форма, подъёмная оснастка и задание не сверены.'},
+ {name:'Завершение цикла и подготовка материала',desc:'Подготовь цилиндр и текущий процесс к смене оснастки по утверждённой карте материала.',tasks:[
+ ['Завершить текущий цикл','Убедись, что текущая деталь извлечена, а в зоне формы нет посторонних предметов.'],
+ ['Выполнить предстрел / продувку','Выбери предстрел или продувку только по инструкции для текущего материала и машины.'],
+ ['Сохранить текущие настройки','Зафиксируй активный рецепт, дозу, скорости и замечания перед переключением проекта.'],
+ ['Подтвердить готовность к остановке','Согласуй остановку линии и передачу рабочего места с оператором/сменой.']
+ ],notice:'Температуры и способ продувки зависят от материала. Не используй универсальные значения.'},
+ {name:'Безопасная остановка и отключение',desc:'Переведи оборудование в безопасное состояние. Все источники энергии изолируются по процедуре предприятия.',tasks:[
+ ['Остановить автоматический цикл','Переведи машину в предусмотренный режим остановки и дождись прекращения движения.'],
+ ['Установить робот в безопасное положение','Проверь отсутствие движения и исключи неожиданный запуск робота.'],
+ ['Выполнить LOTO / изоляцию энергий','Изолируй и заблокируй все источники энергии по утверждённой процедуре MAGNA.'],
+ ['Проверить отсутствие остаточной энергии','Подтверди безопасное состояние и отсутствие давления/движения предусмотренным способом.'],
+ ['Подготовить контуры воды и темперирования','Отключай и разъединяй контуры только после безопасной изоляции и сброса остаточного давления по инструкции.']
+ ],notice:'Критический этап. Не полагайся на экран симулятора: реальная изоляция и проверка нулевой энергии выполняются только по LOTO и допуску.'},
+ {name:'Снятие старой и установка новой формы',desc:'Смоделируй демонтаж, подъём, установку и подключение новой оснастки.',tasks:[
+ ['Подготовить форму к подъёму','Подтверди точки строповки, массу формы и пригодность подъёмного приспособления.'],
+ ['Освободить крепления формы','Выполни процедуру снятия крепежа и магнитной системы строго по инструкции конкретного пресса.'],
+ ['Снять форму краном','Смоделируй контролируемый подъём и перемещение без людей под грузом.'],
+ ['Установить новую форму','Смоделируй центровку и фиксацию новой формы штатными средствами крепления.'],
+ ['Подключить контуры и датчики','Сверь маркировку, подключение воды/температуры, разъёмы и датчики по карте формы.']
+ ],notice:'Способ крепления (болты, магнитная плита или другое решение) зависит от пресса и формы. В реальности следуй только конкретной инструкции.'},
+ {name:'Рецепт машины и робот',desc:'Загрузи правильный проект, проверь технологические параметры и программу робота.',tasks:[
+ ['Выбрать рецепт нового проекта','Сверь название рецепта, материал, форму и версию с производственным заданием.'],
+ ['Проверить параметры впрыска','Сверь дозу, скорость, давление, выдержку и подушку с утверждённой картой наладки.'],
+ ['Проверить температуры и охлаждение','Сверь зоны цилиндра, температуру формы и время охлаждения с картой материала/формы.'],
+ ['Загрузить программу робота','Выбери программу именно для этого проекта и формы.'],
+ ['Проверить захват и безопасную траекторию','Сверь EOAT, датчики захвата, точки pick/place и безопасные положения.']
+ ],notice:'Все значения на панели ниже — условные демонстрационные. Ввод реального рецепта выполняется по документации.'},
+ {name:'Пробный запуск и передача в производство',desc:'Выполни учебную проверку готовности, пробный цикл и контроль первой детали.',tasks:[
+ ['Проверить готовность всех систем','Сверь статусы машины, формы, контуров, ограждений и робота по чек-листу запуска.'],
+ ['Выполнить сухой прогон робота','Проверь последовательность без детали и без столкновений в безопасном режиме.'],
+ ['Сделать пробный цикл','В симуляторе запусти цикл и оцени реакцию на текущие параметры.'],
+ ['Проверить первую деталь','Оцени условные признаки: заполнение, облой, усадка, коробление и внешний вид.'],
+ ['Передать параметры и замечания смене','Зафиксируй итоговый рецепт, статус процесса и открытые замечания.']
+ ],notice:'Запуск реального оборудования допускается только после снятия LOTO уполномоченными лицами и штатной проверки безопасности.'}
+];
+const projects={
+ mirror:{id:'MIRROR-01',part:'Корпус внутреннего зеркала',form:'MIR-TOOL-04',program:'MIRROR_PICK_PLACE',material:'ABS',shot:42,speed:55,pressure:850,hold:65,cool:18,temp:230,back:45},
+ signal:{id:'SIGNAL-07',part:'Линза указателя поворота',form:'LENS-TOOL-02',program:'LENS_PICK_PLACE',material:'PMMA',shot:28,speed:42,pressure:720,hold:58,cool:24,temp:245,back:32},
+ cover:{id:'COVER-12',part:'Base Cover LH + RH',form:'COV-TOOL-09',program:'COVER_DUAL_PICK',material:'PP GF',shot:68,speed:62,pressure:980,hold:72,cool:22,temp:215,back:55},
+ custom:{id:'TRAINING-00',part:'Учебная деталь',form:'TRAIN-TOOL',program:'TRAINING_PICK_PLACE',material:'ABS',shot:40,speed:50,pressure:800,hold:60,cool:20,temp:230,back:40}
 };
-function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
-$('exportChanges').onclick=()=>{const rows=[labels,...data.filter(r=>/\\b\\d{1,2}[:.]\\d{2}\\b/.test(String(r.change||''))).map(r=>fields.map(f=>r[f]||''))];const csv='\\ufeff'+rows.map(row=>row.map(csvEscape).join(';')).join('\\r\\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-mold-changes.csv')};
-$('exportCsv').onclick=()=>{const csv='\ufeff'+[labels,...data.map(r=>fields.map(f=>r[f]||''))].map(row=>row.map(csvEscape).join(';')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-shift-plan.csv')};
-$('importCsv').onclick=()=>$('csvFile').click();
-$('csvFile').onchange=async()=>{const f=$('csvFile').files[0];if(!f)return;const text=await f.text();const lines=text.replace(/^\ufeff/,'').split(/\r?\n/).filter(Boolean);const delim=lines[0].includes(';')?';':',';const split=line=>{const a=[];let s='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&line[i+1]==='"'){s+='"';i++}else if(c==='"')q=!q;else if(c===delim&&!q){a.push(s);s=''}else s+=c}a.push(s);return a};data=lines.slice(1).map(line=>{const a=split(line);return Object.fromEntries(fields.map((f,i)=>[f,a[i]||'']))});save();render();message('Импортировано строк: '+data.length)};
-$('downloadJson').onclick=()=>download(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),rows:data},null,2)],{type:'application/json'}),'magna-shift-backup.json');
-function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
-$('clearData').onclick=()=>{if(confirm('Удалить все строки из таблицы?')){data=[];save();render()}};
-$('printChanges').onclick=()=>{window.print()};
-try{data=JSON.parse(localStorage.getItem('magna-shift-table-v1')||'[]');if(!Array.isArray(data))data=[]}catch{data=[]}render();
+const params=[
+ {id:'shot',label:'Количество пластика / доза',unit:'mm',min:10,max:100,step:1,desc:'Условный ход дозирования. Изменение влияет на расчётную массу впрыска.'},
+ {id:'speed',label:'Скорость впрыска',unit:'%',min:10,max:100,step:1,desc:'Игровая шкала скорости заполнения.'},
+ {id:'pressure',label:'Ограничение давления впрыска',unit:'bar',min:200,max:1600,step:10,desc:'Учебное значение, не уставка для реального станка.'},
+ {id:'hold',label:'Давление выдержки',unit:'bar',min:10,max:150,step:1,desc:'Условный уровень подпитки после заполнения.'},
+ {id:'cool',label:'Время охлаждения',unit:'s',min:5,max:60,step:1,desc:'Увеличение охлаждения удлиняет цикл.'},
+ {id:'temp',label:'Температура цилиндра · условно',unit:'°C',min:170,max:300,step:1,desc:'Значение только для игрового сценария; реальные зоны задаются рецептом.'},
+ {id:'back',label:'Противодавление пластикации',unit:'bar',min:5,max:120,step:1,desc:'Демонстрационный параметр пластикации.'}
+];
+let stage=0,checks=stages.map(s=>s.tasks.map(()=>false)),robot={home:false,program:false,dry:false,pick:false,part:false,stopped:false},machineOn=false,alarm=false,scrap=0,paramsState={},logItems=[];
+function $(id){return document.getElementById(id)}
+function log(msg){const d=new Date();logItems.unshift({t:d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),msg});logItems=logItems.slice(0,60);$('log').innerHTML=logItems.map(x=>'<div><time>'+x.t+'</time>'+x.msg+'</div>').join('')}
+function project(){return projects[$('projectSelect').value]}
+function setDefaults(){paramsState={shot:project().shot,speed:project().speed,pressure:project().pressure,hold:project().hold,cool:project().cool,temp:project().temp,back:project().back};$('materialSelect').value=project().material;renderParams();updateMetrics()}
+function renderParams(){$('paramList').innerHTML=params.map(p=>'<div class="param"><div class="param-head"><label for="p-'+p.id+'">'+p.label+'</label><output id="o-'+p.id+'">'+paramsState[p.id]+' '+p.unit+'</output></div><input id="p-'+p.id+'" type="range" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+paramsState[p.id]+'" data-param="'+p.id+'"><div class="param-foot"><span>'+p.min+' '+p.unit+'</span><span>'+p.max+' '+p.unit+'</span></div><small>'+p.desc+'</small></div>').join('');$('paramList').querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{paramsState[el.dataset.param]=Number(el.value);$('o-'+el.dataset.param).textContent=el.value+' '+params.find(p=>p.id===el.dataset.param).unit;updateMetrics()}))}
+function quality(){const p=paramsState;let score=100;if(p.shot<project().shot*.85)score-=28;if(p.shot>project().shot*1.15)score-=20;if(p.speed<25||p.speed>90)score-=12;if(p.pressure<project().pressure*.7)score-=20;if(p.hold<project().hold*.65)score-=12;if(p.cool<project().cool*.55)score-=20;if(Math.abs(p.temp-project().temp)>35)score-=20;return Math.max(0,score)}
+function updateMetrics(){const p=paramsState,cycle=9+p.cool+(100-p.speed)*.08+p.back*.025;const q=quality();$('cycleMetric').textContent=cycle.toFixed(1)+' s';$('plasticMetric').textContent=p.shot.toFixed(1)+' mm';$('qualityMetric').textContent=q>=85?'Хорошо':q>=65?'Проверить':'Риск брака';$('qualityMetric').style.color=q>=85?'var(--green)':q>=65?'var(--amber)':'var(--red)';$('shotRead').textContent=p.shot+' mm';$('speedRead').textContent=p.speed+' %';$('holdRead').textContent=p.hold+' bar';$('tempRead').textContent=p.temp+' °C';$('coolRead').textContent=p.cool+' s';$('plasticBar').style.width=Math.min(100,p.shot)+'%';$('scrapMetric').textContent=scrap}
+function renderMissions(){$('missionList').innerHTML=stages.map((s,i)=>{const done=checks[i].every(Boolean);return '<button class="mission '+(i===stage?'active ':'')+(done?'done':'')+'" data-stage="'+i+'" '+(i>stage&&!checks[i-1].every(Boolean)?'disabled':'')+'><span class="num">'+(done?'✓':i+1)+'</span><span>'+s.name+'</span></button>'}).join('');$('missionList').querySelectorAll('button').forEach(b=>b.onclick=()=>{stage=Number(b.dataset.stage);renderStage()});const all=checks.flat().filter(Boolean).length,total=checks.flat().length;$('progressBar').style.width=(all/total*100)+'%';$('progressText').textContent=all+' / '+total+' действий · '+Math.round(all/total*100)+'% выполнено'}
+function renderStage(){const s=stages[stage];$('stageEyebrow').textContent='ЭТАП '+(stage+1)+' · '+['ПОДГОТОВКА','МАТЕРИАЛ','БЕЗОПАСНОСТЬ','ЗАМЕНА ФОРМЫ','НАЛАДКА','ЗАПУСК'][stage];$('stageTitle').textContent=s.name;$('stageDesc').textContent=s.desc;$('taskList').innerHTML=s.tasks.map((t,i)=>'<label class="task"><input type="checkbox" data-task="'+i+'" '+(checks[stage][i]?'checked':'')+'><span><strong>'+t[0]+'</strong><small>'+t[1]+'</small></span></label>').join('');$('taskList').querySelectorAll('input').forEach(el=>el.onchange=()=>{checks[stage][Number(el.dataset.task)]=el.checked;log((el.checked?'Выполнено: ':'Снята отметка: ')+s.tasks[Number(el.dataset.task)][0]);renderStage()});const n=checks[stage].filter(Boolean).length;$('taskCount').textContent=n+' / '+s.tasks.length;$('stageNotice').textContent=s.notice;$('nextStage').disabled=n!==s.tasks.length||stage===stages.length-1;$('nextStage').textContent=stage===stages.length-1?'Задание завершено':'Следующий этап →';$('stagePill').textContent=n===s.tasks.length?'Этап выполнен':'В процессе';renderMissions()}
+$('nextStage').onclick=()=>{if(stage<stages.length-1){stage++;renderStage();log('Переход к этапу: '+stages[stage].name)}else log('Учебное задание завершено')};
+$('resetStage').onclick=()=>{checks[stage]=checks[stage].map(()=>false);renderStage();log('Сброшен этап: '+stages[stage].name)};
+$('projectSelect').onchange=()=>{$('jobPill').textContent='Задание: '+project().id;setDefaults();$('robotProgram').textContent='Программа: '+project().program;log('Выбран проект '+project().id+' · '+project().part)};
+$('machineSelect').onchange=()=>{$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';log('Выбран учебный профиль '+$('machineSelect').value)};
+$('materialSelect').onchange=()=>{log('Выбран материал '+$('materialSelect').value+' — параметры требуется сверять с картой материала');$('stageNotice').textContent='Материал выбран: '+$('materialSelect').value+'. Используй только подтверждённую карту материала для реальной наладки.'};
+$('powerBtn').onclick=()=>{machineOn=!machineOn;$('powerPill').textContent=machineOn?'POWER ON':'POWER OFF';$('machineStatus').textContent=machineOn?'Привод включён · учебный режим':'Ожидание · привод остановлен';$('screenState').textContent=machineOn?'READY':'STANDBY';$('powerBtn').textContent=machineOn?'Отключить привод':'Включить привод';$('cycleBtn').disabled=!machineOn||alarm;log(machineOn?'Учебный привод включён':'Учебный привод отключён')};
+$('cycleBtn').onclick=()=>{if(!machineOn||alarm)return;scrap++;updateMetrics();const q=quality();$('screenState').textContent='CYCLE '+scrap;$('machineStatus').textContent='Цикл завершён · '+(q>=85?'условно OK':'нужна проверка параметров');log('Пробный цикл №'+scrap+' · оценка '+q+'/100 · '+(q>=85?'условно OK':'параметры требуют проверки'));if(q<85)$('stageNotice').textContent='Симуляция заметила потенциальный риск. Проверь дозу, давление, скорость, выдержку и охлаждение.'};
+$('alarmBtn').onclick=()=>{alarm=false;$('screenState').textContent=machineOn?'READY':'STANDBY';$('cycleBtn').disabled=!machineOn;log('Учебная авария сброшена')};
+document.querySelectorAll('[data-robot]').forEach(b=>b.onclick=()=>{const a=b.dataset.robot;if(a==='home'){robot.home=true;robot.stopped=false;$('robotState').textContent='HOME · безопасная позиция';$('robotPill').textContent='HOME';log('Робот: команда HOME выполнена в симуляции')}else if(a==='load'){robot.program=true;robot.home=false;$('robotState').textContent='Программа загружена';$('robotProgram').textContent='Программа: '+project().program;$('robotPill').textContent='PROGRAM LOADED';log('Загружена учебная программа '+project().program)}else if(a==='dry'){if(!robot.program){$('robotNotice').textContent='Сначала загрузи программу проекта.';return}robot.dry=true;$('robotState').textContent='Dry run · траектория проверена';$('robotPill').textContent='DRY RUN OK';log('Робот: учебный сухой прогон завершён')}else if(a==='pick'){if(!robot.dry){$('robotNotice').textContent='Сначала загрузи программу и выполни dry run.';return}robot.pick=true;$('robot.part') ;$('robotState').textContent='Деталь захвачена';$('robotPill').textContent='PART GRIPPED';log('Робот: условный захват детали')}else if(a==='place'){if(!robot.pick){$('robotNotice').textContent='Сначала выполни команду «Взять деталь».';return}robot.part=false;robot.pick=false;$('robotState').textContent='Деталь размещена';$('robotPill').textContent='PLACE DONE';log('Робот: условное размещение детали')}else if(a==='stop'){robot.stopped=true;robot.dry=false;robot.pick=false;$('robotState').textContent='STOP · движение остановлено';$('robotPill').textContent='STOP';log('Робот: STOP') }});
+$('clearLog').onclick=()=>{logItems=[];$('log').innerHTML='';log('Журнал очищен')};
+$('jobPill').textContent='Задание: '+project().id;$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';$('robotProgram').textContent='Программа: '+project().program;setDefaults();renderStage();log('Симулятор запущен. Учебный режим активен.'); 
 </script>
-</body>
-</html>
+</body></html>
