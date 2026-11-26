@@ -130,6 +130,136 @@ select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd
 .training-telemetry .readout{background:#fff}
 @media(max-width:680px){.cc300-screen{min-height:490px;padding:6px}.cc300-status{grid-template-columns:repeat(3,minmax(0,1fr))}.cc300-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.cc300-tiles.tasks{grid-template-columns:repeat(3,minmax(0,1fr))}.cc300-tiles button{min-height:62px;font-size:8px}.cc300-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 
+
+/* CC300 console layout: portrait HMI is the primary interface */
+body{background:radial-gradient(ellipse at 50% 0%,#45545a 0,#202a2f 48%,#151d21 100%);min-height:100vh}
+header{background:#151d21;border-bottom:1px solid #536168;padding:8px 18px}
+main{display:grid;grid-template-columns:minmax(0,1fr);max-width:1450px;padding:12px 18px 34px;gap:10px}
+.sidebar{position:static;display:block;padding:8px 12px;background:#dfe5e7;border:1px solid #66757b;box-shadow:0 2px 8px #0005}
+.sidebar>.eyebrow:first-child,.sidebar>.title,.sidebar>.sub,.sidebar>.eyebrow:not(:first-child),.sidebar>.progress,.sidebar>#progressText,.sidebar>#missionList,.sidebar>.notice{display:none}
+.project-select{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:0}
+.project-select label{display:none}
+.project-select select{height:36px;font-size:12px;font-weight:700;background:#f8fafb;border:1px solid #9eacb2;border-radius:2px}
+.workspace{gap:9px}
+.workspace>section.panel:first-child{padding:8px 12px;background:#e8edef;border-color:#63747b}
+.workspace>section.panel:first-child .hero{align-items:center}
+.workspace>section.panel:first-child .hero h1{font-size:15px;margin:1px 0}
+.workspace>section.panel:first-child .hero .sub{font-size:10px}
+.workspace>section.panel:first-child .metrics{margin:0;max-width:760px}
+.workspace>section.panel:first-child .metric{padding:5px 8px}
+.workspace>section.panel:first-child .metric b{font-size:14px}
+.workspace>section.panel:first-child .metric span{font-size:8px}
+.workspace>.columns:first-of-type{display:flex;flex-direction:column;gap:9px}
+.workspace>.columns:first-of-type>.panel:last-child{order:0}
+.workspace>.columns:first-of-type>.panel:first-child{order:1}
+.workspace>.columns:first-of-type>.panel:last-child{padding:12px;background:linear-gradient(145deg,#2c383e,#12191d);border:1px solid #63737a;box-shadow:0 8px 24px #0007}
+.workspace>.columns:first-of-type>.panel:last-child>.section-title{color:#e7edef}
+.machine{max-width:1120px;margin:0 auto;width:100%;padding:12px 18px 14px;border:7px solid #11191d;border-radius:10px;background:linear-gradient(135deg,#45545a,#202a2f 42%,#11191d);box-shadow:inset 0 0 0 1px #7b888d,0 6px 20px #0008}
+.machine-top{padding:1px 3px 9px}
+.machine-top-right{display:flex;align-items:center;gap:14px}
+.machine-name{font-size:13px;letter-spacing:.15em}
+.machine-screen{padding:0;margin:0 auto;width:100%;max-width:1000px;background:#080d10;border:9px solid #0b1114;border-radius:5px;box-shadow:0 0 0 1px #879398, inset 0 0 14px #0008}
+.cc300-screen{min-height:650px;height:min(72vh,850px);overflow:auto;padding:12px;gap:10px;background:#edf1f2;border:1px solid #aebbc1;box-shadow:inset 0 0 0 1px #fff}
+.cc300-status{grid-template-columns:repeat(6,minmax(0,1fr))}
+.cc300-status>div{padding:8px 7px;background:#fdfefe}
+.cc300-status small{font-size:9px;min-height:23px}
+.cc300-status b{font-size:13px}
+.cc300-nav{gap:4px;min-height:36px}
+.cc300-nav button{border:0;border-bottom:2px solid transparent;background:transparent;padding:7px 12px;color:#17899a;font-size:10px;font-weight:800;cursor:pointer}
+.cc300-nav button:hover,.cc300-nav button.active{background:#dcebed;border-bottom-color:#168fa2}
+.cc300-home{gap:16px;padding:8px 4px}
+.cc300-group h3{font-size:12px;border-bottom:1px solid #d6dfe2;padding-bottom:5px}
+.cc300-tiles{gap:7px}
+.cc300-tiles.tasks{grid-template-columns:repeat(5,minmax(0,1fr))}
+.cc300-tiles button{min-height:78px;font-size:10px;background:linear-gradient(#fff,#eaf0f2);box-shadow:0 1px 1px #1f33380c}
+.cc300-tiles i{font-size:22px}
+.cc300-detail{min-height:480px;padding:14px}
+.cc300-detail-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+.cc300-detail-grid button{min-height:64px;font-size:11px;background:linear-gradient(#fff,#edf2f4)}
+.cc300-control-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.cc300-control{padding:10px;border:1px solid #d2dce0;background:#f8fafb;min-width:0}
+.cc300-control-head{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:11px;font-weight:700}
+.cc300-control output{color:#148b9c;font-size:12px;font-weight:800;white-space:nowrap}
+.cc300-control input[type=range]{width:100%;accent-color:#168fa2;margin:11px 0 4px}
+.cc300-control small{display:block;color:#718087;font-size:9px;line-height:1.35}
+.cc300-action-row{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+.cc300-action{border:1px solid #b9c7cc;background:linear-gradient(#fff,#e8eef0);color:#35484f;padding:10px 14px;min-height:42px;font-weight:800;font-size:10px;cursor:pointer}
+.cc300-action.primary{background:#168fa2;color:#fff;border-color:#117d8e}
+.cc300-action.danger{background:#faeeee;color:#a43d3d;border-color:#d6a5a5}
+.cc300-data-table{width:100%;border-collapse:collapse;font-size:10px}
+.cc300-data-table td,.cc300-data-table th{padding:8px;border:1px solid #d6dfe2;text-align:left}
+.cc300-data-table th{background:#e8eef0;color:#586b72}
+.cc300-plant-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.cc300-plant{display:flex;gap:8px;align-items:center;padding:9px;border:1px solid #d6dfe2;background:#f8fafb;font-size:10px}
+.cc300-plant input{width:17px;height:17px;accent-color:#168fa2}
+.cc300-note{font-size:11px}
+.cc300-hardware{max-width:1000px;margin:0 auto;width:100%;min-height:112px;display:flex;align-items:center;justify-content:center;gap:20px;padding:12px 20px 8px;position:relative;background:linear-gradient(#263238,#12191d);border:1px solid #64747a;border-top:3px solid #080d10;border-radius:2px 2px 8px 8px;box-shadow:inset 0 1px #829096,0 4px 8px #0005}
+.cc300-hardware-caption{position:absolute;top:6px;left:12px;color:#aebdc2;font-size:8px;letter-spacing:.15em;font-weight:800}
+.cc300-small-key{width:66px;height:45px;margin-top:12px;background:linear-gradient(#45545a,#202b30);border:1px solid #718087;border-radius:3px;color:#dbe4e7;font-size:7px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;box-shadow:inset 0 1px #9aa6aa,0 2px 3px #0008}
+.cc300-small-key i{width:8px;height:8px;border-radius:50%;background:#c9d4d7;box-shadow:0 0 5px #fff8}
+.cc300-small-key.active i{background:#58cf83;box-shadow:0 0 8px #58cf83}
+.cc300-small-key.interrupt i{background:#e1a34b}
+.cc300-rotary-wrap{display:flex;align-items:center;gap:10px;margin:10px 4px 0}
+.cc300-rotary-hint{font-size:8px;color:#aab8bd;letter-spacing:.1em;writing-mode:vertical-rl;transform:rotate(180deg)}
+.cc300-rotary{width:82px;height:82px;border-radius:50%;border:5px solid #78868b;background:radial-gradient(circle at 35% 28%,#68777d,#1b2428 58%,#080d10 78%);box-shadow:0 0 0 4px #0b1114,0 0 0 6px #46545a,inset 0 3px 7px #c2cbce44,0 5px 8px #000b;color:#b9c6ca;display:flex;align-items:center;justify-content:center;position:relative;cursor:pointer;touch-action:manipulation}
+.cc300-rotary b{font-size:11px;letter-spacing:.1em;text-shadow:0 1px 2px #000}
+.cc300-rotary-mark{position:absolute;top:5px;left:50%;width:4px;height:10px;border-radius:2px;background:#d5e0e3;transform:translateX(-50%)}
+.cc300-rotary-push{height:38px;min-width:50px;border:1px solid #7a898e;border-radius:3px;background:linear-gradient(#56666c,#273238);color:#e1e9eb;font-size:8px;font-weight:900;cursor:pointer}
+.cc300-hardware-help{color:#91a1a7;font-size:8px;max-width:120px;line-height:1.4;margin-top:15px}
+.cc300-estop{width:58px;height:58px;border:5px solid #d8c84a;border-radius:4px;background:#d32e2e;box-shadow:inset 0 2px 4px #fff5,0 2px 4px #0009;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer}
+.cc300-estop span{width:33px;height:33px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#ff7b7b,#c00 65%,#7e0000);box-shadow:0 2px 3px #0008}
+.cc300-estop small{font-size:5px;font-weight:900;color:#fff;white-space:nowrap;margin-top:2px}
+.cc300-selected{outline:2px solid #1595aa!important;outline-offset:1px!important;background:#dff1f3!important}
+.training-telemetry{max-width:1000px;margin:10px auto 0}
+.toolbar{max-width:1000px;margin:10px auto 0!important;justify-content:center}
+.workspace>.columns:not(:first-of-type){align-items:start}
+.workspace>.columns:not(:first-of-type)>.panel{min-width:0}
+@media(max-width:850px){
+ main{padding:8px}
+ .machine{padding:8px;border-width:5px}
+ .cc300-screen{height:70vh;min-height:560px;padding:7px}
+ .cc300-status{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cc300-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cc300-tiles.tasks{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .cc300-hardware{gap:10px;padding-left:8px;padding-right:8px}
+ .cc300-small-key{width:55px}
+ .cc300-rotary{width:70px;height:70px}
+}
+@media(max-width:560px){
+ header{padding:7px 9px}
+ .brand{font-size:13px}
+ .topright .pill{font-size:8px}
+ main{padding:6px}
+ .project-select{gap:4px}
+ .project-select select{font-size:10px;padding:6px 4px;height:34px}
+ .workspace>section.panel:first-child .hero{display:block}
+ .workspace>section.panel:first-child .metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:3px}
+ .workspace>section.panel:first-child .metric{padding:4px}
+ .workspace>section.panel:first-child .metric b{font-size:11px}
+ .workspace>section.panel:first-child .metric span{font-size:7px}
+ .machine{padding:5px;border-width:4px}
+ .machine-top-right{gap:6px}
+ .cc300-estop{width:43px;height:43px;border-width:4px}
+ .cc300-estop span{width:25px;height:25px}
+ .cc300-screen{height:72vh;min-height:520px;padding:5px}
+ .cc300-status{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .cc300-status small{font-size:7px;min-height:17px}
+ .cc300-status b{font-size:10px}
+ .cc300-nav{gap:0;justify-content:space-between}
+ .cc300-nav button{padding:7px 5px;font-size:8px}
+ .cc300-tiles button{min-height:61px;font-size:8px}
+ .cc300-tiles i{font-size:18px}
+ .cc300-control-grid,.cc300-plant-grid{grid-template-columns:1fr}
+ .cc300-detail{padding:7px}
+ .cc300-hardware{min-height:95px;gap:7px;padding:12px 5px 5px}
+ .cc300-small-key{width:48px;height:39px;font-size:6px}
+ .cc300-rotary{width:60px;height:60px}
+ .cc300-rotary-push{min-width:42px;height:32px}
+ .cc300-hardware-help{font-size:7px;max-width:76px}
+ .cc300-hardware-caption{font-size:7px}
+ .workspace>.columns:not(:first-of-type){grid-template-columns:1fr}
+}
+
 </style>
 </head>
 <body>
@@ -163,12 +293,12 @@ select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd
   <section class="panel">
    <h2 class="section-title">ENGEL CC300 · ПАНЕЛЬ УПРАВЛЕНИЯ <span class="pill" id="machineMode">MANUAL</span></h2>
    <div class="machine">
-    <div class="machine-top"><div><div class="machine-name" id="machineName">ENGEL CC300 · MACHINE CONTROL</div><div class="sub" id="machineStatus">Ожидание · привод остановлен</div></div><span class="pill" id="powerPill">POWER OFF</span></div>
+    <div class="machine-top"><div><div class="machine-name" id="machineName">ENGEL CC300 · MACHINE CONTROL</div><div class="sub" id="machineStatus">Ожидание · привод остановлен</div></div><div class="machine-top-right"><span class="pill" id="powerPill">POWER OFF</span><button class="cc300-estop" id="cc300EStop" type="button" title="Аварийный останов"><span></span><small>EMERGENCY STOP</small></button></div></div>
     <div class="cc300-screen">
       <div class="cc300-status">
-       <div><small>Mold position actual value</small><b>— mm</b></div><div><small>Clamping force actual value</small><b>— kN</b></div><div><small>Specific injection pressure</small><b>— bar</b></div><div><small>Cooling time actual value</small><b>— s</b></div><div><small>Shot volume actual value</small><b>— cm³</b></div><div><small>Cycle time</small><b>— s</b></div>
+       <div><small>Mold position actual value</small><b id="moldPosTop">— mm</b></div><div><small>Clamping force actual value</small><b id="clampForceTop">— kN</b></div><div><small>Specific injection pressure</small><b id="injPressureTop">— bar</b></div><div><small>Cooling time actual value</small><b id="coolingTop">— s</b></div><div><small>Shot volume actual value</small><b id="shotVolumeTop">— cm³</b></div><div><small>Cycle time</small><b id="cycleTimeTop">— s</b></div>
       </div>
-      <div class="cc300-nav"><span>● Production</span><span>Favorite 1</span><span>＋</span><span>System</span><span class="cc300-state" id="screenState">STANDBY</span></div>
+      <div class="cc300-nav"><button data-cc-nav="Production">● Production</button><button data-cc-nav="Favorite 1">Favorite 1</button><button data-cc-nav="Add favorite">＋</button><button data-cc-nav="System">System</button><span class="cc300-state" id="screenState">STANDBY</span></div>
       <div class="cc300-home" id="cc300Home">
        <div class="cc300-group"><h3>Components</h3><div class="cc300-tiles">
         <button data-cc-page="Injection unit"><i>▤</i>Injection unit</button><button data-cc-page="Mold area"><i>▥</i>Mold area</button><button data-cc-page="Part removal"><i>⇧</i>Part removal</button><button data-cc-page="Peripheral unit"><i>▧</i>Peripheral unit</button><button data-cc-page="Office"><i>▣</i>Office</button><button data-cc-page="Robot"><i>⌘</i>Robot</button>
@@ -182,6 +312,13 @@ select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd
       </div>
       <div class="cc300-detail hidden" id="cc300Detail"><div class="cc300-detail-head"><button class="cc300-back" id="cc300Back">‹</button><strong id="cc300DetailTitle">Injection unit</strong><span>ENGEL CC300</span></div><div id="cc300DetailContent"></div></div>
       <div class="cc300-bottom"><span>ENGEL CC300</span><span>Components　·　Tasks</span><span>●</span></div>
+     </div>
+     <div class="cc300-hardware">
+       <div class="cc300-hardware-caption">ENGEL · OPERATOR CONTROL</div>
+       <button class="cc300-small-key" id="hardwarePermissive" type="button"><i></i><span>PERMISSIVE</span></button>
+       <button class="cc300-small-key interrupt" id="hardwareInterrupt" type="button"><i></i><span>PROGRAM<br>INTERRUPT</span></button>
+       <div class="cc300-rotary-wrap"><div class="cc300-rotary-hint">TURN / PUSH</div><button class="cc300-rotary" id="rotaryKnob" type="button" aria-label="Повернуть энкодер"><span class="cc300-rotary-mark"></span><b>ENGEL</b></button><button class="cc300-rotary-push" id="hardwareConfirm" type="button">PUSH</button></div>
+       <div class="cc300-hardware-help">Поворот — выбор элемента · нажатие — подтверждение</div>
      </div>
      <div class="training-telemetry"><div class="training-label">TRAINING SIMULATION · NOT CC300 MACHINE DATA</div>
       <div class="readouts">
@@ -290,18 +427,178 @@ let stage=0,checks=stages.map(s=>s.tasks.map(()=>false)),robot={home:false,progr
 function $(id){return document.getElementById(id)}
 
 const cc300ComponentItems={"Injection unit":["Inject","Plasticizing","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"]};
+function cc300ParamControl(id){
+ const p=params.find(x=>x.id===id);if(!p)return '';
+ return '<div class="cc300-control"><div class="cc300-control-head"><label for="cc-'+p.id+'">'+p.label+'</label><output id="cc-out-'+p.id+'">'+paramsState[p.id]+' '+p.unit+'</output></div><input id="cc-'+p.id+'" type="range" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+paramsState[p.id]+'" data-cc-param="'+p.id+'"><small>'+p.desc+'</small></div>';
+}
+function cc300Action(label,action,kind){
+ return '<button type="button" class="cc300-action '+(kind||'')+'" data-cc-action="'+action+'">'+label+'</button>';
+}
+function cc300PlantToggle(id,label){
+ return '<label class="cc300-plant"><input type="checkbox" data-cc-plant="'+id+'" '+($(id).checked?'checked':'')+'><span>'+label+'</span></label>';
+}
+function cc300RobotControls(){
+ return '<div class="cc300-action-row">'+cc300Action('HOME','robot-home')+cc300Action('LOAD PROGRAM','robot-load')+cc300Action('DRY RUN','robot-dry')+cc300Action('PICK PART','robot-pick')+cc300Action('PLACE PART','robot-place')+cc300Action('STOP','robot-stop','danger')+'</div><p class="cc300-note">Robot status: <b id="cc-robot-state">'+$('robotState').textContent+'</b> · Program: '+project().program+'</p><p class="cc300-note">Ручные команды доступны только в учебной модели. Во время цикла перемещения блокируются.</p>';
+}
+function cc300StatusTable(){
+ return '<table class="cc300-data-table"><tr><th>Parameter</th><th>Actual / set</th><th>Status</th></tr>'+
+ '<tr><td>Shot position</td><td>'+paramsState.shot+' mm</td><td>SIM</td></tr>'+
+ '<tr><td>Injection speed</td><td>'+paramsState.speed+' %</td><td>SIM</td></tr>'+
+ '<tr><td>Injection pressure limit</td><td>'+paramsState.pressure+' bar</td><td>SIM</td></tr>'+
+ '<tr><td>Hold pressure</td><td>'+paramsState.hold+' bar</td><td>SIM</td></tr>'+
+ '<tr><td>Cooling time</td><td>'+paramsState.cool+' s</td><td>SIM</td></tr>'+
+ '<tr><td>Barrel temperature</td><td>'+paramsState.temp+' °C</td><td>SIM</td></tr>'+
+ '<tr><td>Cycle time</td><td>'+$('cycleMetric').textContent+'</td><td>'+$('qualityMetric').textContent+'</td></tr></table>';
+}
 function openCC300Page(name){
  $('cc300Home').classList.add('hidden');$('cc300Detail').classList.remove('hidden');$('cc300DetailTitle').textContent=name;
- const items=cc300ComponentItems[name]||[];
+ const componentItems={
+  "Injection unit":["Inject","Plasticizing","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"],
+  "Mold area":["Mold opening / closing","Automatic ejector","Mold temperature","Monitoring"],
+  "Peripheral unit":["Cooling circuit","Temperature controller","Material supply"],
+  "Office":["Production order","Part / tool information","Material"],
+  "Part removal":["Robot","Automatic ejector","Take-out monitoring"]
+ };
+ const paramMap={
+  "Inject":["shot","speed","pressure","vp","cushion","hold"],
+  "Plasticizing":["rpm","back","temp"],
+  "Mold area":["clamp","moldTemp","cool"],
+  "Mold opening / closing":["clamp","cool"],
+  "Mold temperature":["moldTemp"],
+  "Nozzle":["temp","pressure"],
+  "Barrel heating":["temp"],
+  "Measuring group":["shot","cushion","rpm"],
+  "IQ weight control":["shot","hold","cushion"],
+  "Optimization of production":["shot","speed","pressure","hold","cool","vp"],
+  "Set monitoring":["pressure","hold","temp","clamp"],
+  "Favorite 1":["shot","speed","hold","cool"],
+  "Micrograph":["shot","speed","pressure","hold"],
+  "Shut-off nozzle":["temp","pressure"],
+  "Barrel cleaning":["temp","rpm","back"]
+ };
  let html='';
- if(items.length) html='<div class="cc300-detail-grid">'+items.map(x=>'<button type="button" data-cc-item="'+x.replace(/"/g,'&quot;')+'">'+x+'</button>').join('')+'</div>';
- else html='<p class="cc300-note">Этот пункт присутствует в опубликованном меню CC300. Точная структура подстраницы зависит от конфигурации машины и версии программного обеспечения; её не имитирую без подтверждённого экрана.</p>';
- if(["Inject","Plasticizing","Automatic ejector","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"].includes(name)) html='<p class="cc300-note">Функция указана в опубликованном перечне CC300. Точная раскладка страницы зависит от версии ПО и конфигурации машины.</p>';
+ if(componentItems[name]){
+  html='<div class="cc300-detail-grid">'+componentItems[name].map(x=>'<button type="button" data-cc-item="'+x+'">'+x+'</button>').join('')+'</div>';
+  if(name==="Peripheral unit")html+='<p class="cc300-note">Состояние вспомогательных контуров учебной модели.</p><div class="cc300-plant-grid">'+cc300PlantToggle('waterReady','Cooling water ready')+cc300PlantToggle('tempReady','Temperature controller ready')+'</div>';
+  if(name==="Office")html+='<p class="cc300-note">Order: <b>'+project().id+'</b> · Part: '+project().part+' · Tool: '+project().form+' · Material: '+$('materialSelect').value+'</p>';
+ }else if(paramMap[name]){
+  html='<div class="cc300-control-grid">'+paramMap[name].map(cc300ParamControl).join('')+'</div><p class="cc300-note">Значения редактируются непосредственно на экране. Изменения синхронизируются с учебной моделью процесса.</p>';
+ }else if(name==="Robot"||name==="Part removal"){
+  html=cc300RobotControls();
+ }else if(name==="Automatic ejector"){
+  html='<p class="cc300-note">Автоматический выталкиватель · учебная страница</p><div class="cc300-action-row">'+cc300Action('TEST EJECTOR','eject-test')+cc300Action('RETRACT','eject-retract')+'</div><p id="cc-eject-state" class="cc300-note">Status: READY (simulation)</p>';
+ }else if(name==="Peripheral unit"||name==="Cooling circuit"||name==="Temperature controller"){
+  html='<div class="cc300-plant-grid">'+cc300PlantToggle('waterReady','Cooling circuit ready')+cc300PlantToggle('tempReady','Temperature controller ready')+'</div>';
+ }else if(name==="Prepare for production"||name==="Check production"||name==="Initial sampling"||name==="Search cause of the fault"||name==="Monitoring"||name==="Maintenance"||name==="Conversion"||name==="Start/Stop production"||name==="System"||name==="Production"||name==="Favorite 1"||name==="Add favorite"||name==="Office"||name==="Material supply"){
+  if(name==="Start/Stop production"){
+   html='<p class="cc300-note">Machine state: <b>'+$('machineStatus').textContent+'</b></p><div class="cc300-action-row">'+cc300Action('POWER ON / OFF','power')+cc300Action('START CYCLE','cycle','primary')+cc300Action('RESET ALARM','alarm','danger')+'</div>';
+  }else if(name==="Search cause of the fault"){
+   const issues=diagnoseProcess();
+   html='<p class="cc300-note">'+(issues.length?'Detected process deviations:':'No parameter deviations detected in the training model.')+'</p><div class="notice '+(issues.length?'red':'')+'">'+(issues.length?issues.join('<br>'):'Проверь межблокировки и состояние оборудования.')+'</div>'+cc300Action('OPEN INTERLOCK STATUS','interlocks');
+  }else if(name==="Monitoring"||name==="Check production"||name==="Initial sampling"){
+   const issues=diagnoseProcess();
+   html='<p class="cc300-note">Part quality score: <b>'+$('qualityMetric').textContent+'</b> · Trial shots: <b>'+scrap+'</b></p>'+cc300StatusTable()+'<div class="notice '+(issues.length?'red':'')+'">'+(issues.length?issues.join('<br>'):'Условные параметры находятся в пределах учебного профиля.')+'</div>';
+   if(name==="Initial sampling")html+=cc300Action('RUN TRIAL CYCLE','cycle','primary');
+  }else if(name==="Prepare for production"||name==="Conversion"){
+   html='<p class="cc300-note">Production order: '+project().id+' · Tool: '+project().form+' · Material: '+$('materialSelect').value+'</p><div class="cc300-plant-grid">'+cc300PlantToggle('guardClosed','Safety guard closed')+cc300PlantToggle('formClamped','Mold secured')+cc300PlantToggle('waterReady','Cooling circuit ready')+cc300PlantToggle('tempReady','Temperature controller ready')+cc300PlantToggle('eStopClear','Emergency stop released')+cc300PlantToggle('robotAtHome','Robot at HOME')+'</div>'+cc300Action('CHECK INTERLOCKS','interlocks');
+  }else if(name==="Maintenance"){
+   html='<p class="cc300-note">Maintenance / service overview · training profile</p>'+cc300StatusTable()+'<p class="cc300-note">Cycle counter: '+scrap+' training shots. Use the event log below for recent actions.</p>'+cc300Action('OPEN EVENT LOG','event-log');
+  }else if(name==="System"){
+   html='<p class="cc300-note">System configuration · training profile</p><div class="cc300-control-grid"><div class="cc300-control"><label>Machine profile</label><select id="cc-machine-select"><option>ENGEL · учебный профиль</option><option>ZHAFIR · учебный профиль</option><option>HAITIAN · учебный профиль</option></select></div><div class="cc300-control"><label>Material</label><select id="cc-material-select">'+Array.from($('materialSelect').options).map(o=>'<option '+(o.value===$('materialSelect').value?'selected':'')+'>'+o.value+'</option>').join('')+'</select></div></div>'+cc300Action('POWER ON / OFF','power')+cc300Action('RESET ALARM','alarm','danger');
+  }else if(name==="Favorite 1"){
+   html='<p class="cc300-note">Operator favorites · quick access</p><div class="cc300-control-grid">'+["shot","speed","hold","cool"].map(cc300ParamControl).join('')+'</div>';
+  }else if(name==="Add favorite"){
+   html='<p class="cc300-note">Favorite 1 stores quick access to the most-used process settings in this training interface.</p>'+cc300Action('SAVE CURRENT PROCESS SETTINGS','favorite-save','primary');
+  }else{
+   html='<p class="cc300-note">Production overview · '+project().id+' · '+project().part+'</p>'+cc300StatusTable();
+  }
+ }else{
+  html='<p class="cc300-note">ENGEL CC300 · '+name+'</p><p class="cc300-note">Раздел доступен в учебной панели. Точная заводская раскладка страницы зависит от версии ПО и опций конкретной машины; здесь показаны доступные учебные органы управления.</p>';
+ }
  $('cc300DetailContent').innerHTML=html;
+ const machineSelect=$('cc-machine-select');if(machineSelect)machineSelect.value=$('machineSelect').value;
+ const materialSelect=$('cc-material-select');if(materialSelect)materialSelect.value=$('materialSelect').value;
 }
+function syncCC300Param(id,value){
+ paramsState[id]=Number(value);
+ const mainInput=$('p-'+id),mainOutput=$('o-'+id),ccOutput=$('cc-out-'+id);
+ if(mainInput)mainInput.value=value;
+ if(mainOutput)mainOutput.textContent=value+' '+params.find(p=>p.id===id).unit;
+ if(ccOutput)ccOutput.textContent=value+' '+params.find(p=>p.id===id).unit;
+ updateMetrics();
+}
+function performCC300Action(action){
+ if(action.indexOf('robot-')===0){const key=action.slice(6);const btn=document.querySelector('[data-robot="'+key+'"]');if(btn)btn.click();return;}
+ if(action==='power')$('powerBtn').click();
+ else if(action==='cycle')$('cycleBtn').click();
+ else if(action==='alarm')$('alarmBtn').click();
+ else if(action==='interlocks')openCC300Page('Prepare for production');
+ else if(action==='event-log')document.querySelector('.log').scrollIntoView({behavior:'smooth',block:'center'});
+ else if(action==='favorite-save'){log('Favorite 1: сохранены текущие учебные настройки');$('screenState').textContent='FAVORITE SAVED';}
+ else if(action==='eject-test'){$('cc-eject-state').textContent='Status: EJECT TEST COMPLETE (simulation)';log('Выталкиватель: тестовый ход выполнен');}
+ else if(action==='eject-retract'){$('cc-eject-state').textContent='Status: RETRACTED (simulation)';log('Выталкиватель: возврат выполнен');}
+}
+
 document.querySelectorAll('[data-cc-page]').forEach(b=>b.addEventListener('click',()=>openCC300Page(b.dataset.ccPage)));
-$('cc300Back').onclick=()=>{$('cc300Detail').classList.add('hidden');$('cc300Home').classList.remove('hidden')};
-$('cc300DetailContent').addEventListener('click',e=>{const b=e.target.closest('[data-cc-item]');if(b)openCC300Page(b.dataset.ccItem)});
+$('cc300Back').onclick=()=>{$('cc300Detail').classList.add('hidden');$('cc300Home').classList.remove('hidden');cc300SelectedIndex=0;cc300Select(0)};
+$('cc300DetailContent').addEventListener('input',e=>{const el=e.target.closest('[data-cc-param]');if(el)syncCC300Param(el.dataset.ccParam,el.value)});
+$('cc300DetailContent').addEventListener('change',e=>{
+ const p=e.target.closest('[data-cc-plant]');
+ if(p){$(p.dataset.ccPlant).checked=p.checked;$(p.dataset.ccPlant).dispatchEvent(new Event('change'));return}
+ if(e.target.id==='cc-machine-select'){$('machineSelect').value=e.target.value;$('machineSelect').dispatchEvent(new Event('change'))}
+ if(e.target.id==='cc-material-select'){$('materialSelect').value=e.target.value;$('materialSelect').dispatchEvent(new Event('change'))}
+});
+$('cc300DetailContent').addEventListener('click',e=>{
+ const item=e.target.closest('[data-cc-item]');if(item){openCC300Page(item.dataset.ccItem);return}
+ const action=e.target.closest('[data-cc-action]');if(action)performCC300Action(action.dataset.ccAction);
+});
+document.querySelectorAll('[data-cc-nav]').forEach(b=>b.addEventListener('click',()=>{
+ document.querySelectorAll('[data-cc-nav]').forEach(x=>x.classList.toggle('active',x===b));
+ if(b.dataset.ccNav==='Production'){$('cc300Detail').classList.add('hidden');$('cc300Home').classList.remove('hidden');}
+ else openCC300Page(b.dataset.ccNav);
+}));
+
+
+let cc300SelectedIndex=0,cc300Permissive=false;
+function cc300Selectable(){
+ return Array.from(document.querySelectorAll('#cc300Home button[data-cc-page],#cc300DetailContent button[data-cc-item],#cc300DetailContent button[data-cc-action],#cc300DetailContent input[type=range]')).filter(x=>!x.disabled&&!x.closest('.hidden'));
+}
+function cc300Select(delta){
+ const items=cc300Selectable();if(!items.length)return;
+ cc300SelectedIndex=(cc300SelectedIndex+delta+items.length)%items.length;
+ items.forEach((x,i)=>x.classList.toggle('cc300-selected',i===cc300SelectedIndex));
+ items[cc300SelectedIndex].scrollIntoView({block:'nearest',inline:'nearest'});
+ $('rotaryKnob').style.transform='rotate('+(cc300SelectedIndex*24)+'deg)';
+}
+function cc300Confirm(){
+ const items=cc300Selectable();if(!items.length)return;
+ const item=items[cc300SelectedIndex%items.length];
+ if(item.matches('input[type=range]')){
+  const step=Number(item.step)||1;syncCC300Param(item.dataset.ccParam,Math.min(Number(item.max),Number(item.value)+step));
+ }else item.click();
+}
+$('rotaryKnob').addEventListener('click',()=>cc300Select(1));
+$('hardwareConfirm').addEventListener('click',cc300Confirm);
+$('hardwarePermissive').addEventListener('click',()=>{
+ cc300Permissive=!cc300Permissive;$('hardwarePermissive').classList.toggle('active',cc300Permissive);
+ log('CC300 PERMISSIVE '+(cc300Permissive?'ACTIVE':'RELEASED'));
+});
+$('hardwareInterrupt').addEventListener('click',()=>{
+ if(cycleRunning)abortCycle('PROGRAM INTERRUPT на панели CC300');
+ else if(alarm)$('alarmBtn').click();
+ else log('PROGRAM INTERRUPT: активный цикл отсутствует');
+});
+$('cc300EStop').addEventListener('click',()=>{
+ if(cycleRunning)abortCycle('нажат аварийный останов');
+ $('eStopClear').checked=false;alarm=true;$('screenState').textContent='EMERGENCY STOP';$('machineStatus').textContent='Аварийный останов активен · учебная модель';
+ showInterlocks();log('EMERGENCY STOP: цепь безопасности разомкнута');
+});
+document.addEventListener('keydown',e=>{
+ if(e.key==='ArrowRight'||e.key==='ArrowDown'){cc300Select(1);e.preventDefault();}
+ else if(e.key==='ArrowLeft'||e.key==='ArrowUp'){cc300Select(-1);e.preventDefault();}
+ else if(e.key==='Enter'){cc300Confirm();e.preventDefault();}
+ else if(e.key==='Escape'){if(!$('cc300Detail').classList.contains('hidden'))$('cc300Back').click();}
+});
 
 function log(msg){const d=new Date();logItems.unshift({t:d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),msg});logItems=logItems.slice(0,60);$('log').innerHTML=logItems.map(x=>'<div><time>'+x.t+'</time>'+x.msg+'</div>').join('')}
 function project(){return projects[$('projectSelect').value]}
@@ -309,7 +606,7 @@ function setDefaults(){paramsState={shot:project().shot,speed:project().speed,pr
 function renderParams(){$('paramList').innerHTML=params.map(p=>'<div class="param"><div class="param-head"><label for="p-'+p.id+'">'+p.label+'</label><output id="o-'+p.id+'">'+paramsState[p.id]+' '+p.unit+'</output></div><input id="p-'+p.id+'" type="range" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+paramsState[p.id]+'" data-param="'+p.id+'"><div class="param-foot"><span>'+p.min+' '+p.unit+'</span><span>'+p.max+' '+p.unit+'</span></div><small>'+p.desc+'</small></div>').join('');$('paramList').querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{paramsState[el.dataset.param]=Number(el.value);$('o-'+el.dataset.param).textContent=el.value+' '+params.find(p=>p.id===el.dataset.param).unit;updateMetrics()}))}
 function quality(){const p=paramsState;let score=100;if(p.shot<project().shot*.85)score-=28;if(p.shot>project().shot*1.15)score-=20;if(p.speed<25||p.speed>90)score-=12;if(p.pressure<project().pressure*.7)score-=20;if(p.hold<project().hold*.65)score-=12;if(p.cool<project().cool*.55)score-=20;if(Math.abs(p.temp-project().temp)>35)score-=20;if(p.vp<82||p.vp>98)score-=12;if(p.cushion<1||p.cushion>10)score-=14;if(p.clamp<60)score-=22;if(Math.abs(p.moldTemp-project().moldTemp)>25)score-=12;if(p.rpm<30||p.rpm>160)score-=8;if($('materialSelect').value!==project().material)score-=25;return Math.max(0,score)}
 function phaseDurations(){const p=paramsState;return [900,650+p.shot*22/Math.max(20,p.speed),500+p.hold*9,700+p.cool*120,500+p.shot*18/Math.max(20,p.rpm)+p.back*5,850,650]}
-function updateMetrics(){const p=paramsState,cycle=phaseDurations().reduce((a,b)=>a+b,0)/1000;const q=quality();$('cycleMetric').textContent=cycle.toFixed(1)+' s';$('plasticMetric').textContent=p.shot.toFixed(1)+' mm';$('qualityMetric').textContent=q>=85?'Хорошо':q>=65?'Проверить':'Риск брака';$('qualityMetric').style.color=q>=85?'var(--green)':q>=65?'var(--amber)':'var(--red)';$('shotRead').textContent=p.shot+' mm';$('speedRead').textContent=p.speed+' %';$('holdRead').textContent=p.hold+' bar';$('tempRead').textContent=p.temp+' °C';$('coolRead').textContent=p.cool+' s';$('clampRead').textContent=p.clamp+' %';$('plasticBar').style.width=Math.min(100,p.shot)+'%';$('scrapMetric').textContent=scrap;if(!$('screwPosRead'))return; if(!cycleRunning){$('screwPosRead').textContent=p.shot.toFixed(1)+' mm';$('injPressRead').textContent='0 bar';$('cavityPressRead').textContent='0 bar';$('hydraulicRead').textContent='0 bar'}}
+function updateMetrics(){const p=paramsState,cycle=phaseDurations().reduce((a,b)=>a+b,0)/1000;const q=quality();$('cycleMetric').textContent=cycle.toFixed(1)+' s';$('plasticMetric').textContent=p.shot.toFixed(1)+' mm';$('qualityMetric').textContent=q>=85?'Хорошо':q>=65?'Проверить':'Риск брака';$('qualityMetric').style.color=q>=85?'var(--green)':q>=65?'var(--amber)':'var(--red)';$('shotRead').textContent=p.shot+' mm';$('speedRead').textContent=p.speed+' %';$('holdRead').textContent=p.hold+' bar';$('tempRead').textContent=p.temp+' °C';$('coolRead').textContent=p.cool+' s';$('clampRead').textContent=p.clamp+' %';$('plasticBar').style.width=Math.min(100,p.shot)+'%';$('scrapMetric').textContent=scrap;$('moldPosTop').textContent=(phaseIndex>=5?'0':p.clamp>0?'—':'—')+' mm';$('clampForceTop').textContent=Math.round(p.clamp*22)+' kN';$('injPressureTop').textContent=(cycleRunning?$('injPressRead').textContent:'0 bar');$('coolingTop').textContent=p.cool.toFixed(1)+' s';$('shotVolumeTop').textContent=(p.shot*1.35).toFixed(1)+' cm³';$('cycleTimeTop').textContent=cycle.toFixed(1)+' s';if(!$('screwPosRead'))return;if(!cycleRunning){$('screwPosRead').textContent=p.shot.toFixed(1)+' mm';$('injPressRead').textContent='0 bar';$('cavityPressRead').textContent='0 bar';$('hydraulicRead').textContent='0 bar'}}
 function diagnoseProcess(){
  const p=paramsState, base=project(), issues=[];
  if(p.shot<base.shot*.85)issues.push('Недолив: условно недостаточная доза');
@@ -354,7 +651,7 @@ $('resetStage').onclick=()=>{checks[stage]=checks[stage].map(()=>false);renderSt
 $('projectSelect').onchange=()=>{$('jobPill').textContent='Задание: '+project().id;setDefaults();robot.program=false;robot.dry=false;$('robotProgram').textContent='Программа: '+project().program+' · не загружена';$('robotPill').textContent=$('robotAtHome').checked?'HOME':'NOT HOME';$('robotState').textContent='Требуется загрузить программу нового проекта';showInterlocks();log('Выбран проект '+project().id+' · '+project().part+' · программа робота сброшена')};
 $('machineSelect').onchange=()=>{$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';log('Выбран учебный профиль '+$('machineSelect').value)};
 $('materialSelect').onchange=()=>{updateMetrics();log('Выбран материал '+$('materialSelect').value+' — параметры требуется сверять с картой материала');$('stageNotice').textContent='Материал выбран: '+$('materialSelect').value+'. Используй только подтверждённую карту материала для реальной наладки.'};
-$('powerBtn').onclick=()=>{if(machineOn&&cycleRunning)abortCycle('привод отключён во время цикла');machineOn=!machineOn;$('powerPill').textContent=machineOn?'POWER ON':'POWER OFF';$('machineStatus').textContent=machineOn?'Привод включён · учебный режим':'Ожидание · привод остановлен';$('screenState').textContent=machineOn?'READY':'STANDBY';$('powerBtn').textContent=machineOn?'Отключить привод':'Включить привод';showInterlocks();log(machineOn?'Учебный привод включён':'Учебный привод отключён')};
+$('powerBtn').onclick=()=>{if(machineOn&&cycleRunning)abortCycle('привод отключён во время цикла');machineOn=!machineOn;$('powerPill').textContent=machineOn?'POWER ON':'POWER OFF';$('machineStatus').textContent=machineOn?'Привод включён · учебный режим':'Ожидание · привод остановлен';$('screenState').textContent=machineOn?'READY':'STANDBY';$('powerBtn').textContent=machineOn?'Отключить привод':'Включить привод';showInterlocks();log(machineOn?'Учебный привод включён':'Учебный привод отключён');if(!$('cc300Detail').classList.contains('hidden'))openCC300Page($('cc300DetailTitle').textContent)};
 const cyclePhases=[['СМЫКАНИЕ','Форма закрывается'],['ВПРЫСК','Шнек движется вперёд, расплав заполняет полость'],['ВЫДЕРЖКА','Поддержание давления после заполнения'],['ОХЛАЖДЕНИЕ','Деталь охлаждается в закрытой форме'],['ПЛАСТИКАЦИЯ','Шнек вращается и отходит, накапливая дозу'],['РАЗМЫКАНИЕ','Форма раскрывается'],['ВЫТАЛКИВАНИЕ','Толкатели извлекают деталь']];
 let phaseIndex=0,phaseElapsed=0,phaseTimer=null,phaseDurationList=[];
 function setCyclePhase(i){phaseIndex=i;phaseElapsed=0;$('cyclePhase').textContent=cyclePhases[i][0]+' · '+cyclePhases[i][1];$('cycleStep').textContent=(i+1)+' / 7';$('cycleProgress').style.width=((i)/7*100)+'%';$('screenState').textContent=cyclePhases[i][0];$('machineStatus').textContent=cyclePhases[i][1];}
@@ -380,6 +677,6 @@ $('alarmBtn').onclick=()=>{if(cycleTimer){clearInterval(cycleTimer);cycleTimer=n
 document.querySelectorAll('[data-robot]').forEach(b=>b.onclick=()=>{const a=b.dataset.robot;if(cycleRunning&&a!=='stop'){$('robotNotice').textContent='Команды робота заблокированы во время цикла пресса. Для аварийной остановки используй STOP.';return}if(a==='home'){robot.home=true;robot.stopped=false;$('robotAtHome').checked=true;$('robotState').textContent='HOME · безопасная позиция';$('robotPill').textContent='HOME';log('Робот: команда HOME выполнена в симуляции')}else if(a==='load'){robot.program=true;robot.dry=false;robot.home=$('robotAtHome').checked;$('robotState').textContent='Программа загружена';$('robotProgram').textContent='Программа: '+project().program;$('robotPill').textContent='PROGRAM LOADED';log('Загружена учебная программа '+project().program)}else if(a==='dry'){if(!robot.program){$('robotNotice').textContent='Сначала загрузи программу проекта.';return}if(!$('robotAtHome').checked||!$('guardClosed').checked||!$('eStopClear').checked){$('robotNotice').textContent='Dry run заблокирован: подтверди HOME, закрытое ограждение и сброшенный E-Stop.';log('РОБОТ BLOCKED: условия dry run не выполнены');showInterlocks();return}robot.dry=true;$('robotState').textContent='Dry run · траектория проверена';$('robotPill').textContent='DRY RUN OK';log('Робот: учебный сухой прогон завершён')}else if(a==='pick'){if(cycleRunning){$('robotNotice').textContent='Ручное движение робота во время цикла заблокировано учебной логикой.';return}if(!robot.dry){$('robotNotice').textContent='Сначала загрузи программу и выполни dry run.';return}robot.pick=true;robot.part=true;$('robotState').textContent='Деталь захвачена';$('robotPill').textContent='PART GRIPPED';log('Робот: условный захват детали')}else if(a==='place'){if(cycleRunning){$('robotNotice').textContent='Ручное движение робота во время цикла заблокировано учебной логикой.';return}if(!robot.pick){$('robotNotice').textContent='Сначала выполни команду «Взять деталь».';return}robot.part=false;robot.pick=false;$('robotState').textContent='Деталь размещена';$('robotPill').textContent='PLACE DONE';log('Робот: условное размещение детали')}else if(a==='stop'){if(cycleRunning)abortCycle('нажата кнопка STOP робота');robot.stopped=true;robot.dry=false;robot.pick=false;robot.part=false;robot.home=false;$('robotAtHome').checked=false;showInterlocks();$('robotState').textContent='STOP · движение остановлено';$('robotPill').textContent='STOP';log('Робот: STOP') }});
 $('plantStates').querySelectorAll('input').forEach(el=>el.addEventListener('change',()=>{if(cycleRunning&&(['guardClosed','eStopClear','formClamped'].includes(el.id)&&!el.checked))abortCycle(el.parentElement.querySelector('strong').textContent+' — сигнал потерян');else if(cycleRunning&&el.id==='waterReady'&&!el.checked&&phaseIndex===3)abortCycle('контур охлаждения потерял готовность');else if(cycleRunning&&el.id==='tempReady'&&!el.checked&&phaseIndex===4)abortCycle('температурный контур потерял готовность');showInterlocks();log('Состояние изменено: '+el.parentElement.querySelector('strong').textContent+' — '+(el.checked?'OK':'НЕ ГОТОВО'))}));
 $('clearLog').onclick=()=>{logItems=[];$('log').innerHTML='';log('Журнал очищен')};
-$('jobPill').textContent='Задание: '+project().id;$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';$('robotProgram').textContent='Программа: '+project().program;setDefaults();renderStage();showInterlocks();log('Симулятор запущен. Учебный режим активен.'); 
+$('jobPill').textContent='Задание: '+project().id;$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';$('robotProgram').textContent='Программа: '+project().program;setDefaults();renderStage();showInterlocks();log('Симулятор запущен. Учебный режим активен.');cc300Select(0); 
 </script>
 </body></html>
