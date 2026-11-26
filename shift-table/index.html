@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#17242b">
+<title>MAGNA — Shift Work Table</title>
+<style>
+:root{color-scheme:light;--bg:#eef2f3;--panel:#fff;--ink:#1d2a30;--muted:#64747b;--line:#d4dde0;--green:#168044;--orange:#b96b12;--red:#b83232;--blue:#245c9b}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:14px system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:#17272f;color:#fff;padding:16px max(16px,env(safe-area-inset-left));display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}header strong{letter-spacing:.12em;font-size:18px}header small{display:block;color:#b8c7cc;margin-top:3px}
+main{max-width:1500px;margin:auto;padding:16px;display:grid;gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;box-shadow:0 2px 8px #1d30390a}
+h2{font-size:16px;margin:0 0 10px}.muted{color:var(--muted);font-size:12px;line-height:1.5}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.btn{border:1px solid #bdc9cd;background:#f7f9f9;color:#203038;border-radius:8px;padding:10px 13px;font-weight:650;cursor:pointer}.btn.primary{background:#176d3d;color:white;border-color:#176d3d}.btn:disabled{opacity:.5;cursor:wait}
+input,select{font:inherit;border:1px solid #bdc9cd;border-radius:8px;padding:10px;background:white;color:#1d2a30;max-width:100%}
+.upload{border:2px dashed #a9b9be;border-radius:10px;padding:18px;text-align:center;background:#f8fbfb;flex:1;min-width:220px}.upload b{display:block;margin-bottom:5px}#photo{display:block;width:100%;max-width:100%;margin-top:12px;padding:10px;border:1px solid #bdc9cd;border-radius:8px;background:#fff;color:#203038;font:inherit;cursor:pointer}
+#preview{max-width:100%;max-height:340px;object-fit:contain;display:none;margin-top:12px;border-radius:8px;background:#e8edef}
+.progress{height:6px;background:#e4eaec;border-radius:9px;overflow:hidden;margin-top:10px;display:none}.progress span{display:block;height:100%;width:0;background:#23834d}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.stat{background:#f4f7f7;border:1px solid var(--line);border-radius:9px;padding:10px}.stat b{display:block;font-size:22px}.stat span{color:var(--muted);font-size:11px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}.tab{border:0;border-radius:7px;background:#edf1f2;padding:9px 12px;color:#314047;font-weight:650}.tab.active{background:#1d7042;color:white}
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:8px;background:white;max-height:62vh}
+table{border-collapse:separate;border-spacing:0;width:100%;min-width:1250px;font-size:12px}th{position:sticky;top:0;background:#e8edef;z-index:1;text-align:left;color:#34434a;font-size:11px}td,th{padding:7px 8px;border-bottom:1px solid #e3e8ea;border-right:1px solid #edf0f1;white-space:nowrap}tbody tr:nth-child(even){background:#f8fafb}td input{width:100%;min-width:75px;border:1px solid transparent;background:transparent;padding:5px;border-radius:4px;font-size:12px}td input:focus{background:white;border-color:#76a7c5;outline:2px solid #d9edf8}.status{font-weight:700;border-radius:4px;padding:4px 6px;display:inline-block}.s-prod{background:#d7f0df;color:#126b35}.s-stop{background:#ffebd0;color:#94500b}.s-heat{background:#dceaff;color:#245c9b}.s-other{background:#edf0f1;color:#48565c}
+.change-list{display:grid;gap:8px}.change{border:1px solid var(--line);border-left:4px solid #d18a26;border-radius:8px;padding:11px;background:#fff}.change time{font-weight:800;font-size:16px}.change-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:8px}.change-grid span{display:block;color:var(--muted);font-size:10px}.change-grid b{overflow-wrap:anywhere}
+#message{padding:9px 11px;border-radius:8px;background:#eef5f8;color:#315466;margin-top:9px;display:none}.warning{background:#fff5e7!important;color:#80500e!important}
+/* Mobile-first work layout */
+@media(max-width:700px){
+ body{font-size:14px;padding-bottom:env(safe-area-inset-bottom)}
+ header{position:sticky;top:0;z-index:20;padding:10px 14px;gap:6px;min-height:58px}
+ header strong{font-size:17px}header small{font-size:10px}
+ #saved{font-size:10px}
+ main{padding:10px;gap:10px}
+ .card{padding:12px;border-radius:10px}
+ h2{font-size:15px;line-height:1.3}
+ .toolbar{display:grid;grid-template-columns:1fr;width:100%;gap:8px}
+ .toolbar>*{width:100%;min-width:0}
+ .upload{min-width:0;padding:18px 12px}
+ .btn,input,select{min-height:44px;font-size:14px}
+ #preview{width:100%;max-height:260px}
+ .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .stat{padding:9px}.stat b{font-size:20px}
+ .tabs{display:grid;grid-template-columns:1fr 1fr;position:sticky;top:58px;background:#fff;z-index:10;padding:0 0 9px}
+ .tab{min-height:44px;padding:10px 6px}
+ #allPane>.toolbar{grid-template-columns:1fr 1fr}
+ #search{grid-column:1/-1}
+ #statusFilter{grid-column:1/-1}
+ .table-wrap{overflow:auto;max-height:62vh;border:1px solid var(--line);background:#fff}
+ table{display:table;width:100%;min-width:1250px;font-size:12px}
+ thead{display:table-header-group}
+ tbody{display:table-row-group}
+ tbody tr{display:table-row;background:initial!important;border:0;border-radius:0;overflow:visible;box-shadow:none}
+ tbody td{display:table-cell;padding:7px 8px;white-space:nowrap;border-right:1px solid #edf0f1;text-align:left}
+ tbody td:before{content:none}
+ tbody td input{width:100%;min-width:75px;min-height:36px;padding:5px;border:1px solid transparent;background:transparent;font-size:12px}
+ tbody td:last-child{display:table-cell;background:transparent}
+ tbody td:last-child:before{content:none}
+ tbody td button{min-width:42px;min-height:38px}
+ #changesPane .table-wrap{max-height:65vh}
+ #changesPane table{min-width:1100px}
+ #changesPane th:first-child,#changesPane td:first-child{position:sticky;left:0;background:#fff;z-index:2}
+ #changesPane th:first-child{background:#e8edef;z-index:3}
+ .change-list{gap:10px}
+ .change{padding:12px}
+ .change time{font-size:18px}
+ .change-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ #changesPane>.toolbar{grid-template-columns:1fr}
+ #message{font-size:13px}
+}
+@media(max-width:390px){
+ main{padding:8px}
+ .card{padding:10px}
+ .change-grid{grid-template-columns:1fr}
+ tbody td{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:7px 8px}
+ .stat b{font-size:18px}
+}
+@media(min-width:701px) and (max-width:1000px){
+ main{padding:12px}
+ .table-wrap{max-height:68vh}
+ table{min-width:1100px}
+}
+</style>
+</head>
+<body>
+<header><div><strong>MAGNA</strong><small>SHIFT WORK TABLE · Производственный план и вымены</small></div><div id="saved" class="muted" style="color:#c4d2d7">Локальное сохранение включено</div></header>
+<main>
+<section class="card">
+<h2>1. Загрузить фотографию производственного плана</h2>
+<div class="toolbar">
+<div class="upload"><b>＋ Выбрать фото из галереи</b><div class="muted">Нажми системную кнопку ниже · JPG, PNG, WEBP</div><input id="photo" type="file" accept="image/*" aria-label="Выбрать фотографию из галереи"></div>
+<button class="btn primary" id="ocr" disabled>Распознать таблицу</button>
+<button class="btn" id="clearPhoto">Убрать фото</button>
+</div>
+<img id="preview" alt="Предпросмотр загруженной фотографии">
+<div class="progress" id="progress"><span id="bar"></span></div>
+<div id="message"></div>
+<p class="muted">Распознавание выполняется в браузере. После распознавания обязательно проверь номера, время вымен и ID проектов: качество зависит от чёткости фото, угла съёмки и видимости колонок. Исходное фото не отправляется на сервер.</p>
+</section>
+<section class="card">
+<h2>2. Сводка текущего плана</h2>
+<div class="stats">
+<div class="stat"><b id="countAll">0</b><span>Строк в таблице</span></div>
+<div class="stat"><b id="countProd">0</b><span>В производстве</span></div>
+<div class="stat"><b id="countChanges">0</b><span>Строк с временем вымены</span></div>
+<div class="stat"><b id="countReview">0</b><span>Проверить вручную</span></div>
+</div>
+</section>
+<section class="card">
+<div class="tabs"><button class="tab active" data-tab="all">Полная таблица</button><button class="tab" data-tab="changes">Вымены форм</button></div>
+<div id="allPane">
+<div class="toolbar"><input id="search" placeholder="Поиск: деталь, MSW, проект, ID…" style="flex:1;min-width:200px"><select id="statusFilter"><option value="">Все статусы</option><option>VÝROBA</option><option>PAUZA/KONIEC SMENY</option><option>NAHRIEVANIE FORMY NA LISE</option></select><button class="btn" id="addRow">＋ Строка</button><button class="btn" id="exportCsv">Экспорт CSV</button></div>
+<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Lis</th><th>Status</th><th>Číslo dielu</th><th>MSW</th><th>Názov dielu</th><th>ID</th><th>Poznámky</th><th>Vymena</th><th>IDPlanovac</th><th>MSW_Plan</th><th>DielArtikel</th><th>Проверка</th><th></th></tr></thead><tbody id="rows"></tbody></table></div>
+</div>
+<div id="changesPane" hidden>
+<div class="toolbar"><strong>Таблица вымен — только лисы с указанным временем</strong><button class="btn" id="printChanges">Печать таблицы</button><button class="btn" id="exportChanges">Экспорт таблицы CSV</button></div>
+<div class="table-wrap" style="margin-top:10px"><table><thead><tr><th>Lis</th><th>Status</th><th>Číslo dielu</th><th>MSW</th><th>Názov dielu</th><th>ID</th><th>Poznámky</th><th>Vymena</th><th>IDPlanovac</th><th>MSW_Plan</th><th>DielArtikel</th></tr></thead><tbody id="changeRows"></tbody></table></div>
+<p class="muted">Здесь отображаются только лисы, у которых распознано время в колонке Vymena. Таблица сохраняет структуру исходного плана; на телефоне её можно прокручивать по горизонтали.</p>
+</div>
+</section>
+<section class="card">
+<h2>3. Данные и резервная копия</h2>
+<div class="toolbar"><button class="btn" id="importCsv">Импорт CSV</button><input id="csvFile" type="file" accept=".csv,text/csv" hidden><button class="btn" id="downloadJson">Скачать резервную копию</button><button class="btn" id="clearData">Очистить таблицу</button></div>
+<p class="muted">Изменения сохраняются в памяти браузера на этом устройстве. Для переноса на другой телефон используй экспорт CSV или резервную копию JSON.</p>
+</section>
+</main>
+<script>
+const fields=['lis','status','part','msw','name','id','notes','change','planner','mswPlan','article'];
+const labels=['Lis','Status','Číslo dielu','MSW','Názov dielu','ID','Poznámky','Vymena','IDPlanovac','MSW_Plan','DielArtikel'];
+let data=[];let photoUrl='';
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function save(){try{localStorage.setItem('magna-shift-table-v1',JSON.stringify(data));$('saved').textContent='Сохранено на этом устройстве'}catch(e){$('saved').textContent='Не удалось сохранить локально'}}
+function statusClass(s){s=(s||'').toUpperCase();return s.includes('VÝROBA')?'s-prod':s.includes('PAUZA')?'s-stop':s.includes('NAHRIEVANIE')?'s-heat':'s-other'}
+function render(){
+ const q=$('search').value.toLowerCase(),sf=$('statusFilter').value;
+ const shown=data.map((r,i)=>({r,i})).filter(({r})=>(!sf||r.status===sf)&&(!q||fields.some(f=>String(r[f]||'').toLowerCase().includes(q))));
+ $('rows').innerHTML=shown.map(({r,i})=>'<tr>'+fields.map((f,j)=>'<td data-label="'+esc(labels[j])+'"><input aria-label="'+esc(f)+'" data-i="'+i+'" data-f="'+f+'" value="'+esc(r[f])+'"></td>').join('')+'<td data-label="Проверка">'+(r.review?'<span class="status s-stop">Проверить</span>':'<span class="status s-prod">OK</span>')+'</td><td data-label="Действие"><button class="btn" data-del="'+i+'" title="Удалить строку">Удалить</button></td></tr>').join('');
+ $('countAll').textContent=data.length;$('countProd').textContent=data.filter(r=>(r.status||'').toUpperCase().includes('VÝROBA')).length;$('countChanges').textContent=data.filter(r=>r.change&&r.change.trim()).length;$('countReview').textContent=data.filter(r=>r.review).length;
+ renderChanges();
+}
+function renderChanges(){
+ const list=data.filter(r=>/\\b\\d{1,2}[:.]\\d{2}\\b/.test(String(r.change||''))).sort((a,b)=>timeVal(a.change)-timeVal(b.change));
+ $('changeRows').innerHTML=list.map(r=>'<tr>'+fields.map(f=>'<td>'+esc(r[f]||'')+'</td>').join('')+'</tr>').join('');
+}
+function timeVal(v){const m=String(v).match(/(\d{1,2})[:.](\d{2})/);return m?Number(m[1])*60+Number(m[2]):99999}
+$('rows').addEventListener('change',e=>{const t=e.target;if(!t.matches('input[data-i]'))return;const i=+t.dataset.i;data[i][t.dataset.f]=t.value;if(t.dataset.f==='change')data[i].review=false;save();render()});
+$('rows').addEventListener('click',e=>{const b=e.target.closest('[data-del]');if(b){data.splice(+b.dataset.del,1);save();render()}});
+$('search').addEventListener('input',render);$('statusFilter').addEventListener('change',render);
+$('addRow').onclick=()=>{data.push(Object.fromEntries(fields.map(f=>[f,''])));save();render()};
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));$('allPane').hidden=b.dataset.tab!=='all';$('changesPane').hidden=b.dataset.tab!=='changes'});
+function message(t,warn=false){$('message').style.display='block';$('message').className=warn?'warning':'';$('message').textContent=t}
+$('photo').onchange=()=>{const f=$('photo').files[0];if(!f)return;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl=URL.createObjectURL(f);$('preview').src=photoUrl;$('preview').style.display='block';$('ocr').disabled=false;message('Фото загружено. Нажми «Распознать таблицу».')};
+$('clearPhoto').onclick=()=>{$('photo').value='';$('preview').style.display='none';$('ocr').disabled=true;if(photoUrl)URL.revokeObjectURL(photoUrl);photoUrl='';$('message').style.display='none'};
+function parseTsv(tsv,imageWidth,imageHeight){
+ // Read the column positions from the photographed table header instead of guessing them.
+ const words=[];
+ for(const line of tsv.split(/\r?\n/)){
+  const p=line.split('\t');if(p.length<12||Number(p[0])!==5)continue;
+  const text=(p[11]||'').trim();if(!text)continue;
+  const left=Number(p[6]),top=Number(p[7]),width=Number(p[8]),height=Number(p[9]),conf=Number(p[10]);
+  if(!Number.isFinite(left)||!Number.isFinite(top)||!Number.isFinite(width)||!Number.isFinite(height))continue;
+  words.push({x:(left+width/2)/imageWidth,y:top+height/2,text,conf});
+ }
+ words.sort((a,b)=>a.y-b.y||a.x-b.x);
+ const rows=[],tolerance=Math.max(8,imageHeight*.009);
+ for(const w of words){
+  let target=null,best=tolerance+1;
+  for(const row of rows){const d=Math.abs(row.y-w.y);if(d<best){best=d;target=row}}
+  if(!target||best>tolerance)rows.push({y:w.y,words:[w]});
+  else{target.words.push(w);target.y=target.words.reduce((sum,v)=>sum+v.y,0)/target.words.length}
+ }
+ const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,'');
+ const headerRows=rows.filter(r=>r.y<imageHeight*.28).map(r=>{
+  const found={};let msw=[];
+  for(const w of r.words){
+   const n=norm(w.text);
+   if(n==='lis'||n==='1is')found.lis=w.x;
+   else if(n==='status')found.status=w.x;
+   else if(n==='cislo')found.part=w.x;
+   else if(n==='msw')msw.push(w.x);
+   else if(n==='nazov')found.name=w.x;
+   else if(n==='id')found.id=w.x;
+   else if(n==='poznamky')found.notes=w.x;
+   else if(n==='vymena'||n==='vymena')found.change=w.x;
+   else if(n==='idplanovac')found.planner=w.x;
+   else if(n==='mswplan')found.mswPlan=w.x;
+   else if(n==='dielartikel')found.article=w.x;
+  }
+  msw.sort((a,b)=>a-b);if(msw.length)found.msw=msw[0];if(msw.length>1)found.mswPlan=msw[1];
+  return {row:r,found,count:Object.keys(found).length};
+ }).sort((a,b)=>b.count-a.count);
+ const fallback=[.048,.114,.213,.293,.40,.482,.559,.642,.682,.74,.868];
+ const fieldOrder=['lis','status','part','msw','name','id','notes','change','planner','mswPlan','article'];
+ let centers=fallback.slice();
+ if(headerRows[0]&&headerRows[0].count>=7){
+  const found=headerRows[0].found;
+  centers=fieldOrder.map((key,i)=>Number.isFinite(found[key])?found[key]:fallback[i]);
+  // Interpolate missing header positions between detected neighbours.
+  for(let i=0;i<centers.length;i++)if(!Number.isFinite(found[fieldOrder[i]])){
+   let l=i-1,r=i+1;while(l>=0&&!Number.isFinite(found[fieldOrder[l]]))l--;while(r<centers.length&&!Number.isFinite(found[fieldOrder[r]]))r++;
+   if(l>=0&&r<centers.length)centers[i]=centers[l]+(centers[r]-centers[l])*(i-l)/(r-l);
+   else if(l>=0)centers[i]=centers[l]+(fallback[i]-fallback[l]);
+   else if(r<centers.length)centers[i]=centers[r]-(fallback[r]-fallback[i]);
+  }
+ }
+ const headerY=headerRows[0]?.row.y??-1;
+ const boundaries=centers.slice(0,-1).map((c,i)=>(c+centers[i+1])/2);
+ const out=[];
+ for(const line of rows.sort((a,b)=>a.y-b.y)){
+  if(line.y<=headerY+Math.max(10,imageHeight*.012))continue;
+  const cells=Array.from({length:11},()=>[]);
+  for(const w of line.words){
+   let col=boundaries.findIndex(edge=>w.x<edge);if(col<0)col=10;
+   cells[col].push(w);
+  }
+  const row=cells.map(cell=>cell.sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ').trim());
+  const joined=row.join(' ').trim();
+  if(!joined)continue;
+  const r=Object.fromEntries(fields.map((f,i)=>[f,row[i]]));r.review=true;
+  if(r.lis||r.part||r.msw||r.name||r.change)out.push(r);
+ }
+ return out;
+}$('ocr').onclick=async()=>{
+ const f=$('photo').files[0];if(!f)return;
+ $('ocr').disabled=true;$('progress').style.display='block';$('bar').style.width='4%';message('Загружаю модуль распознавания. Не закрывай страницу.');
+ let worker;
+ try{
+  const mod=await import('https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/+esm');
+  const api=typeof mod.createWorker==='function'?mod:(mod.default||{});
+  if(typeof api.createWorker!=='function')throw new Error('Не удалось загрузить API Tesseract.js (createWorker отсутствует)');
+  if(!f.type.startsWith('image/'))throw new Error('Выбранный файл не распознан как изображение. Выбери JPG или PNG.');
+  if(f.size===0)throw new Error('Файл фотографии пустой.');
+  if(f.size>20*1024*1024)throw new Error('Фото больше 20 МБ. Уменьши размер или выбери другое.');
+  message('Подготавливаю фотографию…');
+  let bitmap;
+  try{bitmap=await createImageBitmap(f)}catch(_){throw new Error('Браузер не смог открыть это фото. Пересохрани его как JPG или PNG и выбери снова.')}
+  const canvas=document.createElement('canvas');
+  canvas.width=bitmap.width;canvas.height=bitmap.height;
+  const ctx=canvas.getContext('2d');
+  if(!ctx){bitmap.close?.();throw new Error('Не удалось подготовить изображение в браузере.')}
+  ctx.drawImage(bitmap,0,0);bitmap.close?.();
+  worker=await api.createWorker('eng+slk+rus',1,{logger:m=>{if(m.status==='recognizing text')$('bar').style.width=Math.round(10+m.progress*85)+'%'}});
+  await worker.setParameters({tessedit_pageseg_mode:6,preserve_interword_spaces:'1'});
+  message('Распознаю текст на фотографии…');
+  const result=await worker.recognize(canvas,{rotateAuto:true},{text:true,blocks:true,tsv:true});
+  const parsed=parseTsv(result.data.tsv||'',canvas.width,canvas.height);
+  // Keep the original table layout, but only presses with an actual Vymena time.
+  const changeRows=parsed.filter(r=>/\b\d{1,2}[:.]\d{2}\b/.test(String(r.change||'')));
+
+  if(!parsed.length){message('Не удалось распознать строки таблицы. Попробуй более ровное и крупное фото.',true)}
+  else if(!changeRows.length){data=[];save();render();message('Таблица распознана, но строки с временем в колонке Vymena не найдены. Проверь качество фото и положение колонки Vymena.',true)}
+  else{data=changeRows;save();render();document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.tab==='changes'));$('allPane').hidden=true;$('changesPane').hidden=false;message('Готово: сформирована отдельная таблица из '+changeRows.length+' лисов с выменами.',false)}
+ }catch(e){message('Не удалось выполнить OCR: '+(e?.message||String(e))+'. Проверь подключение к интернету и попробуй снова.',true)}
+ finally{if(worker){try{await worker.terminate()}catch(_){}}$('ocr').disabled=false;$('bar').style.width='100%';setTimeout(()=>$('progress').style.display='none',900)}
+};
+function csvEscape(v){return '"'+String(v??'').replace(/"/g,'""')+'"'}
+$('exportChanges').onclick=()=>{const rows=[labels,...data.filter(r=>/\\b\\d{1,2}[:.]\\d{2}\\b/.test(String(r.change||''))).map(r=>fields.map(f=>r[f]||''))];const csv='\\ufeff'+rows.map(row=>row.map(csvEscape).join(';')).join('\\r\\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-mold-changes.csv')};
+$('exportCsv').onclick=()=>{const csv='\ufeff'+[labels,...data.map(r=>fields.map(f=>r[f]||''))].map(row=>row.map(csvEscape).join(';')).join('\r\n');download(new Blob([csv],{type:'text/csv;charset=utf-8'}),'magna-shift-plan.csv')};
+$('importCsv').onclick=()=>$('csvFile').click();
+$('csvFile').onchange=async()=>{const f=$('csvFile').files[0];if(!f)return;const text=await f.text();const lines=text.replace(/^\ufeff/,'').split(/\r?\n/).filter(Boolean);const delim=lines[0].includes(';')?';':',';const split=line=>{const a=[];let s='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&line[i+1]==='"'){s+='"';i++}else if(c==='"')q=!q;else if(c===delim&&!q){a.push(s);s=''}else s+=c}a.push(s);return a};data=lines.slice(1).map(line=>{const a=split(line);return Object.fromEntries(fields.map((f,i)=>[f,a[i]||'']))});save();render();message('Импортировано строк: '+data.length)};
+$('downloadJson').onclick=()=>download(new Blob([JSON.stringify({version:1,exportedAt:new Date().toISOString(),rows:data},null,2)],{type:'application/json'}),'magna-shift-backup.json');
+function download(blob,name){const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}
+$('clearData').onclick=()=>{if(confirm('Удалить все строки из таблицы?')){data=[];save();render()}};
+$('printChanges').onclick=()=>{window.print()};
+try{data=JSON.parse(localStorage.getItem('magna-shift-table-v1')||'[]');if(!Array.isArray(data))data=[]}catch{data=[]}render();
+</script>
+</body>
+</html>
