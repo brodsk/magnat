@@ -173,6 +173,9 @@ select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd
        <div class="cc300-group"><h3>Components</h3><div class="cc300-tiles">
         <button data-cc-page="Injection unit"><i>▤</i>Injection unit</button><button data-cc-page="Mold area"><i>▥</i>Mold area</button><button data-cc-page="Part removal"><i>⇧</i>Part removal</button><button data-cc-page="Peripheral unit"><i>▧</i>Peripheral unit</button><button data-cc-page="Office"><i>▣</i>Office</button><button data-cc-page="Robot"><i>⌘</i>Robot</button>
        </div></div>
+       <div class="cc300-group"><h3>Functions</h3><div class="cc300-tiles tasks">
+        <button data-cc-page="Inject"><i>⇢</i>Inject</button><button data-cc-page="Plasticizing"><i>⟳</i>Plasticizing</button><button data-cc-page="Automatic ejector"><i>⇧</i>Automatic ejector</button><button data-cc-page="Nozzle"><i>◉</i>Nozzle</button><button data-cc-page="Barrel cleaning"><i>≋</i>Barrel cleaning</button><button data-cc-page="Shut-off nozzle"><i>⊣</i>Shut-off nozzle</button><button data-cc-page="Barrel heating"><i>♨</i>Barrel heating</button><button data-cc-page="Measuring group"><i>◫</i>Measuring group</button><button data-cc-page="Monitoring"><i>◷</i>Monitoring</button><button data-cc-page="Micrograph"><i>▦</i>Micrograph</button><button data-cc-page="IQ weight control"><i>◎</i>IQ weight control</button>
+       </div></div>
        <div class="cc300-group"><h3>Tasks</h3><div class="cc300-tiles tasks">
         <button data-cc-page="Conversion"><i>⇄</i>Conversion</button><button data-cc-page="Prepare for production"><i>✓</i>Prepare for production</button><button data-cc-page="Initial sampling"><i>◉</i>Initial sampling</button><button data-cc-page="Start/Stop production"><i>Ⅱ</i>Start/Stop production</button><button data-cc-page="Optimization of production"><i>⌁</i>Optimization of production</button><button data-cc-page="Maintenance"><i>⚙</i>Maintenance</button><button data-cc-page="Check production"><i>◷</i>Check production</button><button data-cc-page="Set monitoring"><i>◫</i>Set monitoring</button><button data-cc-page="Search cause of the fault"><i>!</i>Search cause of the fault</button>
        </div></div>
@@ -286,7 +289,7 @@ const params=[
 let stage=0,checks=stages.map(s=>s.tasks.map(()=>false)),robot={home:false,program:false,dry:false,pick:false,part:false,stopped:false},machineOn=false,alarm=false,scrap=0,paramsState={},logItems=[],cycleRunning=false,cycleTimer=null;
 function $(id){return document.getElementById(id)}
 
-const cc300ComponentItems={"Injection unit":["Inject","Plasticizing","Automatic ejector","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"]};
+const cc300ComponentItems={"Injection unit":["Inject","Plasticizing","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"]};
 function openCC300Page(name){
  $('cc300Home').classList.add('hidden');$('cc300Detail').classList.remove('hidden');$('cc300DetailTitle').textContent=name;
  const items=cc300ComponentItems[name]||[];
