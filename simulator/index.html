@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#111d24">
-<title>MAGNA · Наставник литьевого участка</title>
+<title>MAGNA · Тренажёр наладчика литьевого участка</title>
 <style>
 :root{color-scheme:dark;--bg:#10191f;--panel:#19262e;--panel2:#202f38;--line:#344650;--text:#e9f0f2;--muted:#9aabb2;--green:#42c47a;--amber:#f0b34e;--red:#f07171;--blue:#6fb7e8}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px system-ui,-apple-system,Segoe UI,sans-serif}
@@ -33,7 +33,7 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
 <header><div class="brand">MAGNA<small>INJECTION MOULDING · TRAINING SIMULATOR</small></div><div class="topright"><span class="pill">Учебный режим · без связи со станком</span><span class="pill live" id="headerState">● СИМУЛЯЦИЯ АКТИВНА</span></div></header>
 <main>
 <aside class="panel sidebar">
- <div class="eyebrow">Наставник · рабочий сценарий</div><div class="title">Замена формы</div><div class="sub">Пройди весь процесс по этапам. Отмечай действия, меняй параметры и проверяй реакцию условной машины и робота.</div>
+ <div class="eyebrow">Наладчик · рабочий сценарий</div><div class="title">Замена формы</div><div class="sub">Пройди весь процесс по этапам. Отмечай действия, меняй параметры и проверяй реакцию условной машины и робота.</div>
  <div class="project-select">
   <label class="eyebrow" for="machineSelect">Термопластавтомат</label><select id="machineSelect"><option>ENGEL · учебный профиль</option><option>ZHAFIR · учебный профиль</option><option>HAITIAN · учебный профиль</option></select>
   <label class="eyebrow" for="projectSelect">Проект / изделие</label><select id="projectSelect"><option value="mirror">Mirror · корпус внутреннего зеркала</option><option value="signal">Turn signal · линза указателя поворота</option><option value="cover">Base cover · LH + RH</option><option value="custom">Учебный проект · ручная настройка</option></select>
@@ -52,7 +52,7 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
  </section>
  <div class="columns">
   <section class="panel">
-   <h2 class="section-title"><span id="taskTitle">Чек-лист наставника</span><span class="pill" id="taskCount">0 / 4</span></h2>
+   <h2 class="section-title"><span id="taskTitle">Чек-лист наладчика</span><span class="pill" id="taskCount">0 / 4</span></h2>
    <div class="task-list" id="taskList"></div>
    <div class="notice" id="stageNotice">Отметь выполненные пункты. Следующий этап откроется после завершения текущего.</div>
    <div class="footer-actions"><button class="btn" id="resetStage">Сбросить этап</button><button class="btn primary" id="nextStage" disabled>Следующий этап →</button></div>
@@ -95,7 +95,7 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
   </div>
   <div class="notice red" id="faultBox">Цикл заблокирован: проверь условия безопасности и готовность оборудования.</div>
  </section>
- <section class="panel"><h2 class="section-title">Журнал наставника <button class="btn" id="clearLog">Очистить</button></h2><div class="log" id="log"></div></section>
+ <section class="panel"><h2 class="section-title">Журнал наладчика <button class="btn" id="clearLog">Очистить</button></h2><div class="log" id="log"></div></section>
 </section>
 </main>
 <script>
@@ -164,6 +164,18 @@ function setDefaults(){paramsState={shot:project().shot,speed:project().speed,pr
 function renderParams(){$('paramList').innerHTML=params.map(p=>'<div class="param"><div class="param-head"><label for="p-'+p.id+'">'+p.label+'</label><output id="o-'+p.id+'">'+paramsState[p.id]+' '+p.unit+'</output></div><input id="p-'+p.id+'" type="range" min="'+p.min+'" max="'+p.max+'" step="'+p.step+'" value="'+paramsState[p.id]+'" data-param="'+p.id+'"><div class="param-foot"><span>'+p.min+' '+p.unit+'</span><span>'+p.max+' '+p.unit+'</span></div><small>'+p.desc+'</small></div>').join('');$('paramList').querySelectorAll('input').forEach(el=>el.addEventListener('input',()=>{paramsState[el.dataset.param]=Number(el.value);$('o-'+el.dataset.param).textContent=el.value+' '+params.find(p=>p.id===el.dataset.param).unit;updateMetrics()}))}
 function quality(){const p=paramsState;let score=100;if(p.shot<project().shot*.85)score-=28;if(p.shot>project().shot*1.15)score-=20;if(p.speed<25||p.speed>90)score-=12;if(p.pressure<project().pressure*.7)score-=20;if(p.hold<project().hold*.65)score-=12;if(p.cool<project().cool*.55)score-=20;if(Math.abs(p.temp-project().temp)>35)score-=20;return Math.max(0,score)}
 function updateMetrics(){const p=paramsState,cycle=9+p.cool+(100-p.speed)*.08+p.back*.025;const q=quality();$('cycleMetric').textContent=cycle.toFixed(1)+' s';$('plasticMetric').textContent=p.shot.toFixed(1)+' mm';$('qualityMetric').textContent=q>=85?'Хорошо':q>=65?'Проверить':'Риск брака';$('qualityMetric').style.color=q>=85?'var(--green)':q>=65?'var(--amber)':'var(--red)';$('shotRead').textContent=p.shot+' mm';$('speedRead').textContent=p.speed+' %';$('holdRead').textContent=p.hold+' bar';$('tempRead').textContent=p.temp+' °C';$('coolRead').textContent=p.cool+' s';$('plasticBar').style.width=Math.min(100,p.shot)+'%';$('scrapMetric').textContent=scrap}
+function diagnoseProcess(){
+ const p=paramsState, base=project(), issues=[];
+ if(p.shot<base.shot*.85)issues.push('Недолив: условно недостаточная доза');
+ if(p.shot>base.shot*1.15)issues.push('Риск облоя/переполнения: условно избыточная доза');
+ if(p.pressure<base.pressure*.7)issues.push('Риск недолива: низкий предел давления');
+ if(p.hold<base.hold*.65)issues.push('Риск усадки/раковин: низкая выдержка');
+ if(p.cool<base.cool*.55)issues.push('Риск деформации: недостаточное охлаждение');
+ if(Math.abs(p.temp-base.temp)>35)issues.push('Температура сильно отличается от учебного профиля');
+ if(p.speed<25)issues.push('Риск неполного заполнения при низкой скорости');
+ if(p.speed>90)issues.push('Риск дефектов при чрезмерной скорости');
+ return issues;
+}
 function interlockFaults(){
  const faults=[];
  if(!$('guardClosed').checked)faults.push('Защитное ограждение открыто');
@@ -192,9 +204,9 @@ $('projectSelect').onchange=()=>{$('jobPill').textContent='Задание: '+pro
 $('machineSelect').onchange=()=>{$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';log('Выбран учебный профиль '+$('machineSelect').value)};
 $('materialSelect').onchange=()=>{log('Выбран материал '+$('materialSelect').value+' — параметры требуется сверять с картой материала');$('stageNotice').textContent='Материал выбран: '+$('materialSelect').value+'. Используй только подтверждённую карту материала для реальной наладки.'};
 $('powerBtn').onclick=()=>{machineOn=!machineOn;$('powerPill').textContent=machineOn?'POWER ON':'POWER OFF';$('machineStatus').textContent=machineOn?'Привод включён · учебный режим':'Ожидание · привод остановлен';$('screenState').textContent=machineOn?'READY':'STANDBY';$('powerBtn').textContent=machineOn?'Отключить привод':'Включить привод';showInterlocks();log(machineOn?'Учебный привод включён':'Учебный привод отключён')};
-$('cycleBtn').onclick=()=>{const faults=interlockFaults();if(!machineOn||alarm||faults.length){showInterlocks();log('ЦИКЛ ЗАБЛОКИРОВАН: '+faults.join('; '));return}scrap++;updateMetrics();const q=quality();$('screenState').textContent='CYCLE '+scrap;$('machineStatus').textContent='Цикл завершён · '+(q>=85?'условно OK':'нужна проверка параметров');log('Пробный цикл №'+scrap+' · оценка '+q+'/100 · '+(q>=85?'условно OK':'параметры требуют проверки'));if(q<85)$('stageNotice').textContent='Симуляция заметила потенциальный риск. Проверь дозу, давление, скорость, выдержку и охлаждение.'};
-$('alarmBtn').onclick=()=>{alarm=false;$('screenState').textContent=machineOn?'READY':'STANDBY';$('cycleBtn').disabled=!machineOn;log('Учебная авария сброшена')};
-document.querySelectorAll('[data-robot]').forEach(b=>b.onclick=()=>{const a=b.dataset.robot;if(a==='home'){robot.home=true;robot.stopped=false;$('robotAtHome').checked=true;$('robotState').textContent='HOME · безопасная позиция';$('robotPill').textContent='HOME';log('Робот: команда HOME выполнена в симуляции')}else if(a==='load'){robot.program=true;robot.home=false;$('robotAtHome').checked=false;$('robotState').textContent='Программа загружена';$('robotProgram').textContent='Программа: '+project().program;$('robotPill').textContent='PROGRAM LOADED';log('Загружена учебная программа '+project().program)}else if(a==='dry'){if(!robot.program){$('robotNotice').textContent='Сначала загрузи программу проекта.';return}robot.dry=true;$('robotState').textContent='Dry run · траектория проверена';$('robotPill').textContent='DRY RUN OK';log('Робот: учебный сухой прогон завершён')}else if(a==='pick'){if(!robot.dry){$('robotNotice').textContent='Сначала загрузи программу и выполни dry run.';return}robot.pick=true;$('robot.part') ;$('robotState').textContent='Деталь захвачена';$('robotPill').textContent='PART GRIPPED';log('Робот: условный захват детали')}else if(a==='place'){if(!robot.pick){$('robotNotice').textContent='Сначала выполни команду «Взять деталь».';return}robot.part=false;robot.pick=false;$('robotState').textContent='Деталь размещена';$('robotPill').textContent='PLACE DONE';log('Робот: условное размещение детали')}else if(a==='stop'){robot.stopped=true;robot.dry=false;robot.pick=false;$('robotAtHome').checked=false;$('robotState').textContent='STOP · движение остановлено';$('robotPill').textContent='STOP';log('Робот: STOP') }});
+$('cycleBtn').onclick=()=>{const faults=interlockFaults();if(!machineOn||alarm||faults.length){showInterlocks();log('ЦИКЛ ЗАБЛОКИРОВАН: '+faults.join('; '));return}scrap++;updateMetrics();const q=quality(),issues=diagnoseProcess();$('screenState').textContent='CYCLE '+scrap;$('machineStatus').textContent='Цикл завершён · '+(q>=85?'условно OK':'есть риск дефектов');if(issues.length){$('stageNotice').textContent='Контроль первой детали: '+issues.join(' · ');$('stageNotice').className='notice'+(q<50?' red':'');log('Пробный цикл №'+scrap+' · '+q+'/100 · '+issues.join('; '))}else{$('stageNotice').textContent='Условная оценка параметров положительная. Реальную деталь всё равно нужно проверить по контрольному плану.';$('stageNotice').className='notice';log('Пробный цикл №'+scrap+' · '+q+'/100 · условно OK')}if(q<35){alarm=true;$('screenState').textContent='ALARM';$('machineStatus').textContent='Авария учебной модели · параметры вне диапазона';log('АВАРИЯ SIM-201: критическое отклонение учебных параметров')}showInterlocks()};
+$('alarmBtn').onclick=()=>{alarm=false;$('screenState').textContent=machineOn?'READY':'STANDBY';$('machineStatus').textContent=machineOn?'Привод включён · учебный режим':'Ожидание · привод остановлен';showInterlocks();log('Учебная авария сброшена оператором симулятора')};
+document.querySelectorAll('[data-robot]').forEach(b=>b.onclick=()=>{const a=b.dataset.robot;if(a==='home'){robot.home=true;robot.stopped=false;$('robotAtHome').checked=true;$('robotState').textContent='HOME · безопасная позиция';$('robotPill').textContent='HOME';log('Робот: команда HOME выполнена в симуляции')}else if(a==='load'){robot.program=true;robot.home=false;$('robotAtHome').checked=false;$('robotState').textContent='Программа загружена';$('robotProgram').textContent='Программа: '+project().program;$('robotPill').textContent='PROGRAM LOADED';log('Загружена учебная программа '+project().program)}else if(a==='dry'){if(!robot.program){$('robotNotice').textContent='Сначала загрузи программу проекта.';return}if(!$('robotAtHome').checked||!$('guardClosed').checked||!$('eStopClear').checked){$('robotNotice').textContent='Dry run заблокирован: подтверди HOME, закрытое ограждение и сброшенный E-Stop.';log('РОБОТ BLOCKED: условия dry run не выполнены');showInterlocks();return}robot.dry=true;$('robotState').textContent='Dry run · траектория проверена';$('robotPill').textContent='DRY RUN OK';log('Робот: учебный сухой прогон завершён')}else if(a==='pick'){if(!robot.dry){$('robotNotice').textContent='Сначала загрузи программу и выполни dry run.';return}robot.pick=true;robot.part=true;$('robotState').textContent='Деталь захвачена';$('robotPill').textContent='PART GRIPPED';log('Робот: условный захват детали')}else if(a==='place'){if(!robot.pick){$('robotNotice').textContent='Сначала выполни команду «Взять деталь».';return}robot.part=false;robot.pick=false;$('robotState').textContent='Деталь размещена';$('robotPill').textContent='PLACE DONE';log('Робот: условное размещение детали')}else if(a==='stop'){robot.stopped=true;robot.dry=false;robot.pick=false;robot.part=false;robot.home=false;$('robotAtHome').checked=false;showInterlocks();$('robotState').textContent='STOP · движение остановлено';$('robotPill').textContent='STOP';log('Робот: STOP') }});
 $('plantStates').querySelectorAll('input').forEach(el=>el.addEventListener('change',()=>{showInterlocks();log('Состояние изменено: '+el.parentElement.querySelector('strong').textContent+' — '+(el.checked?'OK':'НЕ ГОТОВО'))}));
 $('clearLog').onclick=()=>{logItems=[];$('log').innerHTML='';log('Журнал очищен')};
 $('jobPill').textContent='Задание: '+project().id;$('machineName').textContent=$('machineSelect').value.split(' ·')[0]+' · CONTROL';$('robotProgram').textContent='Программа: '+project().program;setDefaults();renderStage();showInterlocks();log('Симулятор запущен. Учебный режим активен.'); 
