@@ -100,6 +100,36 @@ select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd
 @media(max-width:900px){main{grid-template-columns:1fr}.sidebar{position:static}.mission-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:560px){header{padding:9px 10px}.topright .pill:first-child{display:none}main{padding:7px}.panel{padding:9px}.mission-list{grid-template-columns:repeat(2,minmax(0,1fr))}.readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.machine{padding:6px;border-width:4px}.machine-name{font-size:10px}}
 
+
+/* CC300 screen based on published ENGEL HMI screenshots */
+.cc300-screen{background:#f5f7f8;border:1px solid #aebbc1;color:#33444b;min-height:540px;padding:8px;display:flex;flex-direction:column;gap:8px;font-family:Arial,system-ui,sans-serif}
+.cc300-status{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;padding:2px 0 8px;border-bottom:1px solid #ccd6da}
+.cc300-status>div{background:#fff;border:1px solid #d5dfe2;padding:6px 5px;min-width:0}
+.cc300-status small{display:block;color:#697a81;font-size:8px;line-height:1.2;min-height:21px}
+.cc300-status b{display:block;color:#34484f;font-size:12px;margin-top:3px;font-weight:600}
+.cc300-nav{display:flex;align-items:center;gap:15px;min-height:31px;border-bottom:1px solid #d2dcdf;color:#168fa2;font-size:10px;font-weight:700;padding:0 4px;flex-wrap:wrap}
+.cc300-nav span:first-child{color:#34484f}.cc300-state{margin-left:auto;color:#4b9e68!important}
+.cc300-home{display:grid;gap:12px;padding:4px 2px;flex:1}
+.cc300-group h3{margin:0 0 7px;font-size:11px;color:#51636a;font-weight:700}
+.cc300-tiles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+.cc300-tiles.tasks{grid-template-columns:repeat(5,minmax(0,1fr))}
+.cc300-tiles button{min-width:0;min-height:69px;border:1px solid #d5dfe2;background:linear-gradient(#fff,#f0f4f5);color:#44575e;border-radius:2px;padding:7px 3px;font-size:9px;line-height:1.25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;cursor:pointer}
+.cc300-tiles button:hover,.cc300-tiles button:focus{outline:none;border-color:#70bbc4;background:#e8f5f6}
+.cc300-tiles i{font-style:normal;color:#1595aa;font-size:20px;line-height:1;font-weight:400}.cc300-tiles.tasks i{color:#55a66c}
+.cc300-bottom{margin-top:auto;padding:7px 3px 1px;border-top:1px solid #d1dbde;display:flex;justify-content:space-between;color:#718087;font-size:9px}
+.cc300-detail{flex:1;min-height:340px;background:#fff;border:1px solid #d4dde0;padding:10px}
+.cc300-detail-head{display:flex;align-items:center;gap:10px;border-bottom:1px solid #d8e0e3;padding-bottom:9px;margin-bottom:10px;color:#34484f;font-size:12px}
+.cc300-detail-head span{margin-left:auto;color:#8a989d;font-size:9px}
+.cc300-back{border:1px solid #cbd6da;background:#eef3f4;color:#168fa2;width:28px;height:26px;font-size:19px;cursor:pointer}
+.cc300-detail-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.cc300-detail-grid button{border:1px solid #d5dfe2;background:#f7f9fa;padding:12px 7px;color:#455960;font-size:10px;min-height:58px;cursor:pointer}
+.cc300-detail-grid button:hover{border-color:#70bbc4}
+.cc300-note{font-size:10px;color:#718087;line-height:1.5;margin:12px 0}
+.training-telemetry{margin-top:8px;background:#f0f3f4;border:1px dashed #b9c7cc;padding:8px}
+.training-label{font-size:9px;letter-spacing:.08em;font-weight:800;color:#7a898e;margin-bottom:7px}
+.training-telemetry .readout{background:#fff}
+@media(max-width:680px){.cc300-screen{min-height:490px;padding:6px}.cc300-status{grid-template-columns:repeat(3,minmax(0,1fr))}.cc300-tiles{grid-template-columns:repeat(3,minmax(0,1fr))}.cc300-tiles.tasks{grid-template-columns:repeat(3,minmax(0,1fr))}.cc300-tiles button{min-height:62px;font-size:8px}.cc300-detail-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
 </style>
 </head>
 <body>
@@ -134,8 +164,27 @@ select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd
    <h2 class="section-title">ENGEL CC300 · ПАНЕЛЬ УПРАВЛЕНИЯ <span class="pill" id="machineMode">MANUAL</span></h2>
    <div class="machine">
     <div class="machine-top"><div><div class="machine-name" id="machineName">ENGEL CC300 · MACHINE CONTROL</div><div class="sub" id="machineStatus">Ожидание · привод остановлен</div></div><span class="pill" id="powerPill">POWER OFF</span></div>
-    <div class="machine-screen"><div class="screen-head"><span>ENGEL CC300 / PROCESS OVERVIEW</span><span id="screenState">STANDBY</span></div><div class="screw"><i id="plasticBar"></i></div><div class="readouts"><div class="readout"><span>SHOT SIZE</span><b id="shotRead">42.0 mm</b></div><div class="readout"><span>INJECTION</span><b id="speedRead">55 %</b></div><div class="readout"><span>HOLD PRESS.</span><b id="holdRead">65 bar</b></div><div class="readout"><span>BARREL ZONE</span><b id="tempRead">230 °C</b></div><div class="readout"><span>COOLING</span><b id="coolRead">18.0 s</b></div><div class="readout"><span>CLAMP</span><b id="clampRead">—</b></div><div class="readout"><span>SCREW POS.</span><b id="screwPosRead">42.0 mm</b></div><div class="readout"><span>INJECTION PRESS.</span><b id="injPressRead">0 bar</b></div><div class="readout"><span>CAVITY PRESS.</span><b id="cavityPressRead">0 bar</b></div><div class="readout"><span>HYDRAULIC</span><b id="hydraulicRead">0 bar</b></div><div class="cycle-track"><i id="cycleProgress"></i></div><div class="phase-label"><span id="cyclePhase">Ожидание цикла</span><span id="cycleStep">0 / 7</span></div></div>
-   </div>
+    <div class="cc300-screen">
+      <div class="cc300-status">
+       <div><small>Mold position actual value</small><b>— mm</b></div><div><small>Clamping force actual value</small><b>— kN</b></div><div><small>Specific injection pressure</small><b>— bar</b></div><div><small>Cooling time actual value</small><b>— s</b></div><div><small>Shot volume actual value</small><b>— cm³</b></div><div><small>Cycle time</small><b>— s</b></div>
+      </div>
+      <div class="cc300-nav"><span>● Production</span><span>Favorite 1</span><span>＋</span><span>System</span><span class="cc300-state" id="screenState">STANDBY</span></div>
+      <div class="cc300-home" id="cc300Home">
+       <div class="cc300-group"><h3>Components</h3><div class="cc300-tiles">
+        <button data-cc-page="Injection unit"><i>▤</i>Injection unit</button><button data-cc-page="Mold area"><i>▥</i>Mold area</button><button data-cc-page="Part removal"><i>⇧</i>Part removal</button><button data-cc-page="Peripheral unit"><i>▧</i>Peripheral unit</button><button data-cc-page="Office"><i>▣</i>Office</button><button data-cc-page="Robot"><i>⌘</i>Robot</button>
+       </div></div>
+       <div class="cc300-group"><h3>Tasks</h3><div class="cc300-tiles tasks">
+        <button data-cc-page="Conversion"><i>⇄</i>Conversion</button><button data-cc-page="Prepare for production"><i>✓</i>Prepare for production</button><button data-cc-page="Initial sampling"><i>◉</i>Initial sampling</button><button data-cc-page="Start/Stop production"><i>Ⅱ</i>Start/Stop production</button><button data-cc-page="Optimization of production"><i>⌁</i>Optimization of production</button><button data-cc-page="Maintenance"><i>⚙</i>Maintenance</button><button data-cc-page="Check production"><i>◷</i>Check production</button><button data-cc-page="Set monitoring"><i>◫</i>Set monitoring</button><button data-cc-page="Search cause of the fault"><i>!</i>Search cause of the fault</button>
+       </div></div>
+      </div>
+      <div class="cc300-detail hidden" id="cc300Detail"><div class="cc300-detail-head"><button class="cc300-back" id="cc300Back">‹</button><strong id="cc300DetailTitle">Injection unit</strong><span>ENGEL CC300</span></div><div id="cc300DetailContent"></div></div>
+      <div class="cc300-bottom"><span>ENGEL CC300</span><span>Components　·　Tasks</span><span>●</span></div>
+     </div>
+     <div class="training-telemetry"><div class="training-label">TRAINING SIMULATION · NOT CC300 MACHINE DATA</div>
+      <div class="readouts">
+       <div class="readout"><span>SHOT POSITION</span><b id="shotRead">42.0 mm</b></div><div class="readout"><span>INJECTION SPEED</span><b id="speedRead">55 %</b></div><div class="readout"><span>HOLD PRESSURE</span><b id="holdRead">65 bar</b></div><div class="readout"><span>BARREL TEMP.</span><b id="tempRead">230 °C</b></div><div class="readout"><span>COOLING TIME</span><b id="coolRead">18.0 s</b></div><div class="readout"><span>CLAMP FORCE</span><b id="clampRead">—</b></div><div class="readout"><span>SCREW POSITION</span><b id="screwPosRead">42.0 mm</b></div><div class="readout"><span>INJECTION PRESS.</span><b id="injPressRead">0 bar</b></div><div class="readout"><span>CAVITY PRESS.</span><b id="cavityPressRead">0 bar</b></div><div class="readout"><span>HYDRAULIC</span><b id="hydraulicRead">0 bar</b></div>
+      </div><div class="cycle-track"><i id="cycleProgress"></i></div><div class="phase-label"><span id="cyclePhase">Ожидание цикла</span><span id="cycleStep">0 / 7</span></div>
+     </div>
    <div class="toolbar" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="powerBtn">Включить привод</button><button class="btn" id="cycleBtn" disabled>Пробный цикл</button><button class="btn warn" id="alarmBtn">Сбросить аварию</button></div>
    <p class="sub" style="margin:9px 0 0">Пульт — игровая модель. Он не подключён к реальному прессу и не управляет оборудованием.</p>
   </section>
@@ -236,6 +285,21 @@ const params=[
 ];
 let stage=0,checks=stages.map(s=>s.tasks.map(()=>false)),robot={home:false,program:false,dry:false,pick:false,part:false,stopped:false},machineOn=false,alarm=false,scrap=0,paramsState={},logItems=[],cycleRunning=false,cycleTimer=null;
 function $(id){return document.getElementById(id)}
+
+const cc300ComponentItems={"Injection unit":["Inject","Plasticizing","Automatic ejector","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"]};
+function openCC300Page(name){
+ $('cc300Home').classList.add('hidden');$('cc300Detail').classList.remove('hidden');$('cc300DetailTitle').textContent=name;
+ const items=cc300ComponentItems[name]||[];
+ let html='';
+ if(items.length) html='<div class="cc300-detail-grid">'+items.map(x=>'<button type="button" data-cc-item="'+x.replace(/"/g,'&quot;')+'">'+x+'</button>').join('')+'</div>';
+ else html='<p class="cc300-note">Этот пункт присутствует в опубликованном меню CC300. Точная структура подстраницы зависит от конфигурации машины и версии программного обеспечения; её не имитирую без подтверждённого экрана.</p>';
+ if(["Inject","Plasticizing","Automatic ejector","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"].includes(name)) html='<p class="cc300-note">Функция указана в опубликованном перечне CC300. Точная раскладка страницы зависит от версии ПО и конфигурации машины.</p>';
+ $('cc300DetailContent').innerHTML=html;
+}
+document.querySelectorAll('[data-cc-page]').forEach(b=>b.addEventListener('click',()=>openCC300Page(b.dataset.ccPage)));
+$('cc300Back').onclick=()=>{$('cc300Detail').classList.add('hidden');$('cc300Home').classList.remove('hidden')};
+$('cc300DetailContent').addEventListener('click',e=>{const b=e.target.closest('[data-cc-item]');if(b)openCC300Page(b.dataset.ccItem)});
+
 function log(msg){const d=new Date();logItems.unshift({t:d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit',second:'2-digit'}),msg});logItems=logItems.slice(0,60);$('log').innerHTML=logItems.map(x=>'<div><time>'+x.t+'</time>'+x.msg+'</div>').join('')}
 function project(){return projects[$('projectSelect').value]}
 function setDefaults(){paramsState={shot:project().shot,speed:project().speed,pressure:project().pressure,hold:project().hold,cool:project().cool,temp:project().temp,back:project().back,vp:project().vp,cushion:project().cushion,rpm:project().rpm,clamp:project().clamp,moldTemp:project().moldTemp};$('materialSelect').value=project().material;renderParams();updateMetrics()}
