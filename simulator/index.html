@@ -27,6 +27,79 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
 .footer-actions{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:12px}.hidden{display:none!important}
 @media(max-width:900px){main{grid-template-columns:1fr}.sidebar{position:static}.mission-list{grid-template-columns:repeat(2,minmax(0,1fr))}.columns{grid-template-columns:1fr}}
 @media(max-width:560px){header{padding:10px 12px}.topright .pill:first-child{display:none}main{padding:9px;gap:10px}.panel{padding:11px}.mission-list{grid-template-columns:1fr 1fr}.mission{font-size:11px;padding:7px}.metrics{grid-template-columns:repeat(2,1fr)}.robot{grid-template-columns:1fr}.robot-art{height:125px}.robot-art svg{height:115px}.readouts{grid-template-columns:repeat(2,1fr)}.hero h1{font-size:18px}}
+
+/* ENGEL CC300-inspired training HMI */
+:root{color-scheme:light;--bg:#e6eaed;--panel:#fff;--panel2:#f3f6f7;--line:#cbd4d9;--text:#26343a;--muted:#718087;--green:#4c9d68;--amber:#c58b32;--red:#cf5151;--blue:#169db0}
+body{background:var(--bg);color:var(--text);font:13px "Arial",system-ui,sans-serif}
+header{background:#26343a;border-bottom:3px solid #54a66f;padding:10px 18px;box-shadow:0 2px 6px #0002}
+.brand{font-size:17px;color:#fff;letter-spacing:.13em}.brand small{color:#b6c4c9}
+.pill{border:1px solid #c5d0d5;background:#f5f7f8;border-radius:3px;color:#5d6b71;padding:5px 8px;font-size:10px;font-weight:700}
+.pill.live{background:#e8f4eb;color:#368453;border-color:#a9d1b4}
+main{max-width:1600px;grid-template-columns:245px minmax(0,1fr);gap:10px;padding:12px}
+.panel{background:#fff;border:1px solid #cbd4d9;border-radius:3px;padding:12px;box-shadow:0 1px 2px #24343a0c}
+.sidebar{background:#f2f5f6;top:66px}
+.eyebrow{color:#728087;font-size:9px;letter-spacing:.1em}
+.title{font-size:17px;color:#27383e}
+.sub{color:#68777e}
+select,input[type=number]{background:#fff;color:#26343a;border:1px solid #bac7cd;border-radius:2px;padding:8px}
+.btn{background:#edf1f3;color:#34454c;border:1px solid #b9c6cc;border-radius:2px;padding:8px 11px;font-size:11px;font-weight:700;box-shadow:inset 0 1px #fff}
+.btn:hover{border-color:#169db0;background:#e6f4f6}
+.btn.primary{background:#168fa2;border-color:#117d8e;color:white;box-shadow:none}
+.btn.warn{background:#f8eaea;border-color:#d6a5a5;color:#a33d3d}
+.progress{background:#dce3e6;border-radius:0;height:6px}
+.progress>i{background:#4b9e68}
+.mission-list{grid-template-columns:1fr;gap:3px}
+.mission{border-radius:2px;padding:8px;color:#637279}
+.mission.active{background:#dff0f2;border-color:#79c1c9;color:#176f7b}
+.mission .num{border-radius:2px;background:#dce4e7;color:#52636a}
+.mission.active .num{background:#168fa2;color:#fff}
+.workspace{gap:10px}
+.hero h1{font-size:19px;color:#25383f}
+.metrics{gap:5px}
+.metric{background:#f4f6f7;border:1px solid #d5dde1;border-radius:2px;padding:8px}
+.metric b{font-size:18px;color:#25383f}
+.metric span{color:#75838a}
+.columns{gap:10px}
+.section-title{font-size:12px;color:#34464d;text-transform:uppercase;letter-spacing:.035em}
+.task{background:#f7f9fa;border:1px solid #d9e0e3;border-radius:2px;padding:9px}
+.task strong{color:#34464d}.task small{color:#718087}
+.task:has(input:checked){background:#edf7ef;border-color:#9bc9a6}
+.task:has(input:checked) strong{color:#4d7658}
+.task input{accent-color:#4b9e68}
+.notice{border-radius:2px;background:#fff8e9;border-color:#e4cc91;color:#7e632b}
+.notice.red{background:#fceeee;border-color:#e0aaaa;color:#a23f3f}
+.machine{background:#26343a;border:5px solid #3b4a50;border-radius:5px;padding:8px;box-shadow:inset 0 0 0 1px #718087,0 3px 8px #0002}
+.machine-top{padding:3px 3px 7px}
+.machine-name{color:#fff;font-size:12px;letter-spacing:.12em}
+.machine-top .sub{color:#c3cdd1}
+.machine-screen{background:#f4f6f7;border:1px solid #aebbc1;border-radius:2px;padding:8px;margin-top:3px;color:#26343a}
+.screen-head{color:#177f91!important;border-bottom:1px solid #d4dde1;padding-bottom:7px;font-weight:800}
+.screw{height:9px;background:#d8e0e3;border:1px solid #bdc9ce;border-radius:1px;margin:9px 0}
+.screw i{background:linear-gradient(90deg,#168fa2,#61b57c)}
+.readouts{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}
+.readout{background:#fff;border:1px solid #d6dfe2;border-radius:1px;padding:6px}
+.readout span{color:#75838a;font-size:8px;font-weight:700;letter-spacing:.03em}
+.readout b{color:#263a42;font-size:12px}
+.cycle-track{background:#d7e0e3;border:1px solid #c1cdd1;border-radius:0}
+.cycle-track i{background:#4b9e68}
+.phase-label{color:#586970;font-weight:700}
+#machineStatus{color:#d2dde1}
+#powerPill{background:#35464d;color:#d7e1e4;border-color:#60727a}
+.param-list{gap:6px}
+.param{background:#f7f9fa;border:1px solid #d7dfe2;border-radius:2px;padding:8px}
+.param label{color:#34464d}
+.param output{color:#13899a}
+.param input[type=range]{accent-color:#168fa2}
+.param-foot{color:#718087}
+.robot-art{background:#f2f5f6;border:1px solid #d5dde1;border-radius:2px}
+.robot-state{color:#398657}
+.log{background:#26343a;border:1px solid #1c282d;border-radius:2px;color:#d0dcdf}
+.log div{border-bottom-color:#3a4b52}.log time{color:#76b9c2}
+#plantStates .task{background:#f7f9fa}
+#interlockPill{background:#fff7e6}
+@media(max-width:900px){main{grid-template-columns:1fr}.sidebar{position:static}.mission-list{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){header{padding:9px 10px}.topright .pill:first-child{display:none}main{padding:7px}.panel{padding:9px}.mission-list{grid-template-columns:repeat(2,minmax(0,1fr))}.readouts{grid-template-columns:repeat(2,minmax(0,1fr))}.machine{padding:6px;border-width:4px}.machine-name{font-size:10px}}
+
 </style>
 </head>
 <body>
@@ -58,10 +131,10 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
    <div class="footer-actions"><button class="btn" id="resetStage">Сбросить этап</button><button class="btn primary" id="nextStage" disabled>Следующий этап →</button></div>
   </section>
   <section class="panel">
-   <h2 class="section-title">Пульт термопластавтомата <span class="pill" id="machineMode">MANUAL</span></h2>
+   <h2 class="section-title">ENGEL CC300 · ПАНЕЛЬ УПРАВЛЕНИЯ <span class="pill" id="machineMode">MANUAL</span></h2>
    <div class="machine">
-    <div class="machine-top"><div><div class="machine-name" id="machineName">ENGEL · CONTROL</div><div class="sub" id="machineStatus">Ожидание · привод остановлен</div></div><span class="pill" id="powerPill">POWER OFF</span></div>
-    <div class="machine-screen"><div class="screen-head"><span>PROCESS MONITOR</span><span id="screenState">STANDBY</span></div><div class="screw"><i id="plasticBar"></i></div><div class="readouts"><div class="readout"><span>SHOT SIZE</span><b id="shotRead">42.0 mm</b></div><div class="readout"><span>INJECTION</span><b id="speedRead">55 %</b></div><div class="readout"><span>HOLD PRESS.</span><b id="holdRead">65 bar</b></div><div class="readout"><span>BARREL ZONE</span><b id="tempRead">230 °C</b></div><div class="readout"><span>COOLING</span><b id="coolRead">18.0 s</b></div><div class="readout"><span>CLAMP</span><b id="clampRead">—</b></div><div class="readout"><span>SCREW POS.</span><b id="screwPosRead">42.0 mm</b></div><div class="readout"><span>INJECTION PRESS.</span><b id="injPressRead">0 bar</b></div><div class="readout"><span>CAVITY PRESS.</span><b id="cavityPressRead">0 bar</b></div><div class="readout"><span>HYDRAULIC</span><b id="hydraulicRead">0 bar</b></div><div class="cycle-track"><i id="cycleProgress"></i></div><div class="phase-label"><span id="cyclePhase">Ожидание цикла</span><span id="cycleStep">0 / 7</span></div></div>
+    <div class="machine-top"><div><div class="machine-name" id="machineName">ENGEL CC300 · MACHINE CONTROL</div><div class="sub" id="machineStatus">Ожидание · привод остановлен</div></div><span class="pill" id="powerPill">POWER OFF</span></div>
+    <div class="machine-screen"><div class="screen-head"><span>ENGEL CC300 / PROCESS OVERVIEW</span><span id="screenState">STANDBY</span></div><div class="screw"><i id="plasticBar"></i></div><div class="readouts"><div class="readout"><span>SHOT SIZE</span><b id="shotRead">42.0 mm</b></div><div class="readout"><span>INJECTION</span><b id="speedRead">55 %</b></div><div class="readout"><span>HOLD PRESS.</span><b id="holdRead">65 bar</b></div><div class="readout"><span>BARREL ZONE</span><b id="tempRead">230 °C</b></div><div class="readout"><span>COOLING</span><b id="coolRead">18.0 s</b></div><div class="readout"><span>CLAMP</span><b id="clampRead">—</b></div><div class="readout"><span>SCREW POS.</span><b id="screwPosRead">42.0 mm</b></div><div class="readout"><span>INJECTION PRESS.</span><b id="injPressRead">0 bar</b></div><div class="readout"><span>CAVITY PRESS.</span><b id="cavityPressRead">0 bar</b></div><div class="readout"><span>HYDRAULIC</span><b id="hydraulicRead">0 bar</b></div><div class="cycle-track"><i id="cycleProgress"></i></div><div class="phase-label"><span id="cyclePhase">Ожидание цикла</span><span id="cycleStep">0 / 7</span></div></div>
    </div>
    <div class="toolbar" style="display:flex;gap:7px;flex-wrap:wrap;margin-top:10px"><button class="btn" id="powerBtn">Включить привод</button><button class="btn" id="cycleBtn" disabled>Пробный цикл</button><button class="btn warn" id="alarmBtn">Сбросить аварию</button></div>
    <p class="sub" style="margin:9px 0 0">Пульт — игровая модель. Он не подключён к реальному прессу и не управляет оборудованием.</p>
@@ -69,7 +142,7 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
  </div>
  <div class="columns">
   <section class="panel">
-   <h2 class="section-title">Параметры процесса <span class="pill">LIVE · меняются сразу</span></h2>
+   <h2 class="section-title">Технологический процесс · уставки <span class="pill">LIVE · SIMULATION</span></h2>
    <div class="param-list" id="paramList"></div>
    <div class="notice">Поднимай или снижай дозу пластика и другие значения — увидишь, как меняются расчётный цикл, запас материала и условная оценка качества. Это игровые зависимости, не физическая модель конкретной машины.</div>
   </section>
@@ -83,7 +156,7 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
   </section>
  </div>
  <section class="panel">
-  <h2 class="section-title">Состояние оборудования и межблокировки <span class="pill" id="interlockPill">CHECK REQUIRED</span></h2>
+  <h2 class="section-title">Компоненты машины · контроль готовности <span class="pill" id="interlockPill">CHECK REQUIRED</span></h2>
   <div class="sub">Измени состояние узлов и попробуй запустить цикл. Симулятор проверит условия и покажет причину блокировки. Это учебные переключатели, не управление реальным оборудованием.</div>
   <div class="robot-controls" id="plantStates" style="margin-top:12px">
    <label class="task"><input type="checkbox" id="guardClosed"><span><strong>Защитное ограждение закрыто</strong><small>Доступ в опасную зону закрыт</small></span></label>
@@ -95,7 +168,7 @@ select,input,button{font:inherit}select,input[type=number]{background:#101a20;co
   </div>
   <div class="notice red" id="faultBox">Цикл заблокирован: проверь условия безопасности и готовность оборудования.</div>
  </section>
- <section class="panel"><h2 class="section-title">Журнал наладчика <button class="btn" id="clearLog">Очистить</button></h2><div class="log" id="log"></div></section>
+ <section class="panel"><h2 class="section-title">События машины · журнал <button class="btn" id="clearLog">Очистить</button></h2><div class="log" id="log"></div></section>
 </section>
 </main>
 <script>
