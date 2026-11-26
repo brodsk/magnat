@@ -193,6 +193,8 @@ main{display:grid;grid-template-columns:minmax(0,1fr);max-width:1450px;padding:1
 .cc300-plant{display:flex;gap:8px;align-items:center;padding:9px;border:1px solid #d6dfe2;background:#f8fafb;font-size:10px}
 .cc300-plant input{width:17px;height:17px;accent-color:#168fa2}
 .cc300-note{font-size:11px}
+.cc300-subhead{font-size:11px;color:#51636a;margin:16px 0 5px;padding-bottom:5px;border-bottom:1px solid #d6dfe2}
+.cc300-status-strip{margin-top:12px;padding:10px;background:#e8eef0;border:1px solid #cbd6da;font-size:10px;line-height:1.8}
 .cc300-hardware{max-width:1000px;margin:0 auto;width:100%;min-height:112px;display:flex;align-items:center;justify-content:center;gap:20px;padding:12px 20px 8px;position:relative;background:linear-gradient(#263238,#12191d);border:1px solid #64747a;border-top:3px solid #080d10;border-radius:2px 2px 8px 8px;box-shadow:inset 0 1px #829096,0 4px 8px #0005}
 .cc300-hardware-caption{position:absolute;top:6px;left:12px;color:#aebdc2;font-size:8px;letter-spacing:.15em;font-weight:800}
 .cc300-small-key{width:66px;height:45px;margin-top:12px;background:linear-gradient(#45545a,#202b30);border:1px solid #718087;border-radius:3px;color:#dbe4e7;font-size:7px;font-weight:800;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;cursor:pointer;box-shadow:inset 0 1px #9aa6aa,0 2px 3px #0008}
@@ -423,7 +425,7 @@ main{display:block;width:100%;max-width:none;height:100vh;height:100dvh;min-heig
         <button data-cc-page="Injection unit"><i>▤</i>Injection unit</button><button data-cc-page="Mold area"><i>▥</i>Mold area</button><button data-cc-page="Part removal"><i>⇧</i>Part removal</button><button data-cc-page="Peripheral unit"><i>▧</i>Peripheral unit</button><button data-cc-page="Office"><i>▣</i>Office</button><button data-cc-page="Robot"><i>⌘</i>Robot</button>
        </div></div>
        <div class="cc300-group"><h3>Functions</h3><div class="cc300-tiles tasks">
-        <button data-cc-page="Inject"><i>⇢</i>Inject</button><button data-cc-page="Plasticizing"><i>⟳</i>Plasticizing</button><button data-cc-page="Automatic ejector"><i>⇧</i>Automatic ejector</button><button data-cc-page="Nozzle"><i>◉</i>Nozzle</button><button data-cc-page="Barrel cleaning"><i>≋</i>Barrel cleaning</button><button data-cc-page="Shut-off nozzle"><i>⊣</i>Shut-off nozzle</button><button data-cc-page="Barrel heating"><i>♨</i>Barrel heating</button><button data-cc-page="Measuring group"><i>◫</i>Measuring group</button><button data-cc-page="Monitoring"><i>◷</i>Monitoring</button><button data-cc-page="Micrograph"><i>▦</i>Micrograph</button><button data-cc-page="IQ weight control"><i>◎</i>IQ weight control</button>
+        <button data-cc-page="Inject"><i>⇢</i>Inject</button><button data-cc-page="Plasticizing"><i>⟳</i>Plasticizing</button><button data-cc-page="Automatic ejector"><i>⇧</i>Automatic ejector</button><button data-cc-page="Nozzle"><i>◉</i>Nozzle</button><button data-cc-page="Barrel cleaning"><i>≋</i>Barrel cleaning</button><button data-cc-page="Shut-off nozzle"><i>⊣</i>Shut-off nozzle</button><button data-cc-page="Barrel heating"><i>♨</i>Barrel heating</button><button data-cc-page="Measuring group"><i>◫</i>Measuring group</button><button data-cc-page="Monitoring"><i>◷</i>Monitoring</button><button data-cc-page="Micrograph"><i>▦</i>Micrograph</button><button data-cc-page="IQ weight control"><i>◎</i>IQ weight control</button><button data-cc-page="Manual operation"><i>↔</i>Manual movements</button>
        </div></div>
        <div class="cc300-group"><h3>Tasks</h3><div class="cc300-tiles tasks">
         <button data-cc-page="Conversion"><i>⇄</i>Conversion</button><button data-cc-page="Prepare for production"><i>✓</i>Prepare for production</button><button data-cc-page="Initial sampling"><i>◉</i>Initial sampling</button><button data-cc-page="Start/Stop production"><i>Ⅱ</i>Start/Stop production</button><button data-cc-page="Optimization of production"><i>⌁</i>Optimization of production</button><button data-cc-page="Maintenance"><i>⚙</i>Maintenance</button><button data-cc-page="Check production"><i>◷</i>Check production</button><button data-cc-page="Set monitoring"><i>◫</i>Set monitoring</button><button data-cc-page="Search cause of the fault"><i>!</i>Search cause of the fault</button>
@@ -543,6 +545,7 @@ const params=[
  {id:'moldTemp',label:'Температура формы',unit:'°C',min:20,max:100,step:1,desc:'Условная температура формы.'}
 ];
 let stage=0,checks=stages.map(s=>s.tasks.map(()=>false)),robot={home:false,program:false,dry:false,pick:false,part:false,stopped:false},machineOn=false,alarm=false,scrap=0,paramsState={},logItems=[],cycleRunning=false,cycleTimer=null;
+let manualState={moldClosed:false,screwCharged:false,nozzleForward:false,ejectorOut:false};
 function $(id){return document.getElementById(id)}
 
 const cc300ComponentItems={"Injection unit":["Inject","Plasticizing","Nozzle","Barrel cleaning","Shut-off nozzle","Barrel heating","Measuring group","Monitoring","Micrograph","IQ weight control"]};
@@ -606,6 +609,13 @@ function openCC300Page(name){
   html=cc300RobotControls();
  }else if(name==="Automatic ejector"){
   html='<p class="cc300-note">Автоматический выталкиватель · учебная страница</p><div class="cc300-action-row">'+cc300Action('TEST EJECTOR','eject-test')+cc300Action('RETRACT','eject-retract')+'</div><p id="cc-eject-state" class="cc300-note">Status: READY (simulation)</p>';
+ }else if(name==="Manual operation"){
+  html='<p class="cc300-note">Ручные перемещения · учебная имитация. Команды не управляют реальным ТПА. Перед каждым движением проверяются разрешающие сигналы.</p>'+
+   '<h4 class="cc300-subhead">Узел смыкания формы</h4><div class="cc300-action-row">'+cc300Action('ЗАКРЫТЬ ФОРМУ','mold-close','primary')+cc300Action('ОТКРЫТЬ ФОРМУ','mold-open')+'</div>'+
+   '<h4 class="cc300-subhead">Шнек / пластикация</h4><div class="cc300-action-row">'+cc300Action('ШНЕКОВАНИЕ · НАБРАТЬ ДОЗУ','screw-recover','primary')+cc300Action('ШНЕК ВПЕРЁД · ВПРЫСК','screw-forward')+'</div>'+
+   '<h4 class="cc300-subhead">Сопло и выталкиватель</h4><div class="cc300-action-row">'+cc300Action('СОПЛО ВПЕРЁД','nozzle-forward')+cc300Action('СОПЛО НАЗАД','nozzle-back')+cc300Action('ВЫТОЛКНУТЬ','eject-advance')+cc300Action('ВЕРНУТЬ ТОЛКАТЕЛИ','eject-retract')+'</div>'+
+   '<div class="cc300-status-strip" id="cc-manual-state"><b>Форма:</b> '+(manualState.moldClosed?'закрыта':'открыта')+' · <b>Шнек:</b> '+(manualState.screwCharged?'доза набрана':'ожидает пластикации')+' · <b>Сопло:</b> '+(manualState.nozzleForward?'вперёд':'назад')+' · <b>Толкатели:</b> '+(manualState.ejectorOut?'выдвинуты':'втянуты')+'</div>'+
+   '<p class="cc300-note" id="cc-manual-message">Выбери ручное движение. Недопустимые команды будут заблокированы.</p>';
  }else if(name==="Peripheral unit"||name==="Cooling circuit"||name==="Temperature controller"){
   html='<div class="cc300-plant-grid">'+cc300PlantToggle('waterReady','Cooling circuit ready')+cc300PlantToggle('tempReady','Temperature controller ready')+'</div>';
  }else if(name==="Prepare for production"||name==="Check production"||name==="Initial sampling"||name==="Search cause of the fault"||name==="Monitoring"||name==="Maintenance"||name==="Conversion"||name==="Start/Stop production"||name==="System"||name==="Production"||name==="Favorite 1"||name==="Add favorite"||name==="Office"||name==="Material supply"){
@@ -647,6 +657,41 @@ function syncCC300Param(id,value){
  updateMetrics();
 }
 function performCC300Action(action){
+ if(action.startsWith('mold-')||action.startsWith('screw-')||action.startsWith('nozzle-')||action.startsWith('eject-')){
+  const msg=$('cc-manual-message');
+  const deny=(reason)=>{if(msg)msg.textContent='BLOCKED · '+reason;log('РУЧНОЕ ДВИЖЕНИЕ ЗАБЛОКИРОВАНО: '+reason);};
+  if(!machineOn){deny('сначала включи привод');return;}
+  if(alarm){deny('активна авария — сбрось её');return;}
+  if(cycleRunning){deny('автоматический цикл выполняется');return;}
+  if(!$('guardClosed').checked||!$('eStopClear').checked){deny('проверь закрытое ограждение и аварийный останов');return;}
+  if(!robot.home||!$('robotAtHome').checked){deny('робот должен быть подтверждён в HOME');return;}
+  if(action==='mold-close'){
+   if(manualState.ejectorOut){deny('сначала верни толкатели');return;}
+   manualState.moldClosed=true;
+  }else if(action==='mold-open'){
+   if(!manualState.moldClosed){deny('форма уже открыта');return;}
+   if(manualState.nozzleForward){deny('сначала отведи сопло');return;}
+   manualState.moldClosed=false;
+  }else if(action==='screw-recover'){
+   if(!manualState.moldClosed){deny('для учебной пластикации сначала закрой форму');return;}
+   if(manualState.nozzleForward){deny('отведи сопло перед пластикацией');return;}
+   manualState.screwCharged=true;
+  }else if(action==='screw-forward'){
+   if(!manualState.moldClosed||!manualState.screwCharged){deny('закрой форму и набери дозу шнекованием');return;}
+   manualState.screwCharged=false;
+  }else if(action==='nozzle-forward'){
+   if(!manualState.moldClosed){deny('сначала закрой форму');return;}
+   manualState.nozzleForward=true;
+  }else if(action==='nozzle-back')manualState.nozzleForward=false;
+  else if(action==='eject-advance'){
+   if(manualState.moldClosed){deny('открой форму перед выталкиванием');return;}
+   manualState.ejectorOut=true;
+  }else if(action==='eject-retract')manualState.ejectorOut=false;
+  const state=$('cc-manual-state');
+  if(state)state.innerHTML='<b>Форма:</b> '+(manualState.moldClosed?'закрыта':'открыта')+' · <b>Шнек:</b> '+(manualState.screwCharged?'доза набрана':'ожидает пластикации')+' · <b>Сопло:</b> '+(manualState.nozzleForward?'вперёд':'назад')+' · <b>Толкатели:</b> '+(manualState.ejectorOut?'выдвинуты':'втянуты');
+  if(msg)msg.textContent='Выполнено в симуляции: '+({ 'mold-close':'форма закрыта','mold-open':'форма открыта','screw-recover':'шнекование завершено · доза набрана','screw-forward':'условный ход шнека вперёд выполнен','nozzle-forward':'сопло подведено','nozzle-back':'сопло отведено','eject-advance':'толкатели выдвинуты','eject-retract':'толкатели возвращены'}[action]||'команда выполнена');
+  log('РУЧНОЕ ДВИЖЕНИЕ: '+action+' · учебная модель');return;
+ }
  if(action.indexOf('robot-')===0){const key=action.slice(6);const btn=document.querySelector('[data-robot="'+key+'"]');if(btn)btn.click();return;}
  if(action==='power')$('powerBtn').click();
  else if(action==='cycle')$('cycleBtn').click();
